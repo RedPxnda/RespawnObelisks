@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.redpxnda.respawnobelisks.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "respawnobelisks.refmap.json",
+  "mixins": [
+    "ServerPlayerSetRespawnPosMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
