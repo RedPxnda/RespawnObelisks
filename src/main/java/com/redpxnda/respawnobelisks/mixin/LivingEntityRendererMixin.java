@@ -1,0 +1,42 @@
+package com.redpxnda.respawnobelisks.mixin;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.redpxnda.respawnobelisks.registry.Registry;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+
+@Mixin(LivingEntityRenderer.class)
+public class LivingEntityRendererMixin {
+    @WrapOperation(
+            method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V")
+    )
+    private void translucentRender(EntityModel<LivingEntity> instance,
+                                   PoseStack poseStack,
+                                   VertexConsumer vertexConsumer,
+                                   int pPackedLight,
+                                   int pPackedOverlay,
+                                   float pRed,
+                                   float pGreen,
+                                   float pBlue,
+                                   float pAlpha,
+                                   Operation<Void> original,
+                                   LivingEntity pEntity
+    ) {
+        if (pEntity instanceof Player player && player.hasEffect(Registry.IMMORTALITY_CURSE.get())) {
+            pAlpha *= 0.65;
+            pRed *= 0.75;
+            pGreen *= 0.75;
+            pBlue *= 0.75;
+        }
+        instance.renderToBuffer(poseStack, vertexConsumer, pPackedLight, pPackedOverlay, pRed, pGreen, pBlue, pAlpha);
+    }
+}

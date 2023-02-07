@@ -1,3 +1,9 @@
 {
-  "block.respawnobelisks.respawn_obelisk": "Respawn Obelisk"
+  "block.respawnobelisks.respawn_obelisk": "Respawn Obelisk",
+  "text.respawnobelisks.cannot_set_spawn": "An ancient force seems to have once protected this seemingly mundane object, however that force now lays dormant. §7[§9§nHover§r§7]",
+  "text.respawnobelisks.cannot_set_spawn.hover": "You cannot set your spawn at beds.",
+  "text.respawnobelisks.no_charge": "This respawn obelisk has no charge",
+  "block.minecraft.spawn.not_valid": "You have no home or charged respawn obelisk, or it was obstructed",
+
+  "effect.respawnobelisks.curse_of_immortality": "Immortality Curse"
 }

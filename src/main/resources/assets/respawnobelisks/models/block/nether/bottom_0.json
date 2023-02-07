@@ -1,0 +1,9 @@
+{
+	"parent": "respawnobelisks:block/generic_obelisk_bottom",
+	"textures": {
+		"particle": "minecraft:block/nether_bricks",
+		"1": "respawnobelisks:block/nether/bottom",
+		"2": "respawnobelisks:block/nether/lower_0",
+		"3": "respawnobelisks:block/nether/top"
+	}
+}

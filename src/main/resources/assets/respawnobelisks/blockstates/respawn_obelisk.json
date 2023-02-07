@@ -1,5 +1,28 @@
 {
   "variants": {
-    "": { "model": "respawnobelisks:block/respawn_obelisk" }
+    "half=lower,charge=0": {
+      "model": "respawnobelisks:block/overworld/bottom_0"
+    },
+    "half=lower,charge=1": {
+      "model": "respawnobelisks:block/overworld/bottom_0"
+    },
+    "half=lower,charge=2": {
+      "model": "respawnobelisks:block/overworld/bottom_2"
+    },
+    "half=lower,charge=3": {
+      "model": "respawnobelisks:block/overworld/bottom_3"
+    },
+    "half=upper,charge=0": {
+      "model": "respawnobelisks:block/overworld/top_0"
+    },
+    "half=upper,charge=1": {
+      "model": "respawnobelisks:block/overworld/top_1"
+    },
+    "half=upper,charge=2": {
+      "model": "respawnobelisks:block/overworld/top_2"
+    },
+    "half=upper,charge=3": {
+      "model": "respawnobelisks:block/overworld/top_2"
+    }
   }
 }

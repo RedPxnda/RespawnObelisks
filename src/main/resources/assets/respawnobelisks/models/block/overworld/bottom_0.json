@@ -1,0 +1,9 @@
+{
+	"parent": "respawnobelisks:block/generic_obelisk_bottom",
+	"textures": {
+		"particle": "minecraft:block/stone",
+		"1": "respawnobelisks:block/overworld/bottom",
+		"2": "respawnobelisks:block/overworld/lower_0",
+		"3": "respawnobelisks:block/overworld/top"
+	}
+}
