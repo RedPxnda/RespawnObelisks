@@ -35,7 +35,7 @@ jobs:
       with:
         tag: "latest-release"
     - name: Log release assets
-      run: echo "${{ steps.gitRelease.outputs.assets[0].name }}"
+      run: echo "${{ steps.gitRelease.outputs.assets[0] }}"
 #     - name: "Upload to CurseForge"
 #       uses: itsmeow/curseforge-upload@v3
 #       with:
@@ -50,7 +50,7 @@ jobs:
       with:
           username: Respawn Obelisk Releases
           title: New Respawn Obelisks Release!
-          message: "Respawn Obelisks has just had a new release.\n **Changelog:** https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog \n **Github Link:** https://github.com/RedPxnda/RespawnObelisks/releases/tag/latest-release \n **Curseforge Link:** N/A \n **File Name:** ${{ steps.gitRelease.outputs.assets[0].name }}"
+          message: "Respawn Obelisks has just had a new release.\n **Changelog:** https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog \n **Github Link:** https://github.com/RedPxnda/RespawnObelisks/releases/tag/latest-release \n **Curseforge Link:** N/A \n **File Name:** ${{ fromJson(steps.gitRelease.outputs.assets[0]).name }}"
           colour: '#8000ff'
           avatar_url: https://media.forgecdn.net/avatars/thumbnails/774/979/64/64/638115664626241981_animated.gif
           webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
