@@ -30,7 +30,7 @@ jobs:
     - name: "Upload to CurseForge"
       uses: itsmeow/curseforge-upload@v3
       with:
-        file_path: "build/libs/respawnobelisks-${{ steps.build.outputs.version }}-all.jar"
+        file_path: "build/libs/respawnobelisks-*-all.jar"
         changelog: "https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog"
         game_endpoint: "minecraft"
         game_versions: "Minecraft 1.19:1.19.2,Java 17,Forge"
