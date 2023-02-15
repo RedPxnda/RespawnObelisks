@@ -24,7 +24,7 @@ jobs:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
         prerelease: true
-        title: "Development Build"
+        title: "Full Release Build"
         files: |
           build/libs/*-all.jar
     - id: get_version
@@ -32,7 +32,7 @@ jobs:
     - name: "Upload to CurseForge"
       uses: itsmeow/curseforge-upload@v3
       with:
-        file_path: "build/libs/respawnobelisks-${{ steps.get_version.outputs.version-without-v }}-all.jar"
+        file_path: "build/libs/respawnobelisks-1.1-all.jar"
         changelog: "https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog"
         game_endpoint: "minecraft"
         game_versions: "Minecraft 1.19:1.19.2,Java 17,Forge"
