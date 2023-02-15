@@ -1,7 +1,6 @@
 name: Build and Release Project
 on: 
   workflow_dispatch:
-  push:
 permissions: write-all
 jobs:
   build:
