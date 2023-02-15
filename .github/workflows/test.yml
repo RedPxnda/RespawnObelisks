@@ -6,7 +6,7 @@ permissions: write-all
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: (${{ github.event_name == 'push' }} && ${{ contains(github.event.head_commit.message, 'TEST') }}) || ${{ github.event_name == 'workflow_dispatch' }}
+    if: (${{ github.event_name == 'push' }} && ${{ contains(github.event.head_commit.message, 'TEST-THINGY-MAJIG') }}) || ${{ github.event_name == 'workflow_dispatch' }}
     steps:
     - name: Test Stuff
-      run: echo "'${{ github.event.head_commit.message }}' is message, \n'${{ github.event_name }}' is the event, \n'${{ contains(github.event.head_commit.message, 'TEST') }}' is test"
+      run: echo "'${{ github.event.head_commit.message }}' is message, \n'${{ github.event_name }}' is the event, \n'${{ contains(github.event.head_commit.message, 'TEST-THINGY-MAJIG') }}' is test"
