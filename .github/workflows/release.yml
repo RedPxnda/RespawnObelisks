@@ -35,7 +35,7 @@ jobs:
       with:
         tag: "latest-release"
     - name: Log release assets
-      run: echo "${{ steps.gitRelease.outputs.assets[0] }}"
+      run: echo "${{ fromJson(steps.gitRelease.outputs.assets) }}"
 #     - name: "Upload to CurseForge"
 #       uses: itsmeow/curseforge-upload@v3
 #       with:
