@@ -27,14 +27,24 @@ jobs:
         title: "Full Release Build"
         files: |
           build/libs/*-all.jar
-    - id: get_version
-      uses: battila7/get-version-action@v2
-    - name: "Upload to CurseForge"
-      uses: itsmeow/curseforge-upload@v3
+#     - name: "Upload to CurseForge"
+#       uses: itsmeow/curseforge-upload@v3
+#       with:
+#         file_path: "build/libs/respawnobelisks-1.1-all.jar"
+#         changelog: "https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog"
+#         game_endpoint: "minecraft"
+#         game_versions: "Minecraft 1.19:1.19.2,Java 17,Forge"
+#         project_id: "824852"
+#         token: "${{ secrets.CF_API_TOKEN }}"
+    - name: Send Discord Embed
+      uses: rjstone/discord-webhook-notify@v1
       with:
-        file_path: "build/libs/respawnobelisks-1.1-all.jar"
-        changelog: "https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog"
-        game_endpoint: "minecraft"
-        game_versions: "Minecraft 1.19:1.19.2,Java 17,Forge"
-        project_id: "824852"
-        token: "${{ secrets.CF_API_TOKEN }}"
+          severity: info
+          username: Respawn Obelisk Releases
+          color: '#8000ff'
+          avatarUrl: https://media.forgecdn.net/avatars/thumbnails/774/979/64/64/638115664626241981_animated.gif
+          description: "A new release of Respawn Obelisks has just commenced! Check `https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog` for the changelog."
+          details: 'WIP'
+          footer: This is a footer.
+          text: https://www.curseforge.com/minecraft/mc-mods/respawn-obelisks/
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
