@@ -22,11 +22,20 @@ jobs:
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
+        automatic_release_tag: "latest-release"
         prerelease: true
         title: "Full Release Build"
         files: |
           build/libs/*-all.jar
+    - name: Get Pre Release Files
+      id: gitRelease
+      uses: cardinalby/git-get-release-action@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        tag: "latest-release"
+    - name: Log release assets
+      run: echo "${{ steps.gitRelease.outputs.assets }}"
 #     - name: "Upload to CurseForge"
 #       uses: itsmeow/curseforge-upload@v3
 #       with:
@@ -37,14 +46,11 @@ jobs:
 #         project_id: "824852"
 #         token: "${{ secrets.CF_API_TOKEN }}"
     - name: Send Discord Embed
-      uses: rjstone/discord-webhook-notify@v1
+      uses: stegzilla/discord-notify@v2
       with:
-          severity: info
           username: Respawn Obelisk Releases
-          color: '#8000ff'
-          avatarUrl: https://media.forgecdn.net/avatars/thumbnails/774/979/64/64/638115664626241981_animated.gif
-          description: "A new release of Respawn Obelisks has just commenced! Check `https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog` for the changelog."
-          details: 'WIP'
-          footer: This is a footer.
-          text: https://www.curseforge.com/minecraft/mc-mods/respawn-obelisks/
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          title: New Respawn Obelisks Release!
+          message: "Respawn Obelisks has just had a new release.\n **Changelog:** https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog \n **Github Release Link:** https://github.com/RedPxnda/RespawnObelisks/releases/tag/latest-release \n **Curseforge Link:** N/A"
+          colour: '#8000ff'
+          avatar_url: https://media.forgecdn.net/avatars/thumbnails/774/979/64/64/638115664626241981_animated.gif
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
