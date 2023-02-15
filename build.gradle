@@ -19,7 +19,7 @@ apply plugin: 'org.spongepowered.mixin'
 jarJar.enable()
 
 group = 'com.redpxnda'
-version = '1.0'
+version = '1.1'
 
 java {
     archivesBaseName = 'respawnobelisks'
@@ -42,7 +42,7 @@ minecraft {
     // Simply re-run your setup task after changing the mappings to update your workspace.
     mappings channel: 'parchment', version: '2022.11.27-1.19.2'
 
-    //accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
@@ -143,12 +143,12 @@ repositories {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.19.2-43.2.0'
 
-    minecraftLibrary("com.github.LlamaLad7:MixinExtras:0.1.1")
-    jarJar(group: 'com.llamalad7.mixinextras', name: 'MixinExtras', version: "[0.1.1,") {
+    minecraftLibrary(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: '0.1.1')
+    jarJar(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "[0.1.1,1.0.0)") {
         jarJar.pin(it, '0.1.1')
     }
 
-    annotationProcessor("com.github.LlamaLad7:MixinExtras:0.1.1")
+    annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: '0.1.1')
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
@@ -167,8 +167,9 @@ jar {
     }
 }
 
+reobf { jarJar { } }
+
 jar.finalizedBy('reobfJar')
-tasks.jarJar.finalizedBy('reobfJarJar')
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation

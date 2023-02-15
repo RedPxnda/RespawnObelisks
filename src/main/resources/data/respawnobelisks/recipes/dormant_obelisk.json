@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "G": {
+      "item": "minecraft:prismarine_shard"
+    },
+    "O": {
+      "item": "minecraft:echo_shard"
+    },
+    "P": {
+      "item": "minecraft:stone_bricks"
+    }
+  },
+  "pattern": [
+    "OPO",
+    "GPG",
+    "OPO"
+  ],
+  "result": {
+    "item": "respawnobelisks:dormant_obelisk"
+  }
+}

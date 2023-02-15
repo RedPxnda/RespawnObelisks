@@ -201,7 +201,13 @@ public class RespawnObeliskBlock extends Block {
                     if (!player.isCreative()) player.getMainHandItem().setCount(player.getMainHandItem().getCount()-1);
                     Packets.sendToPlayer(new RespawnObeliskInteractionPacket(ServerConfig.OBELISK_REMOVAL_SOUND.get(), pPos, false), player);
                     if (ServerConfig.ALLOW_PICKUP.get()) {
-                        Optional<Holder<Item>> obeliskHolder = Registry.RESPAWN_OBELISK_ITEM.getHolder();
+                        Optional<Holder<Item>> obeliskHolder;
+                        if (OBELISK_DIMENSION.equals(Either.left(Level.NETHER)))
+                            obeliskHolder = Registry.OBELISK_CORE_NETHER.getHolder();
+                        else if (OBELISK_DIMENSION.equals(Either.left(Level.END)))
+                            obeliskHolder = Registry.OBELISK_CORE_END.getHolder();
+                        else
+                            obeliskHolder = Registry.OBELISK_CORE.getHolder();
                         if (obeliskHolder.isPresent()) {
                             ItemStack stack = new ItemStack(obeliskHolder.get());
                             ItemEntity entity = new ItemEntity(pLevel, pPos.getX(), pPos.getY()+0.5, pPos.getZ(), stack);

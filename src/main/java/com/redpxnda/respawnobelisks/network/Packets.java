@@ -29,6 +29,11 @@ public class Packets {
                 .encoder(RespawnObeliskInteractionPacket::toBytes)
                 .consumerMainThread(RespawnObeliskInteractionPacket::handle)
                 .add();
+        INSTANCE.messageBuilder(RespawnAnchorInteractionPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(RespawnAnchorInteractionPacket::new)
+                .encoder(RespawnAnchorInteractionPacket::toBytes)
+                .consumerMainThread(RespawnAnchorInteractionPacket::handle)
+                .add();
         INSTANCE.messageBuilder(SyncMobEffectPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
                 .decoder(SyncMobEffectPacket::new)
                 .encoder(SyncMobEffectPacket::toBytes)
