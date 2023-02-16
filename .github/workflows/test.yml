@@ -1,0 +1,14 @@
+name: Testing Workflow
+on: 
+  workflow_dispatch:
+permissions: write-all
+jobs:
+  everything:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Get changelog text
+      id: changelog
+      run: echo "text=$(cat changelog_latest.md)" >> $GITHUB_OUTPUT
+    - name: Test output
+      run: echo "${{ steps.vars.outputs.version }}"
