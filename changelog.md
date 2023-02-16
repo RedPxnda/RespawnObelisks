@@ -1,4 +1,4 @@
-## v1.2:
+## v1.1a:
 - Fixed odd bright texture issue with end obelisks
 
 
