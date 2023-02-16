@@ -26,7 +26,7 @@ jobs:
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest-release"
-        prerelease: true
+        prerelease: false
         title: "Full Release Build"
         files: |
           build/libs/*-all.jar
@@ -42,20 +42,17 @@ jobs:
       uses: itsmeow/curseforge-upload@v3
       with:
         file_path: "build/libs/${{ fromJson(steps.gitRelease.outputs.assets)[0].name }}"
-        changelog: "https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog"
+        changelog: "https://github.com/RedPxnda/RespawnObelisks/blob/master/changelog.md"
         game_endpoint: "minecraft"
         game_versions: "Minecraft 1.19:1.19.2,Java 17,Forge"
         project_id: "824852"
         token: "${{ secrets.CF_API_TOKEN }}"
-    - name: Get changelog text
-      id: vars
-      run: echo "text=$(cat changelog_latest.md)" >> $GITHUB_OUTPUT
     - name: Send Discord Embed
       uses: stegzilla/discord-notify@v2
       with:
           username: Respawn Obelisk Releases
           title: New Respawn Obelisks Release!
-          message: "Respawn Obelisks has just had a new release.\n **Changelog:** https://github.com/RedPxnda/RespawnObelisks/wiki/Changelog \n **Github Link:** https://github.com/RedPxnda/RespawnObelisks/releases/tag/latest-release \n **Curseforge Link:** https://www.curseforge.com/minecraft/mc-mods/respawn-obelisks/files/${{ steps.curseforge.outputs.id }} \n **File Name:** ${{ fromJson(steps.gitRelease.outputs.assets)[0].name }}"
+          message: "Respawn Obelisks has just had a new release.\n **Changelog:** https://github.com/RedPxnda/RespawnObelisks/blob/master/changelog.md \n **Github Link:** https://github.com/RedPxnda/RespawnObelisks/releases/tag/latest-release \n **Curseforge Link:** https://www.curseforge.com/minecraft/mc-mods/respawn-obelisks/files/${{ steps.curseforge.outputs.id }} \n **File Name:** ${{ fromJson(steps.gitRelease.outputs.assets)[0].name }}"
           colour: '#8000ff'
           avatar_url: https://media.forgecdn.net/avatars/thumbnails/774/979/64/64/638115664626241981_animated.gif
           webhook_url: ${{ secrets.DISCORD_WEBHOOK }}
