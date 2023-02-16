@@ -19,7 +19,7 @@ apply plugin: 'org.spongepowered.mixin'
 jarJar.enable()
 
 group = 'com.redpxnda'
-version = '1.1'
+version = '1.1a'
 
 java {
     archivesBaseName = 'respawnobelisks'

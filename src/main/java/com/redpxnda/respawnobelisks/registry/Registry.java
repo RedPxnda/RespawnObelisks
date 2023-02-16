@@ -1,9 +1,11 @@
 package com.redpxnda.respawnobelisks.registry;
 
 import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Codec;
 import com.redpxnda.respawnobelisks.registry.blocks.FakeRespawnAnchorBlock;
 import com.redpxnda.respawnobelisks.registry.blocks.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.effects.ImmortalityCurseEffect;
+import com.redpxnda.respawnobelisks.structure.NetherLandStructures;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -14,6 +16,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RespawnAnchorBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -108,7 +112,21 @@ public class Registry {
             .noLootTable()
     ));
 
+    // STRUCTURE TYPE
+    public static final DeferredRegister<StructureType<?>> STRUCTURES = DeferredRegister.create(net.minecraft.core.Registry.STRUCTURE_TYPE_REGISTRY, MODID);
+
+    /**
+     * Registers the base structure itself and sets what its path is. In this case,
+     * this base structure will have the resourcelocation of structure_tutorial:sky_structures.
+     */
+    public static final RegistryObject<StructureType<NetherLandStructures>> NETHER_STRUCTURES = STRUCTURES.register("nether_land_structure", () -> explicitStructureTypeTyping(NetherLandStructures.CODEC));
+
+    private static <T extends Structure> StructureType<T> explicitStructureTypeTyping(Codec<T> structureCodec) {
+        return () -> structureCodec;
+    }
+
     public static void register(IEventBus eventBus) {
+        STRUCTURES.register(eventBus);
         ITEMS.register(eventBus);
         BLOCKS.register(eventBus);
         MOB_EFFECTS.register(eventBus);

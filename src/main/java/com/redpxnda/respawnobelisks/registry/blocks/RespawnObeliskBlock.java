@@ -56,17 +56,10 @@ public class RespawnObeliskBlock extends Block {
     private static final VoxelShape AABB_TOP = Shapes.or(HITBOX_TOP_BASE, HITBOX_TOP_TRIM);
     public final Either<ResourceKey<Level>, String> OBELISK_DIMENSION;
 
-    private ForgeConfigSpec.ConfigValue<List<String>> CHARGE_ITEMS = ServerConfig.OBELISK_CHARGE_ITEM;
-
     public RespawnObeliskBlock(Properties pProperties, Either<ResourceKey<Level>, String> obeliskDimension) {
         super(pProperties);
         this.OBELISK_DIMENSION = obeliskDimension;
         this.registerDefaultState(this.stateDefinition.any().setValue(HALF, DoubleBlockHalf.LOWER).setValue(CHARGE, 0).setValue(RESPAWN_SIDE, Direction.NORTH));
-    }
-
-    public RespawnObeliskBlock setChargeItems(ForgeConfigSpec.ConfigValue<List<String>> chargeItems) {
-        this.CHARGE_ITEMS = chargeItems;
-        return this;
     }
 
     public boolean propagatesSkylightDown(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
@@ -152,6 +145,11 @@ public class RespawnObeliskBlock extends Block {
                         pLevel.explode(null, DamageSource.badRespawnPointExplosion(), null, finalPPos.getX() + 0.5D, finalPPos.getY() + 0.5D, finalPPos.getZ() + 0.5D, 5.0F, true, Explosion.BlockInteraction.DESTROY);
                         return InteractionResult.SUCCESS;
                     }
+                }
+                ForgeConfigSpec.ConfigValue<List<String>> CHARGE_ITEMS = ServerConfig.OBELISK_CHARGE_ITEM;
+                if (OBELISK_DIMENSION.left().isPresent()) {
+                    if (OBELISK_DIMENSION.left().get().equals(Level.NETHER)) CHARGE_ITEMS = ServerConfig.OBELISK_CHARGE_ITEM_NETHER;
+                    else if (OBELISK_DIMENSION.left().get().equals(Level.END)) CHARGE_ITEMS = ServerConfig.OBELISK_CHARGE_ITEM_END;
                 }
                 // Charging obelisk
                 for (String str : CHARGE_ITEMS.get()) {

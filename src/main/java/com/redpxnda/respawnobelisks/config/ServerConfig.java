@@ -14,7 +14,8 @@ public class ServerConfig {
     public static final ForgeConfigSpec SPEC;
 
     public static final ForgeConfigSpec.ConfigValue<List<String>> OBELISK_CHARGE_ITEM;
-
+    public static final ForgeConfigSpec.ConfigValue<List<String>> OBELISK_CHARGE_ITEM_NETHER;
+    public static final ForgeConfigSpec.ConfigValue<List<String>> OBELISK_CHARGE_ITEM_END;
     public static final ForgeConfigSpec.ConfigValue<String> OBELISK_CHARGE_SOUND;
     public static final ForgeConfigSpec.ConfigValue<String> OBELISK_DEPLETE_SOUND;
     public static final ForgeConfigSpec.ConfigValue<String> OBELISK_SET_RESPAWN_SOUND;
@@ -32,7 +33,8 @@ public class ServerConfig {
         BUILDER.push("Server Config for Respawn Obelisks");
 
         List<String> itemArray = new ArrayList<>();
-        itemArray.add("minecraft:ender_eye|1");
+        itemArray.add("minecraft:ender_pearl|1");
+        itemArray.add("minecraft:ender_eye|3");
         OBELISK_CHARGE_ITEM = BUILDER.comment("The items used for charging the obelisk.\n" +
                         "Syntax: [\"<ITEM_ID>|<CHARGE_AMOUNT>\", ...]\n" +
                         "        [\"<ITEM_ID>|<CHARGE_AMOUNT>|<ALLOW_OVERFILL>\", ...]\n" +
@@ -43,6 +45,8 @@ public class ServerConfig {
                         "the charge amount WOULD go to 5. However, since the max is 3, it only goes to 3.\n" +
                         "The same logic is applied to going below 0 with negative charge values.")
                         .define("Obelisk Charge Items", itemArray);
+        OBELISK_CHARGE_ITEM_NETHER = BUILDER.define("Nether Obelisk Charge Items", itemArray);
+        OBELISK_CHARGE_ITEM_END = BUILDER.define("End Obelisk Charge Items", itemArray);
         OBELISK_CHARGE_SOUND = BUILDER.comment("The sound played when charging an obelisk.").define("Obelisk Charge Sound", "minecraft:block.respawn_anchor.charge");
         OBELISK_DEPLETE_SOUND = BUILDER.comment("The sound played when decharging an obelisk. (Eg. An item reduces charge amount)").define("Obelisk Deplete Sound", "minecraft:block.respawn_anchor.deplete");
         OBELISK_SET_RESPAWN_SOUND = BUILDER.comment("The sound played when setting your spawn at an obelisk.").define("Obelisk Set Spawn Sound", "minecraft:block.respawn_anchor.set_spawn");

@@ -1,4 +1,4 @@
-package com.redpxnda.respawnobelisks.village;
+package com.redpxnda.respawnobelisks.structure;
 
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
@@ -51,19 +51,19 @@ public class VillageAddition {
         //Village additions
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/plains/town_centers"),
-                "respawnobelisks:village/plains_obelisk_01", 1000);
+                "respawnobelisks:village/plains_obelisk_01", 400);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/taiga/town_centers"),
-                "respawnobelisks:village/taiga_obelisk_01", 1000);
+                "respawnobelisks:village/taiga_obelisk_01", 400);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/desert/town_centers"),
-                "respawnobelisks:village/desert_obelisk_01", 1000);
+                "respawnobelisks:village/desert_obelisk_01", 400);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/savanna/town_centers"),
-                "respawnobelisks:village/savanna_obelisk_01", 1000);
+                "respawnobelisks:village/savanna_obelisk_01", 400);
     }
 
 }
