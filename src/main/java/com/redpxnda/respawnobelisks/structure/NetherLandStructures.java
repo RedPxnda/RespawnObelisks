@@ -9,6 +9,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.NoiseColumn;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.WorldGenerationContext;
@@ -76,12 +77,31 @@ public class NetherLandStructures extends Structure {
 
     @Override
     public Optional<Structure.GenerationStub> findGenerationPoint(Structure.GenerationContext context) {
-        if (!NetherLandStructures.extraSpawningChecks(context)) {
-            return Optional.empty();
-        }
-
         ChunkPos chunkPos = context.chunkPos();
-        int startY = this.startHeight.sample(context.random(), new WorldGenerationContext(context.chunkGenerator(), context.heightAccessor()));
+
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(); // mutable block pos, so its modify-able
+        mutable.set(chunkPos.getMinBlockX(), 25, chunkPos.getMinBlockZ()); // setting block pos loc
+        int maxHeight = 100; // max height for structure is y=100
+        NoiseColumn blockView = context.chunkGenerator().getBaseColumn(mutable.getX(), mutable.getZ(), context.heightAccessor(), context.randomState()); // chunk column, for detection
+
+        int startY = -1;
+        while (mutable.getY() < maxHeight) {
+            BlockState state = blockView.getBlock(mutable.getY());
+            boolean isAirAbove = true;
+            for (int i = 1; i < 8; i++) {
+                if (!blockView.getBlock(mutable.getY()+i).isAir()) {
+                    isAirAbove = false;
+                    break;
+                }
+            }
+            if ((!state.isAir() && !state.is(Blocks.LAVA)) && isAirAbove) {
+                startY = mutable.getY()+2;
+                break;
+            }
+            mutable.move(Direction.UP);
+        }
+        if (startY == -1) return Optional.empty();
+
         BlockPos blockPos = new BlockPos(chunkPos.getMinBlockX(), startY, chunkPos.getMinBlockZ());
 
         return JigsawPlacement.addPieces(
