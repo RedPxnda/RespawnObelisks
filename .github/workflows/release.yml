@@ -47,6 +47,9 @@ jobs:
         game_versions: "Minecraft 1.19:1.19.2,Java 17,Forge"
         project_id: "824852"
         token: "${{ secrets.CF_API_TOKEN }}"
+    - name: Get changelog text
+      id: vars
+      run: echo "text=$(cat changelog_latest.md)" >> $GITHUB_OUTPUT
     - name: Send Discord Embed
       uses: stegzilla/discord-notify@v2
       with:
