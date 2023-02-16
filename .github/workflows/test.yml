@@ -11,4 +11,4 @@ jobs:
       id: changelog
       run: echo "text=$(cat changelog_latest.md)" >> $GITHUB_OUTPUT
     - name: Test output
-      run: echo "${{ steps.vars.outputs.version }}"
+      run: echo "${{ steps.changelog.outputs.text }}"
