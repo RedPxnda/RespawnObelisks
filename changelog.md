@@ -1,4 +1,12 @@
 ## v1.2:
+- Respawn Obelisks are now a block entity, MAY break old worlds containing the mod
+- Obelisk charge can be read with a comparator signal
+- Charge is now percentage based, by default you lose 20% when respawning at an obelisk
+
+
+- Added config to determine the amount of charge lost when respawning at an obelisk
+
+## v1.1a:
 - Fixed odd bright texture issue with end obelisks
 
 

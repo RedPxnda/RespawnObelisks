@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.redpxnda.respawnobelisks.registry.blocks.FakeRespawnAnchorBlock;
 import com.redpxnda.respawnobelisks.registry.blocks.RespawnObeliskBlock;
+import com.redpxnda.respawnobelisks.registry.blocks.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.registry.effects.ImmortalityCurseEffect;
 import com.redpxnda.respawnobelisks.structure.NetherLandStructures;
 import net.minecraft.world.effect.MobEffect;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RespawnAnchorBlock;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
@@ -31,14 +33,15 @@ public class Registry {
     public static final RegistryObject<MobEffect> IMMORTALITY_CURSE = MOB_EFFECTS.register("curse_of_immortality", ImmortalityCurseEffect::new);
 
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
+    public static final DeferredRegister<StructureType<?>> STRUCTURES = DeferredRegister.create(net.minecraft.core.Registry.STRUCTURE_TYPE_REGISTRY, MODID);
 
     // OVERWORLD OBELISK
     public static final RegistryObject<Block> RESPAWN_OBELISK_BLOCK = BLOCKS.register("respawn_obelisk", () -> new RespawnObeliskBlock(BlockBehaviour.Properties
             .of(Material.STONE)
             .noOcclusion()
             .strength(-1, 3600000.0F)
-            .lightLevel((s) -> s.getValue(RespawnObeliskBlock.CHARGE)*5)
             .noLootTable(),
             Either.left(Level.OVERWORLD)
     ));
@@ -54,7 +57,6 @@ public class Registry {
             .of(Material.STONE)
             .noOcclusion()
             .strength(-1, 3600000.0F)
-            .lightLevel((s) -> s.getValue(RespawnObeliskBlock.CHARGE)*5)
             .noLootTable(),
             Either.left(Level.NETHER)
     ));
@@ -70,7 +72,6 @@ public class Registry {
             .of(Material.STONE)
             .noOcclusion()
             .strength(-1, 3600000.0F)
-            .lightLevel((s) -> s.getValue(RespawnObeliskBlock.CHARGE)*5)
             .noLootTable(),
             Either.left(Level.END)
     ));
@@ -112,13 +113,10 @@ public class Registry {
             .noLootTable()
     ));
 
-    // STRUCTURE TYPE
-    public static final DeferredRegister<StructureType<?>> STRUCTURES = DeferredRegister.create(net.minecraft.core.Registry.STRUCTURE_TYPE_REGISTRY, MODID);
+    // BLOCK ENTITIES
+    public static final RegistryObject<BlockEntityType<RespawnObeliskBlockEntity>> RESPAWN_OBELISK_BE = BLOCK_ENTITIES.register("respawn_obelisk", () -> BlockEntityType.Builder.of(RespawnObeliskBlockEntity::new, RESPAWN_OBELISK_BLOCK.get()).build(null));
 
-    /**
-     * Registers the base structure itself and sets what its path is. In this case,
-     * this base structure will have the resourcelocation of structure_tutorial:sky_structures.
-     */
+    //STRUCTURES
     public static final RegistryObject<StructureType<NetherLandStructures>> NETHER_STRUCTURES = STRUCTURES.register("nether_land_structure", () -> explicitStructureTypeTyping(NetherLandStructures.CODEC));
 
     private static <T extends Structure> StructureType<T> explicitStructureTypeTyping(Codec<T> structureCodec) {
@@ -129,6 +127,7 @@ public class Registry {
         STRUCTURES.register(eventBus);
         ITEMS.register(eventBus);
         BLOCKS.register(eventBus);
+        BLOCK_ENTITIES.register(eventBus);
         MOB_EFFECTS.register(eventBus);
     }
 }

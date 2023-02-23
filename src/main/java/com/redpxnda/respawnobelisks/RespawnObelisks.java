@@ -2,10 +2,9 @@ package com.redpxnda.respawnobelisks;
 
 import com.mojang.logging.LogUtils;
 import com.redpxnda.respawnobelisks.config.ServerConfig;
-import com.redpxnda.respawnobelisks.event.RespawnObeliskEvents;
+import com.redpxnda.respawnobelisks.event.CommonEvents;
 import com.redpxnda.respawnobelisks.network.Packets;
 import com.redpxnda.respawnobelisks.registry.Registry;
-import net.minecraft.data.worldgen.Structures;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -37,7 +36,7 @@ public class RespawnObelisks {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
-        MinecraftForge.EVENT_BUS.register(RespawnObeliskEvents.class);
+        MinecraftForge.EVENT_BUS.register(CommonEvents.class);
     }
 
     private void setup(final FMLCommonSetupEvent event) {

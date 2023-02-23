@@ -1,7 +1,9 @@
 package com.redpxnda.respawnobelisks.mixin.plugin;
 
 import com.llamalad7.mixinextras.MixinExtrasBootstrap;
+import com.mojang.logging.LogUtils;
 import org.objectweb.asm.tree.ClassNode;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
@@ -9,10 +11,10 @@ import java.util.List;
 import java.util.Set;
 
 public class MixinPlugin implements IMixinConfigPlugin {
+
     @Override
     public void onLoad(String mixinPackage) {
         MixinExtrasBootstrap.init();
-        System.out.println("Loading MixinExtras");
     }
 
     @Override

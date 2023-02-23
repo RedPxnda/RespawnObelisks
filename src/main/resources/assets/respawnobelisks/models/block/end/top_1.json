@@ -1,8 +1,0 @@
-{
-	"parent": "respawnobelisks:block/generic_obelisk_top",
-	"textures": {
-		"particle": "minecraft:block/obsidian",
-		"3": "respawnobelisks:block/end/top",
-		"4": "respawnobelisks:block/end/upper_1"
-	}
-}
