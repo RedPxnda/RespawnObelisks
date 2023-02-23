@@ -4,7 +4,7 @@
 - Charge is now percentage based, by default you lose 20% when respawning at an obelisk
 
 
-- Added config to determine the amount of charge lost when respawning at an obelisk
+- Added config that determines the amount of charge lost when respawning at an obelisk
 
 ## v1.1a:
 - Fixed odd bright texture issue with end obelisks
