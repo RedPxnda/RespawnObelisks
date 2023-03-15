@@ -1,0 +1,38 @@
+architectury {
+    common(rootProject.enabled_platforms.split(","))
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/respawnobelisks.accesswidener")
+}
+
+repositories {
+    maven { url 'https://jitpack.io' }
+    maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
+}
+
+dependencies {
+    // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
+    // Do NOT use other classes from fabric loader
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    // Remove the next line if you don't want to depend on the API
+    modApi "dev.architectury:architectury:${rootProject.architectury_version}"
+
+    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-1.19.2:1.0.19"
+
+    implementation(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: '0.1.1')
+}
+
+publishing {
+    publications {
+        mavenCommon(MavenPublication) {
+            artifactId = rootProject.archives_base_name
+            from components.java
+        }
+    }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+    }
+}

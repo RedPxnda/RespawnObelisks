@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "respawnobelisks:item/respawn_obelisk"
+  }
+}

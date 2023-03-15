@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "respawnobelisks:block/nether/bottom_0"
+    },
+    "half=upper": {
+      "model": "respawnobelisks:block/nether/top_0"
+    }
+  }
+}

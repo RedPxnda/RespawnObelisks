@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=lower": {
+      "model": "respawnobelisks:block/overworld/bottom_0"
+    },
+    "half=upper": {
+      "model": "respawnobelisks:block/overworld/top_0"
+    }
+  }
+}

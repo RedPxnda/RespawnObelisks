@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "G": {
+      "item": "respawnobelisks:dormant_obelisk"
+    },
+    "O": {
+      "item": "respawnobelisks:obelisk_core"
+    },
+    "P": {
+      "item": "minecraft:ender_pearl"
+    }
+  },
+  "pattern": [
+    " O ",
+    "PGP",
+    " O "
+  ],
+  "result": {
+    "item": "respawnobelisks:respawn_obelisk"
+  }
+}

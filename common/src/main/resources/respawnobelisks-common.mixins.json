@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "plugin": "com.redpxnda.respawnobelisks.mixin.plugin.MixinPlugin",
+  "package": "com.redpxnda.respawnobelisks.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "LivingEntityRendererMixin"
+  ],
+  "mixins": [
+    "PlayerListRespawnMixin",
+    "RespawnAnchorBlockMixin",
+    "ServerPlayerSetRespawnPosMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

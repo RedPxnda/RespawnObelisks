@@ -1,0 +1,18 @@
+{
+  "block.respawnobelisks.respawn_obelisk": "Respawn Obelisk",
+  "block.respawnobelisks.respawn_obelisk_nether": "Nether Respawn Obelisk",
+  "block.respawnobelisks.respawn_obelisk_end": "End Respawn Obelisk",
+  "item.respawnobelisks.obelisk_core": "Obelisk Core",
+  "item.respawnobelisks.obelisk_core_nether": "Nether Obelisk Core",
+  "item.respawnobelisks.obelisk_core_end": "End Obelisk Core",
+  "item.respawnobelisks.dormant_obelisk": "Dormant Obelisk",
+
+  "text.respawnobelisks.cannot_set_spawn": "An ancient force seems to have once protected this seemingly mundane object. However, that force now lays dormant. §7[§9§nHover§r§7]",
+  "text.respawnobelisks.cannot_set_spawn.hover": "You cannot set your spawn at beds. Instead, explore the world to find respawn obelisks.",
+  "text.respawnobelisks.no_charge": "This respawn obelisk has no charge",
+
+  "block.minecraft.spawn.not_valid": "You have no home or charged respawn obelisk, or it was obstructed",
+  "block.minecraft.respawn_anchor": "Destruction Catalyst",
+
+  "effect.respawnobelisks.immortality_curse": "Immortality Curse"
+}

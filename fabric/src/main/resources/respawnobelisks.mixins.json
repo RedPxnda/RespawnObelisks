@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "plugin": "com.redpxnda.respawnobelisks.mixin.plugin.MixinPlugin",
+  "package": "com.redpxnda.respawnobelisks.fabric.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+  ],
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

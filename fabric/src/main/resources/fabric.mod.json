@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "respawnobelisks",
+  "version": "${version}",
+  "name": "Respawn Obelisks",
+  "description": "A simple mod about overhauling the respawning system.",
+  "authors": [
+    "RedPxnda"
+  ],
+  "contact": {
+  },
+  "license": "MIT",
+  "icon": "assets/respawnobelisks/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.redpxnda.respawnobelisks.fabric.RespawnObelisksFabric"
+    ]
+  },
+  "mixins": [
+    "respawnobelisks.mixins.json",
+    "respawnobelisks-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.19.2",
+    "architectury": ">=6.2.43"
+  }
+}
