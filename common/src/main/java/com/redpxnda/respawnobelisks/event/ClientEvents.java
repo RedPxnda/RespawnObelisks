@@ -32,10 +32,11 @@ public class ClientEvents {
         if (mc.hitResult instanceof BlockHitResult blockResult && mc.level != null) {
             BlockState blockState = mc.level.getBlockState(blockResult.getBlockPos());
             if (!(blockState.getBlock() instanceof RespawnObeliskBlock)) return EventResult.pass();
-            else if (!(blockState.getValue(RespawnObeliskBlock.HALF) == DoubleBlockHalf.LOWER)) return EventResult.pass();
+            boolean isUpper = false;
+            if (!(blockState.getValue(RespawnObeliskBlock.HALF) == DoubleBlockHalf.LOWER)) isUpper = true;
             mc.level.playSound(player, blockResult.getBlockPos(), SoundEvents.UI_BUTTON_CLICK, SoundSource.MASTER, 1, 1);
-            ModPackets.CHANNEL.sendToServer(new ScrollWheelPacket(amount, blockResult));
-            return EventResult.interruptTrue();
+            ModPackets.CHANNEL.sendToServer(new ScrollWheelPacket(amount, blockResult, isUpper));
+            return EventResult.interruptFalse();
         }
 
         return EventResult.pass();

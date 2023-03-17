@@ -5,7 +5,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
+import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -27,6 +29,8 @@ public class RespawnObeliskBER implements BlockEntityRenderer<RespawnObeliskBloc
 
     @Override
     public void render(RespawnObeliskBlockEntity pBlockEntity, float pPartialTick, PoseStack pPoseStack, MultiBufferSource pBufferSource, int pPackedLight, int pPackedOverlay) {
+        IBasicPack pack = pBlockEntity.getBlockState().getValue(RespawnObeliskBlock.PACK).particleHandler;
+        if (pack.obeliskRenderTick(pBlockEntity, pPartialTick, pPoseStack, pBufferSource, pPackedLight, pPackedOverlay)) return;
         float[][] translations = new float[][]{
                 { 7.5f/16f, 18/16f, 2.4f/16f },
                 { 2.4f/16f, 0, 8.5f/16f },
@@ -43,7 +47,8 @@ public class RespawnObeliskBER implements BlockEntityRenderer<RespawnObeliskBloc
             pPoseStack.translate(translations[i][0], translations[i][1], translations[i][2]);
             if (i > 0) pPoseStack.mulPose(new Quaternion(Vector3f.YP, 90, true));
             Matrix4f matrix4f = pPoseStack.last().pose();
-            addQuad(matrix4f, vc, 1F, 1F, 1F, (float) pBlockEntity.getCharge()/100F, size, sprite, pPackedLight);
+            float[] colors = pack.runeColor(pPartialTick, pBlockEntity.getLevel());
+            addQuad(matrix4f, vc, colors[0], colors[1], colors[2], (float) pBlockEntity.getCharge()/100F, size, sprite, pPackedLight);
         }
         pPoseStack.popPose();
     }

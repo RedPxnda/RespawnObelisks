@@ -1,5 +1,6 @@
 {
   "required": true,
+  "minVersion": "0.8",
   "plugin": "com.redpxnda.respawnobelisks.mixin.plugin.MixinPlugin",
   "package": "com.redpxnda.respawnobelisks.fabric.mixin",
   "compatibilityLevel": "JAVA_17",

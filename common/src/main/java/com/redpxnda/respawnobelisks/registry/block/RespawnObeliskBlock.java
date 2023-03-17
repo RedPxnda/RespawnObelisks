@@ -7,6 +7,7 @@ import com.redpxnda.respawnobelisks.network.RespawnObeliskInteractionPacket;
 import com.redpxnda.respawnobelisks.network.RespawnObeliskSecondaryInteractionPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -45,6 +46,7 @@ import java.util.Optional;
 
 public class RespawnObeliskBlock extends Block implements EntityBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
+    public static final EnumProperty<ParticlePack> PACK = EnumProperty.create("pack", ParticlePack.class);
     public static final DirectionProperty RESPAWN_SIDE = DirectionProperty.create("respawn_side");
     private static final VoxelShape HITBOX_BOTTOM_BASE = Block.box(1.5D, 1.0D, 1.5D, 14.5D, 32.0D, 14.5D);
     private static final VoxelShape HITBOX_BOTTOM_TRIM = Block.box(0D, 0D, 0D, 16D, 3D, 16D);
@@ -57,7 +59,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     public RespawnObeliskBlock(Properties pProperties, Either<ResourceKey<Level>, String> obeliskDimension) {
         super(pProperties);
         this.OBELISK_DIMENSION = obeliskDimension;
-        this.registerDefaultState(this.stateDefinition.any().setValue(HALF, DoubleBlockHalf.LOWER).setValue(RESPAWN_SIDE, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(HALF, DoubleBlockHalf.LOWER).setValue(RESPAWN_SIDE, Direction.NORTH).setValue(PACK, ParticlePack.DEFAULT));
     }
 
     public boolean propagatesSkylightDown(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
@@ -96,7 +98,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
-        pBuilder.add(HALF, RESPAWN_SIDE);
+        pBuilder.add(HALF, RESPAWN_SIDE, PACK);
     }
 
     @Override
@@ -113,6 +115,10 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
 
     public Optional<Vec3> getRespawnLocation(BlockState state, BlockPos pos, ServerLevel level, ServerPlayer player) {
         if (level.getBlockEntity(pos) != null && level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity) {
+            if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+                pos = pos.below();
+                state = level.getBlockState(pos);
+            }
             double charge = blockEntity.getCharge();
             if (!(charge > 0 || player.hasEffect(ModRegistries.IMMORTALITY_CURSE.get()))) {
                 if (ServerConfig.enableCurse)
@@ -126,10 +132,14 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                 if (isNegative) {
                     level.setBlockEntity(blockEntity.decreaseCharge(ServerConfig.obeliskDepleteAmount, blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState()));
                 }
-                ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket(ServerConfig.obeliskDepleteSound, pos, isNegative, false));
+                ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket(state.getValue(PACK), pos, isNegative, false));
+                if (isNegative) state.getValue(PACK).particleHandler.depleteServerHandler(level, player, pos);
+                else state.getValue(PACK).particleHandler.chargeServerHandler(level, player, pos);
             } else {
-                if (ServerConfig.enableCurse)
-                    ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskInteractionPacket(ServerConfig.curseSound, pos, true));
+                if (ServerConfig.enableCurse) {
+                    ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskInteractionPacket(state.getValue(PACK), pos, true));
+                    state.getValue(PACK).particleHandler.curseServerHandler(level, player, pos);
+                }
             }
             boolean isNotCurseEnabled = !ServerConfig.enableCurse;
             MobEffectInstance MEI = null;
@@ -151,7 +161,10 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
         if (pLevel.isClientSide) {
             return InteractionResult.CONSUME;
         } else {
-            if (pState.getValue(HALF) == DoubleBlockHalf.UPPER) pPos = pPos.below();
+            if (pState.getValue(HALF) == DoubleBlockHalf.UPPER) {
+                pPos = pPos.below();
+                pState = pLevel.getBlockState(pPos);
+            }
             if (pPlayer instanceof ServerPlayer player && pLevel.getBlockEntity(pPos) != null && pLevel.getBlockEntity(pPos) instanceof RespawnObeliskBlockEntity blockEntity) {
                 double charge = blockEntity.getCharge();
                 if (OBELISK_DIMENSION.left().isPresent()) {
@@ -189,7 +202,9 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                             Optional<Item> itemHolder2 = Registry.ITEM.getOptional(new ResourceLocation(str2.split("\\|")[0]));
                             itemHolder2.ifPresent(holder -> player.getCooldowns().addCooldown(holder, 30));
                         }
-                        ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket((chargeAmount < 0 ? ServerConfig.obeliskDepleteSound : ServerConfig.obeliskChargeSound), pPos, (chargeAmount < 0), false));
+                        ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket(pState.getValue(PACK), pPos, (chargeAmount < 0), false));
+                        if (chargeAmount < 0 && pLevel instanceof ServerLevel level) pState.getValue(PACK).particleHandler.depleteServerHandler(level, player, pPos);
+                        else if (pLevel instanceof ServerLevel level) pState.getValue(PACK).particleHandler.chargeServerHandler(level, player, pPos);
                         pLevel.setBlockEntity(blockEntity.increaseCharge(chargeAmount, blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState()));
                         if (!player.isCreative()) player.getMainHandItem().setCount(player.getMainHandItem().getCount()-1);
                         return InteractionResult.SUCCESS;
@@ -201,7 +216,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                     pLevel.setBlock(pPos, Blocks.AIR.defaultBlockState(), 3);
                     pLevel.setBlock(pPos.above(), Blocks.AIR.defaultBlockState(), 3);
                     if (!player.isCreative()) player.getMainHandItem().setCount(player.getMainHandItem().getCount()-1);
-                    ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskInteractionPacket(ServerConfig.obeliskRemovalSound, pPos, false));
+                    ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskInteractionPacket(pState.getValue(PACK), pPos, false));
                     if (ServerConfig.allowPickup) {
                         Holder<Item> obeliskHolder;
                         if (OBELISK_DIMENSION.equals(Either.left(Level.NETHER)))
@@ -225,7 +240,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                     else if (pState.getValue(RESPAWN_SIDE) == Direction.SOUTH) degrees = 0;
                     else degrees = 90;
                     if ((player.getRespawnPosition() != null && !player.getRespawnPosition().equals(pPos)) || player.getRespawnPosition() == null)
-                        ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket(ServerConfig.obeliskSetSpawnSound, pPos, false, true));
+                        ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket(pState.getValue(PACK), pPos, false, true));
                     player.setRespawnPosition(pLevel.dimension(), pPos, degrees, false, true);
                 }
                 return InteractionResult.SUCCESS;
