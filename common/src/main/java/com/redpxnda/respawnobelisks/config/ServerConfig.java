@@ -4,8 +4,10 @@ import com.teamresourceful.resourcefulconfig.common.annotations.Comment;
 import com.teamresourceful.resourcefulconfig.common.annotations.Config;
 import com.teamresourceful.resourcefulconfig.common.annotations.ConfigEntry;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
+import com.teamresourceful.resourcefulconfig.web.annotations.WebInfo;
 
 @Config("respawnobelisks")
+@WebInfo(icon = "smartphone-charging")
 public final class ServerConfig {
     @ConfigEntry(
         id = "obeliskChargeItems",

@@ -14,5 +14,6 @@ public class ModPackets {
         CHANNEL.register(RespawnObeliskInteractionPacket.class, RespawnObeliskInteractionPacket::toBytes, RespawnObeliskInteractionPacket::new, RespawnObeliskInteractionPacket::handle);
         CHANNEL.register(RespawnObeliskSecondaryInteractionPacket.class, RespawnObeliskSecondaryInteractionPacket::toBytes, RespawnObeliskSecondaryInteractionPacket::new, RespawnObeliskSecondaryInteractionPacket::handle);
         CHANNEL.register(ScrollWheelPacket.class, ScrollWheelPacket::toBytes, ScrollWheelPacket::new, ScrollWheelPacket::handle);
+        CHANNEL.register(PlaySoundPacket.class, PlaySoundPacket::toBytes, PlaySoundPacket::new, PlaySoundPacket::handle);
     }
 }

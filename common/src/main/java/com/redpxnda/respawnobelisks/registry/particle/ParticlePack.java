@@ -1,15 +1,14 @@
 package com.redpxnda.respawnobelisks.registry.particle;
 
-import com.redpxnda.respawnobelisks.registry.particle.packs.DefaultPack;
-import com.redpxnda.respawnobelisks.registry.particle.packs.ExperiencePack;
-import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
-import com.redpxnda.respawnobelisks.registry.particle.packs.SculkPack;
+import com.redpxnda.respawnobelisks.registry.particle.packs.*;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.StringRepresentable;
 
 public enum ParticlePack implements StringRepresentable {
-    DEFAULT("default", new DefaultPack(), 0),
+    DEFAULT("default", new DefaultPack(ParticleTypes.END_ROD), 0),
     EXPERIENCE("experience", new ExperiencePack(), 1),
-    SCULK("sculk", new SculkPack(), 2);
+    SCULK("sculk", new SculkPack(), 2),
+    BLAZING("blazing", new BlazingPack(), 2);
 
     public final String id;
     public final IBasicPack particleHandler;

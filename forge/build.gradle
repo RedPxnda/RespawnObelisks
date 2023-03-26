@@ -37,7 +37,7 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-1.19.2:1.0.19"
+    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-1.19.2:1.0.20"
 
     forgeRuntimeLibrary(include(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: '0.1.1'))
 

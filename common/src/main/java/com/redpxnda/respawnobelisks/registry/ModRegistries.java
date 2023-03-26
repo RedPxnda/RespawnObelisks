@@ -39,51 +39,6 @@ public class ModRegistries {
     public static Registrar<BlockEntityType<?>> BLOCK_ENTITIES = REGISTRIES.get().get(Registry.BLOCK_ENTITY_TYPE_REGISTRY);
     public static Registrar<StructureType<?>> STRUCTURES = REGISTRIES.get().get(Registry.STRUCTURE_TYPE_REGISTRY);
 
-    public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of(Material.STONE)
-            .noOcclusion()
-            .strength(-1, 3600000.0F)
-            .noLootTable(),
-            Either.left(Level.OVERWORLD)
-    ));
-
-    public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK.get(), new Item.Properties()
-            .tab(CreativeModeTab.TAB_MISC)
-            .stacksTo(1)
-            .fireResistant()
-            .rarity(Rarity.UNCOMMON)
-    ));
-
-    public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK_NETHER = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_nether"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of(Material.STONE)
-            .noOcclusion()
-            .strength(-1, 3600000.0F)
-            .noLootTable(),
-            Either.left(Level.NETHER)
-    ));
-
-    public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_NETHER = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_nether"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_NETHER.get(), new Item.Properties()
-            .tab(CreativeModeTab.TAB_MISC)
-            .stacksTo(1)
-            .fireResistant()
-            .rarity(Rarity.UNCOMMON)
-    ));
-
-    public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK_END = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_end"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of(Material.STONE)
-            .noOcclusion()
-            .strength(-1, 3600000.0F)
-            .noLootTable(),
-            Either.left(Level.END)
-    ));
-
-    public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_END = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_end"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_END.get(), new Item.Properties()
-            .tab(CreativeModeTab.TAB_MISC)
-            .stacksTo(1)
-            .fireResistant()
-            .rarity(Rarity.UNCOMMON)
-    ));
-
     public static RegistrySupplier<Item> OBELISK_CORE = ITEMS.register(new ResourceLocation(MOD_ID, "obelisk_core"), () -> new Item(new Item.Properties()
             .tab(CreativeModeTab.TAB_MISC)
             .fireResistant()
@@ -102,6 +57,54 @@ public class ModRegistries {
             .rarity(Rarity.UNCOMMON)
     ));
 
+    public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
+            .of(Material.STONE)
+            .noOcclusion()
+            .strength(-1, 3600000.0F)
+            .noLootTable(),
+            Either.left(Level.OVERWORLD),
+            OBELISK_CORE.get()
+    ));
+
+    public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK.get(), new Item.Properties()
+            .tab(CreativeModeTab.TAB_MISC)
+            .stacksTo(1)
+            .fireResistant()
+            .rarity(Rarity.UNCOMMON)
+    ));
+
+    public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK_NETHER = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_nether"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
+            .of(Material.STONE)
+            .noOcclusion()
+            .strength(-1, 3600000.0F)
+            .noLootTable(),
+            Either.left(Level.NETHER),
+            OBELISK_CORE_NETHER.get()
+    ));
+
+    public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_NETHER = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_nether"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_NETHER.get(), new Item.Properties()
+            .tab(CreativeModeTab.TAB_MISC)
+            .stacksTo(1)
+            .fireResistant()
+            .rarity(Rarity.UNCOMMON)
+    ));
+
+    public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK_END = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_end"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
+            .of(Material.STONE)
+            .noOcclusion()
+            .strength(-1, 3600000.0F)
+            .noLootTable(),
+            Either.left(Level.END),
+            OBELISK_CORE_END.get()
+    ));
+
+    public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_END = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_end"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_END.get(), new Item.Properties()
+            .tab(CreativeModeTab.TAB_MISC)
+            .stacksTo(1)
+            .fireResistant()
+            .rarity(Rarity.UNCOMMON)
+    ));
+
     public static RegistrySupplier<Item> DORMANT_OBELISK = ITEMS.register(new ResourceLocation(MOD_ID, "dormant_obelisk"), () -> new Item(new Item.Properties()
             .tab(CreativeModeTab.TAB_MISC)
             .fireResistant()
@@ -116,7 +119,7 @@ public class ModRegistries {
     ));
 
     public static RegistrySupplier<BlockEntityType<RespawnObeliskBlockEntity>> RESPAWN_OBELISK_BE = BLOCK_ENTITIES.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () ->
-            BlockEntityType.Builder.of(RespawnObeliskBlockEntity::new, RESPAWN_OBELISK_BLOCK.get()).build(null)
+            BlockEntityType.Builder.of(RespawnObeliskBlockEntity::new, RESPAWN_OBELISK_BLOCK.get(), RESPAWN_OBELISK_BLOCK_NETHER.get(), RESPAWN_OBELISK_BLOCK_END.get()).build(null)
     );
 
     // effects

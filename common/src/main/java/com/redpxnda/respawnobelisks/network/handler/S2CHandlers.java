@@ -43,9 +43,9 @@ public class S2CHandlers {
         }
     }
 
-    public static void obeliskInteractionPacket1(BlockPos blockPos, ParticlePack pack, boolean isCurse) {
+    public static void obeliskInteractionPacket1(int playerId, BlockPos blockPos, ParticlePack pack, boolean isCurse) {
         Level pLevel = Minecraft.getInstance().level;
-        if (pLevel != null && Minecraft.getInstance().player != null) {
+        if (pLevel != null && pLevel.getEntity(playerId) instanceof Player player) {
             SoundEvent sound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ServerConfig.obeliskRemovalSound)).orElse(SoundEvents.UI_BUTTON_CLICK);
             pLevel.playLocalSound(blockPos.getX(), blockPos.getY(), blockPos.getZ(), isCurse ? pack.particleHandler.curseSound() : sound, SoundSource.BLOCKS, 1, 1, false);
             if (!isCurse) {
@@ -56,22 +56,29 @@ public class S2CHandlers {
                     pLevel.addParticle(ParticleTypes.TOTEM_OF_UNDYING, blockPos.getX() + Math.sin(radians) * 0.5 + 0.5, blockPos.getY() + i / 360f, blockPos.getZ() + Math.cos(radians) * 0.5 + 0.5, Math.sin(radians) / 20, 0, Math.cos(radians) / 20);
                 }
             } else {
-                pack.particleHandler.curseAnimation(pLevel, Minecraft.getInstance().player, blockPos);
+                pack.particleHandler.curseAnimation(pLevel, player, blockPos);
             }
         }
     }
 
-    public static void obeliskInteractionPacket2(ParticlePack pack, BlockPos blockPos, boolean isNegative, boolean isRespawn) {
+    public static void obeliskInteractionPacket2(int playerId, ParticlePack pack, BlockPos blockPos, boolean isNegative, boolean isRespawn) {
         Level pLevel = Minecraft.getInstance().level;
-        if (pLevel != null && Minecraft.getInstance().player != null) {
+        if (pLevel != null && pLevel.getEntity(playerId) instanceof Player player) {
             SoundEvent setSpawnSound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ServerConfig.obeliskSetSpawnSound)).orElse(SoundEvents.UI_BUTTON_CLICK);
             pLevel.playLocalSound(blockPos.getX(), blockPos.getY(), blockPos.getZ(), isNegative ? pack.particleHandler.depleteSound() : isRespawn ? setSpawnSound : pack.particleHandler.chargeSound(), SoundSource.BLOCKS, 1, 1, false);
             if (isRespawn) return;
             if (!isNegative) {
-                pack.particleHandler.chargeAnimation(pLevel, Minecraft.getInstance().player, blockPos);
+                pack.particleHandler.chargeAnimation(pLevel, player, blockPos);
             } else {
-                pack.particleHandler.depleteAnimation(pLevel, Minecraft.getInstance().player, blockPos);
+                pack.particleHandler.depleteAnimation(pLevel, player, blockPos);
             }
+        }
+    }
+
+    public static void playClientSound(SoundEvent event, float pitch, float volume) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player != null) {
+            player.playSound(event, pitch, volume);
         }
     }
 

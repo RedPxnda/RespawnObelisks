@@ -5,27 +5,49 @@ import com.redpxnda.respawnobelisks.network.ScrollWheelPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
+import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTextureStitchEvent;
+import dev.architectury.event.events.client.ClientTooltipEvent;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.BlockHitResult;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 @Environment(EnvType.CLIENT)
 public class ClientEvents {
+    protected static void onItemTooltip(ItemStack stack, List<Component> lines, TooltipFlag flag) {
+        if (stack.hasTag() && stack.getTag().contains("RespawnObeliskData")) {
+            if (stack.getTag().getCompound("RespawnObeliskData").contains("Charge"))
+                lines.add(
+                        Component.translatable("text.respawnobelisks.tooltip.charge").withStyle(ChatFormatting.GRAY)
+                        .append(Component.literal(" " + RespawnObeliskBlockEntity.getCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
+                );
+            if (stack.getTag().getCompound("RespawnObeliskData").contains("MaxCharge"))
+                lines.add(
+                        Component.translatable("text.respawnobelisks.tooltip.max_charge").withStyle(ChatFormatting.GRAY)
+                        .append(Component.literal(" " + RespawnObeliskBlockEntity.getMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
+                );
+        }
+    }
+
     protected static EventResult onClientScroll(Minecraft mc, double amount) {
         LocalPlayer player = mc.player;
         if (player == null || !player.isShiftKeyDown()) return EventResult.pass();
@@ -55,5 +77,6 @@ public class ClientEvents {
         ClientRawInputEvent.MOUSE_SCROLLED.register(ClientEvents::onClientScroll);
         ClientTextureStitchEvent.PRE.register(ClientEvents::onTextureStitch);
         ClientLifecycleEvent.CLIENT_SETUP.register(ClientEvents::onClientSetup);
+        ClientTooltipEvent.ITEM.register(ClientEvents::onItemTooltip);
     }
 }

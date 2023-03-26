@@ -3,26 +3,20 @@ package com.redpxnda.respawnobelisks.network;
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.level.Level;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class RespawnObeliskSecondaryInteractionPacket {
+    private final int playerId;
     private final ParticlePack pack;
     private final BlockPos blockPos;
     private final boolean isNegative;
     private final boolean isRespawn;
 
-    public RespawnObeliskSecondaryInteractionPacket(ParticlePack pack, BlockPos blockPos, boolean isNegative, boolean isRespawn) {
+    public RespawnObeliskSecondaryInteractionPacket(int playerId, ParticlePack pack, BlockPos blockPos, boolean isNegative, boolean isRespawn) {
+        this.playerId = playerId;
         this.pack = pack;
         this.blockPos = blockPos;
         this.isNegative = isNegative;
@@ -30,6 +24,7 @@ public class RespawnObeliskSecondaryInteractionPacket {
     }
 
     public RespawnObeliskSecondaryInteractionPacket(FriendlyByteBuf buffer) {
+        playerId = buffer.readInt();
         pack = buffer.readEnum(ParticlePack.class);
         blockPos = buffer.readBlockPos();
         isNegative = buffer.readBoolean();
@@ -37,6 +32,7 @@ public class RespawnObeliskSecondaryInteractionPacket {
     }
 
     public void toBytes(FriendlyByteBuf buffer) {
+        buffer.writeInt(playerId);
         buffer.writeEnum(pack);
         buffer.writeBlockPos(blockPos);
         buffer.writeBoolean(isNegative);
@@ -45,7 +41,7 @@ public class RespawnObeliskSecondaryInteractionPacket {
 
     public void handle(Supplier<NetworkManager.PacketContext> supplier) {
         supplier.get().queue(() -> {
-            S2CHandlers.obeliskInteractionPacket2(pack, blockPos, isNegative, isRespawn);
+            S2CHandlers.obeliskInteractionPacket2(playerId, pack, blockPos, isNegative, isRespawn);
         });
     }
 }

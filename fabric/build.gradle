@@ -30,7 +30,7 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-1.19.2:1.0.19"
+    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-1.19.2:1.0.20"
 
     implementation(include(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: '0.1.1'))
 

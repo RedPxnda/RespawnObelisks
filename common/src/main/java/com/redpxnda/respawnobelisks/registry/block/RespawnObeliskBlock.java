@@ -3,6 +3,7 @@ package com.redpxnda.respawnobelisks.registry.block;
 import com.mojang.datafixers.util.Either;
 import com.redpxnda.respawnobelisks.config.ServerConfig;
 import com.redpxnda.respawnobelisks.network.ModPackets;
+import com.redpxnda.respawnobelisks.network.PlaySoundPacket;
 import com.redpxnda.respawnobelisks.network.RespawnObeliskInteractionPacket;
 import com.redpxnda.respawnobelisks.network.RespawnObeliskSecondaryInteractionPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
@@ -12,11 +13,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -32,9 +35,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -42,6 +49,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public class RespawnObeliskBlock extends Block implements EntityBlock {
@@ -55,10 +64,12 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     private static final VoxelShape HITBOX_TOP_TRIM = Block.box(0D, -16D, 0D, 16D, -13D, 16D);
     private static final VoxelShape AABB_TOP = Shapes.or(HITBOX_TOP_BASE, HITBOX_TOP_TRIM);
     public final Either<ResourceKey<Level>, String> OBELISK_DIMENSION;
+    public final Item CORE_ITEM;
 
-    public RespawnObeliskBlock(Properties pProperties, Either<ResourceKey<Level>, String> obeliskDimension) {
+    public RespawnObeliskBlock(Properties pProperties, Either<ResourceKey<Level>, String> obeliskDimension, Item coreItem) {
         super(pProperties);
         this.OBELISK_DIMENSION = obeliskDimension;
+        this.CORE_ITEM = coreItem;
         this.registerDefaultState(this.stateDefinition.any().setValue(HALF, DoubleBlockHalf.LOWER).setValue(RESPAWN_SIDE, Direction.NORTH).setValue(PACK, ParticlePack.DEFAULT));
     }
 
@@ -130,14 +141,25 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                 Class<? extends Block> blockClass = blockHolder.get().getClass();
                 boolean isNegative = !blockClass.isInstance(level.getBlockState(pos.below()).getBlock());
                 if (isNegative) {
-                    level.setBlockEntity(blockEntity.decreaseCharge(ServerConfig.obeliskDepleteAmount, blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState()));
+                    blockEntity.decreaseCharge(ServerConfig.obeliskDepleteAmount, blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState());
+                    blockEntity.setLastRespawn(level.getGameTime());
                 }
-                ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket(state.getValue(PACK), pos, isNegative, false));
+                AABB aabb = AABB.of(new BoundingBox(
+                        player.getBlockX()-10, player.getBlockY()-10, player.getBlockZ()-10,
+                        player.getBlockX()+10, player.getBlockY()+10, player.getBlockZ()+10
+                ));
+                List<ServerPlayer> players = level.getPlayers(p -> aabb.contains(p.getX(), p.getY(), p.getZ()));
+                ModPackets.CHANNEL.sendToPlayers(players, new RespawnObeliskSecondaryInteractionPacket(player.getId(), state.getValue(PACK), pos, isNegative, false));
                 if (isNegative) state.getValue(PACK).particleHandler.depleteServerHandler(level, player, pos);
                 else state.getValue(PACK).particleHandler.chargeServerHandler(level, player, pos);
             } else {
                 if (ServerConfig.enableCurse) {
-                    ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskInteractionPacket(state.getValue(PACK), pos, true));
+                    AABB aabb = AABB.of(new BoundingBox(
+                            player.getBlockX()-10, player.getBlockY()-10, player.getBlockZ()-10,
+                            player.getBlockX()+10, player.getBlockY()+10, player.getBlockZ()+10
+                    ));
+                    List<ServerPlayer> players = level.getPlayers(p -> aabb.contains(p.getX(), p.getY(), p.getZ()));
+                    ModPackets.CHANNEL.sendToPlayers(players, new RespawnObeliskInteractionPacket(player.getId(), state.getValue(PACK), pos, true));
                     state.getValue(PACK).particleHandler.curseServerHandler(level, player, pos);
                 }
             }
@@ -157,25 +179,44 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
 
 
 
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+    public InteractionResult use(BlockState state, Level pLevel, BlockPos pos, Player pPlayer, InteractionHand hand, BlockHitResult hitResult) {
         if (pLevel.isClientSide) {
             return InteractionResult.CONSUME;
         } else {
-            if (pState.getValue(HALF) == DoubleBlockHalf.UPPER) {
-                pPos = pPos.below();
-                pState = pLevel.getBlockState(pPos);
+            if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
+                pos = pos.below();
+                state = pLevel.getBlockState(pos);
             }
-            if (pPlayer instanceof ServerPlayer player && pLevel.getBlockEntity(pPos) != null && pLevel.getBlockEntity(pPos) instanceof RespawnObeliskBlockEntity blockEntity) {
+            if (pPlayer instanceof ServerPlayer player && pLevel instanceof ServerLevel level && level.getBlockEntity(pos) != null && level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity) {
                 double charge = blockEntity.getCharge();
                 if (OBELISK_DIMENSION.left().isPresent()) {
-                    if (pLevel.dimension() != OBELISK_DIMENSION.left().get()) {
-                        pLevel.setBlock(pPos, Blocks.AIR.defaultBlockState(), 3);
-                        pLevel.setBlock(pPos.above(), Blocks.AIR.defaultBlockState(), 3);
-                        pLevel.setBlock(pPos.below(), Blocks.AIR.defaultBlockState(), 3);
-                        pLevel.setBlock(pPos.below(2), Blocks.AIR.defaultBlockState(), 3);
-                        pLevel.explode(null, DamageSource.badRespawnPointExplosion(), null, pPos.getX() + 0.5D, pPos.getY() + 0.5D, pPos.getZ() + 0.5D, 5.0F, true, Explosion.BlockInteraction.DESTROY);
+                    if (level.dimension() != OBELISK_DIMENSION.left().get()) {
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                        level.setBlock(pos.above(), Blocks.AIR.defaultBlockState(), 3);
+                        level.setBlock(pos.below(), Blocks.AIR.defaultBlockState(), 3);
+                        level.setBlock(pos.below(2), Blocks.AIR.defaultBlockState(), 3);
+                        level.explode(null, DamageSource.badRespawnPointExplosion(), null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 5.0F, true, Explosion.BlockInteraction.DESTROY);
                         return InteractionResult.SUCCESS;
                     }
+                }
+
+                if (player.isShiftKeyDown() && player.getMainHandItem().isEmpty() && !blockEntity.getItemNbt().isEmpty()) {
+                    if (!blockEntity.getItemNbt().isEmpty()) player.setItemInHand(InteractionHand.MAIN_HAND, blockEntity.getItemStack());
+                    blockEntity.setItemNbt(new CompoundTag());
+                    blockEntity.syncWithClient(level, pos, state);
+                    ModPackets.CHANNEL.sendToPlayer(player, new PlaySoundPacket(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f));
+
+                    return InteractionResult.SUCCESS;
+                }
+                if (player.getMainHandItem().getItem().equals(CORE_ITEM) && player.getMainHandItem().hasTag() && player.getMainHandItem().getOrCreateTag().contains("RespawnObeliskData")) {
+                    ItemStack toAdd = player.getMainHandItem();
+                    toAdd.setCount(1);
+                    blockEntity.setItem(toAdd);
+                    blockEntity.syncWithClient(level, pos, state);
+                    player.getMainHandItem().setCount(player.getMainHandItem().getCount()-1);
+                    ModPackets.CHANNEL.sendToPlayer(player, new PlaySoundPacket(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f));
+
+                    return InteractionResult.SUCCESS;
                 }
                 String[] CHARGE_ITEMS = ServerConfig.obeliskChargeItems;
                 if (OBELISK_DIMENSION.left().isPresent()) {
@@ -188,12 +229,12 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                     int chargeAmount = Integer.parseInt(sections[1]); // 17 ^
                     boolean allowOverfill = sections.length >= 3 && Boolean.parseBoolean(sections[2]); // true ^
                     Optional<Item> itemHolder = Registry.ITEM.getOptional(new ResourceLocation(sections[0]));
-                    boolean fullyCharged = charge == 100 && chargeAmount > 0;
+                    boolean fullyCharged = charge == blockEntity.getMaxCharge() && chargeAmount > 0;
                     boolean empty = charge == 0 && chargeAmount < 0;
                     if (itemHolder.isPresent() &&
                             !player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem()) &&
                             player.getMainHandItem().getItem() == itemHolder.get() // if held item = item
-                            && (charge + chargeAmount <= 100 || allowOverfill) // if charge would go over 100, dont allow unless config says so
+                            && (charge + chargeAmount <= blockEntity.getMaxCharge() || allowOverfill) // if charge would go over 100, dont allow unless config says so
                             && (charge + chargeAmount >= 0 || allowOverfill) // if charge would go under 0, dont allow unless config says so
                             && !fullyCharged // if fully charged, don't allow more
                             && !empty // if empty charged, don't allow less
@@ -202,10 +243,16 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                             Optional<Item> itemHolder2 = Registry.ITEM.getOptional(new ResourceLocation(str2.split("\\|")[0]));
                             itemHolder2.ifPresent(holder -> player.getCooldowns().addCooldown(holder, 30));
                         }
-                        ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket(pState.getValue(PACK), pPos, (chargeAmount < 0), false));
-                        if (chargeAmount < 0 && pLevel instanceof ServerLevel level) pState.getValue(PACK).particleHandler.depleteServerHandler(level, player, pPos);
-                        else if (pLevel instanceof ServerLevel level) pState.getValue(PACK).particleHandler.chargeServerHandler(level, player, pPos);
-                        pLevel.setBlockEntity(blockEntity.increaseCharge(chargeAmount, blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState()));
+                        AABB aabb = AABB.of(new BoundingBox(
+                                player.getBlockX()-10, player.getBlockY()-10, player.getBlockZ()-10,
+                                player.getBlockX()+10, player.getBlockY()+10, player.getBlockZ()+10
+                        ));
+                        List<ServerPlayer> players = level.getPlayers(p -> aabb.contains(p.getX(), p.getY(), p.getZ()));
+                        ModPackets.CHANNEL.sendToPlayers(players, new RespawnObeliskSecondaryInteractionPacket(player.getId(), state.getValue(PACK), pos, (chargeAmount < 0), false));
+                        if (chargeAmount < 0) state.getValue(PACK).particleHandler.depleteServerHandler(level, player, pos);
+                        else state.getValue(PACK).particleHandler.chargeServerHandler(level, player, pos);
+                        blockEntity.increaseCharge(chargeAmount, blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState());
+                        blockEntity.setLastCharge(level.getGameTime());
                         if (!player.isCreative()) player.getMainHandItem().setCount(player.getMainHandItem().getCount()-1);
                         return InteractionResult.SUCCESS;
                     }
@@ -213,21 +260,19 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                 // block removal
                 Optional<Item> itemHolder = Registry.ITEM.getOptional(new ResourceLocation(ServerConfig.removalItem));
                 if (ServerConfig.allowPickup && itemHolder.isPresent() && player.getMainHandItem().getItem() == itemHolder.get()) {
-                    pLevel.setBlock(pPos, Blocks.AIR.defaultBlockState(), 3);
-                    pLevel.setBlock(pPos.above(), Blocks.AIR.defaultBlockState(), 3);
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                    level.setBlock(pos.above(), Blocks.AIR.defaultBlockState(), 3);
                     if (!player.isCreative()) player.getMainHandItem().setCount(player.getMainHandItem().getCount()-1);
-                    ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskInteractionPacket(pState.getValue(PACK), pPos, false));
+                    AABB aabb = AABB.of(new BoundingBox(
+                            player.getBlockX()-10, player.getBlockY()-10, player.getBlockZ()-10,
+                            player.getBlockX()+10, player.getBlockY()+10, player.getBlockZ()+10
+                    ));
+                    List<ServerPlayer> players = level.getPlayers(p -> aabb.contains(p.getX(), p.getY(), p.getZ()));
+                    ModPackets.CHANNEL.sendToPlayers(players, new RespawnObeliskInteractionPacket(player.getId(), state.getValue(PACK), pos, false));
                     if (ServerConfig.allowPickup) {
-                        Holder<Item> obeliskHolder;
-                        if (OBELISK_DIMENSION.equals(Either.left(Level.NETHER)))
-                            obeliskHolder = ModRegistries.OBELISK_CORE_NETHER.get().arch$holder();
-                        else if (OBELISK_DIMENSION.equals(Either.left(Level.END)))
-                            obeliskHolder = ModRegistries.OBELISK_CORE_END.get().arch$holder();
-                        else
-                            obeliskHolder = ModRegistries.OBELISK_CORE.get().arch$holder();
-                        ItemStack stack = new ItemStack(obeliskHolder);
-                        ItemEntity entity = new ItemEntity(pLevel, pPos.getX(), pPos.getY()+0.5, pPos.getZ(), stack);
-                        pLevel.addFreshEntity(entity);
+                        ItemStack stack = new ItemStack(CORE_ITEM.arch$holder());
+                        ItemEntity entity = new ItemEntity(level, pos.getX(), pos.getY()+0.5, pos.getZ(), stack);
+                        level.addFreshEntity(entity);
                     }
                     return InteractionResult.SUCCESS;
                     // checking if there's no charge
@@ -235,13 +280,19 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                     player.sendSystemMessage(Component.translatable("text.respawnobelisks.no_charge"));
                 } else {
                     int degrees;
-                    if (pState.getValue(RESPAWN_SIDE) == Direction.NORTH) degrees = 180;
-                    else if (pState.getValue(RESPAWN_SIDE) == Direction.EAST) degrees = -90;
-                    else if (pState.getValue(RESPAWN_SIDE) == Direction.SOUTH) degrees = 0;
+                    if (state.getValue(RESPAWN_SIDE) == Direction.NORTH) degrees = 180;
+                    else if (state.getValue(RESPAWN_SIDE) == Direction.EAST) degrees = -90;
+                    else if (state.getValue(RESPAWN_SIDE) == Direction.SOUTH) degrees = 0;
                     else degrees = 90;
-                    if ((player.getRespawnPosition() != null && !player.getRespawnPosition().equals(pPos)) || player.getRespawnPosition() == null)
-                        ModPackets.CHANNEL.sendToPlayer(player, new RespawnObeliskSecondaryInteractionPacket(pState.getValue(PACK), pPos, false, true));
-                    player.setRespawnPosition(pLevel.dimension(), pPos, degrees, false, true);
+                    if ((player.getRespawnPosition() != null && !player.getRespawnPosition().equals(pos)) || player.getRespawnPosition() == null) {
+                        AABB aabb = AABB.of(new BoundingBox(
+                                player.getBlockX()-10, player.getBlockY()-10, player.getBlockZ()-10,
+                                player.getBlockX()+10, player.getBlockY()+10, player.getBlockZ()+10
+                        ));
+                        List<ServerPlayer> players = level.getPlayers(p -> aabb.contains(p.getX(), p.getY(), p.getZ()));
+                        ModPackets.CHANNEL.sendToPlayers(players, new RespawnObeliskSecondaryInteractionPacket(player.getId(), state.getValue(PACK), pos, false, true));
+                    }
+                    player.setRespawnPosition(level.dimension(), pos, degrees, false, true);
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -254,5 +305,14 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     public BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
         if (pState.getValue(HALF).equals(DoubleBlockHalf.UPPER)) return null;
         return ModRegistries.RESPAWN_OBELISK_BE.get().create(pPos, pState);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return type == ModRegistries.RESPAWN_OBELISK_BE.get() ? (pLevel, pos, blockState, be) -> {
+            if (be instanceof RespawnObeliskBlockEntity blockEntity)
+                RespawnObeliskBlockEntity.tick(pLevel, pos, blockState, blockEntity);
+        } : null;
     }
 }

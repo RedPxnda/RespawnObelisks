@@ -38,7 +38,7 @@ public class SculkPack implements IBasicPack {
             level.addParticle(
                     new ShriekParticleOption(i),
                     blockPos.getX()+0.5,
-                    blockPos.getY()+2.5,
+                    blockPos.getY()+2,
                     blockPos.getZ()+0.5,
                     0,
                     0,

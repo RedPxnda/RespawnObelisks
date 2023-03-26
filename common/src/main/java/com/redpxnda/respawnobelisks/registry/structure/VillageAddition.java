@@ -1,4 +1,4 @@
-package com.redpxnda.respawnobelisks.forge;
+package com.redpxnda.respawnobelisks.registry.structure;
 
 import com.mojang.datafixers.util.Pair;
 import com.redpxnda.respawnobelisks.mixin.STPAccessor;
@@ -6,18 +6,15 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
-import net.minecraftforge.event.server.ServerAboutToStartEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = "respawnobelisks")
 public class VillageAddition {
     private static final ResourceKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = ResourceKey.create(
             Registry.PROCESSOR_LIST_REGISTRY, new ResourceLocation("minecraft", "empty"));
@@ -45,10 +42,9 @@ public class VillageAddition {
     }
 
 
-    @SubscribeEvent
-    public static void addNewVillageBuilding(final ServerAboutToStartEvent event) {
-        Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().registry(Registry.TEMPLATE_POOL_REGISTRY).orElseThrow();
-        Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().registry(Registry.PROCESSOR_LIST_REGISTRY).orElseThrow();
+    public static void addNewVillageBuilding(MinecraftServer instance) {
+        Registry<StructureTemplatePool> templatePoolRegistry = instance.registryAccess().registry(Registry.TEMPLATE_POOL_REGISTRY).orElseThrow();
+        Registry<StructureProcessorList> processorListRegistry = instance.registryAccess().registry(Registry.PROCESSOR_LIST_REGISTRY).orElseThrow();
         //Village additions
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/plains/town_centers"),
