@@ -1,12 +1,10 @@
 package com.redpxnda.respawnobelisks.registry.particle.packs;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
@@ -17,15 +15,32 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.BlockPositionSource;
-import static com.redpxnda.respawnobelisks.util.RenderUtils.*;
 
-public class SculkPack extends SimpleRuneColorPack {
-    private TextureAtlasSprite TENDRILS_SPRITE = null;
+import static com.redpxnda.respawnobelisks.util.RenderUtils.renderRainbow;
 
-    public SculkPack() {
-        this.ticks = 100;
-        this.colors.add(new float[] { 13f, 63f, 74f });
-        this.colors.add(new float[] { 28f, 133f, 156f });
+public class RainbowPack extends SimpleRuneColorPack {
+    private static TextureAtlasSprite RAINBOW_SPRITE = null;
+
+    public RainbowPack() {
+        this.ticks = 200;
+        this.colors.add(new float[] { 255, 0, 0 });
+        this.colors.add(new float[] { 255, 255, 0 });
+        this.colors.add(new float[] { 0, 255, 0 });
+        this.colors.add(new float[] { 0, 255, 255 });
+        this.colors.add(new float[] { 0, 0, 255 });
+        this.colors.add(new float[] { 255, 0, 255 });
+    }
+
+    @Override
+    public boolean obeliskRenderTick(RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack stack, MultiBufferSource buffer, int light, int overlay) {
+        Level level = blockEntity.getLevel();
+        if (level != null && level.getGameTime()-blockEntity.getLastCharge() <= 100) {
+            if (RAINBOW_SPRITE == null) RAINBOW_SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(ParticlePack.getPackTextures().get("rainbow"));
+            float time = level.getGameTime()-blockEntity.getLastCharge();
+            renderRainbow(time/100f, blockEntity, stack, RAINBOW_SPRITE, buffer, light);
+        }
+
+        return false;
     }
 
     @Override
@@ -56,13 +71,6 @@ public class SculkPack extends SimpleRuneColorPack {
                     0
             );
         }
-    }
-
-    @Override
-    public boolean obeliskRenderTick(RespawnObeliskBlockEntity be, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay) {
-        if (TENDRILS_SPRITE == null) TENDRILS_SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(ParticlePack.getPackTextures().get("sculk_tendrils"));
-        renderSculkTendrils(be, poseStack, TENDRILS_SPRITE, buffer, light);
-        return false;
     }
 
     @Override

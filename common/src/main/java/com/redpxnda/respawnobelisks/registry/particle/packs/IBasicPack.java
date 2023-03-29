@@ -17,15 +17,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface IBasicPack {
-    void depleteAnimation(Level level, Player player, BlockPos blockPos);
-    void chargeAnimation(Level level, Player player, BlockPos blockPos);
+    default void depleteAnimation(Level level, @Nullable Player player, BlockPos blockPos) {}
+    default void chargeAnimation(Level level, @Nullable Player player, BlockPos blockPos) {}
     default void chargeServerHandler(ServerLevel level, ServerPlayer player, BlockPos blockPos) {}
     default void depleteServerHandler(ServerLevel level, ServerPlayer player, BlockPos blockPos) {}
     default void curseServerHandler(ServerLevel level, ServerPlayer player, BlockPos blockPos) {}
-    default void curseAnimation(Level level, Player player, BlockPos blockPos) {
+    default void curseAnimation(Level level, @Nullable Player player, BlockPos blockPos) {
         for (int i = 0; i < 360; i+=3) {
             double radians = i * Math.PI / 180;
             level.addParticle(

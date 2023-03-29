@@ -99,21 +99,29 @@ public final class ServerConfig {
     @Comment("Block placed under an obelisk to allow for infinite charge.")
     public static String infiniteChargeBlock = "minecraft:beacon";
 
-    @ConfigEntry(
-            id = "allowPickup",
-            type = EntryType.BOOLEAN,
-            translation = "text.resourcefulconfig.respawnobelisks.option.server.allowPickup"
-    )
-    @Comment("Whether obelisk pickup should be allowed when removing an obelisk. See 'removalItem'.")
-    public static boolean allowPickup = true;
+//    @ConfigEntry(
+//            id = "allowPickup",
+//            type = EntryType.BOOLEAN,
+//            translation = "text.resourcefulconfig.respawnobelisks.option.server.allowPickup"
+//    )
+//    @Comment("Whether obelisk pickup should be allowed when removing an obelisk. See 'removalItem'.")
+//    public static boolean allowPickup = true;
 
     @ConfigEntry(
-            id = "removalItem",
+            id = "revivalItem",
             type = EntryType.STRING,
-            translation = "text.resourcefulconfig.respawnobelisks.option.server.removalItem"
+            translation = "text.resourcefulconfig.respawnobelisks.option.server.revivalItem"
     )
-    @Comment("Item to remove obelisks with when right clicking.")
-    public static String removalItem = "minecraft:totem_of_undying";
+    @Comment("Item used to revive an obelisk's saved entities.")
+    public static String revivalItem = "minecraft:totem_of_undying";
+
+    @ConfigEntry(
+            id = "revivalCostMultiplier",
+            type = EntryType.DOUBLE,
+            translation = "text.resourcefulconfig.respawnobelisks.option.server.revivalCostMultiplier"
+    )
+    @Comment("Cost multiplier when reviving entities.")
+    public static double revivalCostMultiplier = 0.5;
 
     @ConfigEntry(
             id = "enableCurse",

@@ -60,8 +60,8 @@ public class ModRegistries {
     public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
             .of(Material.STONE)
             .noOcclusion()
-            .strength(-1, 3600000.0F)
-            .noLootTable(),
+            .strength(2, 3600.0F)
+            .requiresCorrectToolForDrops(),
             Either.left(Level.OVERWORLD),
             OBELISK_CORE.get()
     ));
@@ -76,8 +76,8 @@ public class ModRegistries {
     public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK_NETHER = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_nether"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
             .of(Material.STONE)
             .noOcclusion()
-            .strength(-1, 3600000.0F)
-            .noLootTable(),
+            .strength(2, 3600.0F)
+            .requiresCorrectToolForDrops(),
             Either.left(Level.NETHER),
             OBELISK_CORE_NETHER.get()
     ));
@@ -92,8 +92,8 @@ public class ModRegistries {
     public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK_END = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_end"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
             .of(Material.STONE)
             .noOcclusion()
-            .strength(-1, 3600000.0F)
-            .noLootTable(),
+            .strength(2, 3600.0F)
+            .requiresCorrectToolForDrops(),
             Either.left(Level.END),
             OBELISK_CORE_END.get()
     ));

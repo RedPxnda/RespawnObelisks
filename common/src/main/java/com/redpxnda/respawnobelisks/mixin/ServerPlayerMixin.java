@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import javax.annotation.Nullable;
 
 @Mixin(ServerPlayer.class)
-public class ServerPlayerSetRespawnPosMixin {
+public class ServerPlayerMixin {
 
     @WrapOperation(
             method = "startSleepInBed",

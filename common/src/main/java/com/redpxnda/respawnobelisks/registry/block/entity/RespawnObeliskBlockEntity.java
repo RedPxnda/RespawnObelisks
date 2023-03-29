@@ -6,7 +6,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -35,6 +37,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     private boolean hasLimboEntity;
     private long lastRespawn;
     private long lastCharge;
+    private String obeliskName = "";
+    private Component obeliskNameComponent = null;
 
     public RespawnObeliskBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(ModRegistries.RESPAWN_OBELISK_BE.get(), pPos, pBlockState);
@@ -46,6 +50,22 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
             setupNbt(this, block.CORE_ITEM);
     }
 
+    public boolean isPlayerTrusted(String username) {
+        if (this.itemNbt.contains("tag") && this.itemNbt.getCompound("tag").contains("RespawnObeliskData")) {
+            CompoundTag obeliskData = this.itemNbt.getCompound("tag").getCompound("RespawnObeliskData");
+            if (obeliskData.contains("TrustedPlayers")) {
+                ListTag list = obeliskData.getList("TrustedPlayers", 8);
+                return list.contains(StringTag.valueOf(username));
+            }
+        }
+        return true;
+    }
+    public Component getObeliskNameComponent() {
+        return obeliskNameComponent;
+    }
+    public String getObeliskName() {
+        return obeliskName;
+    }
     public boolean hasLimboEntity() {
         return hasLimboEntity;
     }
@@ -119,6 +139,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
         this.lastRespawn = tag.getLong("LastRespawn");
         this.lastCharge = tag.getLong("LastCharge");
         this.hasLimboEntity = tag.getBoolean("HasLimboEntity");
+        this.obeliskName = tag.getString("Name");
+        this.obeliskNameComponent = Component.Serializer.fromJson(tag.getString("Name"));
     }
 
     @Override
@@ -128,15 +150,17 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
         tag.putLong("LastRespawn", this.lastRespawn);
         tag.putLong("LastCharge", this.lastCharge);
         tag.putBoolean("HasLimboEntity", this.hasLimboEntity);
+        tag.putString("Name", this.obeliskName);
     }
 
     @Override
     public CompoundTag getUpdateTag() {
         CompoundTag tag = new CompoundTag();
-        tag.put("Item", itemNbt);
+        tag.put("Item", this.itemNbt);
         tag.putLong("LastRespawn", this.lastRespawn);
         tag.putLong("LastCharge", this.lastCharge);
         tag.putBoolean("HasLimboEntity", this.hasLimboEntity);
+        tag.putString("Name", this.obeliskName);
         return tag;
     }
 
@@ -150,32 +174,48 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    public void handleUpdateTag(CompoundTag tag) {
-        this.load(tag);
-    }
-
     public static void tick(Level level, BlockPos blockPos, BlockState state, RespawnObeliskBlockEntity blockEntity) {
         if (level.getGameTime() % 100 == 0) {
-            if (!blockEntity.itemNbt.contains("tag") || !blockEntity.itemNbt.getCompound("tag").contains("RespawnObeliskData")) return;
-            CompoundTag obeliskData = blockEntity.itemNbt.getCompound("tag").getCompound("RespawnObeliskData");
-            if (!obeliskData.contains("SavedEntities")) return;
-            ListTag list = obeliskData.getList("SavedEntities", 10);
-            for (Tag tag : list) {
-                if (
-                        level instanceof ServerLevel serverLevel &&
-                        tag instanceof CompoundTag compound &&
-                        compound.contains("uuid") &&
-                        compound.contains("type") &&
-                        compound.contains("data")
-                ) {
-                    Entity entity = serverLevel.getEntity(compound.getUUID("uuid"));
-                    if (entity == null || !entity.isAlive()) {
-                        blockEntity.hasLimboEntity = true;
-                        blockEntity.syncWithClient(level, blockPos, state);
-                        break;
+            if (!level.isClientSide)
+                blockEntity.checkLimbo(level, blockPos, state, true);
+        }
+    }
+
+    public void updateObeliskName() {
+        if (this.itemNbt.contains("tag") && this.itemNbt.getCompound("tag").contains("display")) {
+            CompoundTag displayData = this.itemNbt.getCompound("tag").getCompound("display");
+            if (displayData.contains("Name")) {
+                obeliskName = displayData.getString("Name");
+                return;
+            }
+        }
+        obeliskName = "";
+    }
+
+    public void checkLimbo(Level level, BlockPos blockPos, BlockState state, boolean shouldSync) {
+        if (this.itemNbt.contains("tag") && this.itemNbt.getCompound("tag").contains("RespawnObeliskData")) {
+            CompoundTag obeliskData = this.itemNbt.getCompound("tag").getCompound("RespawnObeliskData");
+            if (obeliskData.contains("SavedEntities")) {
+                ListTag list = obeliskData.getList("SavedEntities", 10);
+                for (Tag tag : list) {
+                    if (
+                            level instanceof ServerLevel serverLevel &&
+                                    tag instanceof CompoundTag compound &&
+                                    compound.contains("uuid") &&
+                                    compound.contains("type") &&
+                                    compound.contains("data")
+                    ) {
+                        Entity entity = serverLevel.getEntity(compound.getUUID("uuid"));
+                        if (entity == null || !entity.isAlive()) {
+                            this.hasLimboEntity = true;
+                            if (shouldSync) this.syncWithClient(level, blockPos, state);
+                            return;
+                        }
                     }
                 }
             }
         }
+        this.hasLimboEntity = false;
+        if (shouldSync) this.syncWithClient(level, blockPos, state);
     }
 }

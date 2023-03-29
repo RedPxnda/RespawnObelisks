@@ -9,9 +9,9 @@
   ],
   "mixins": [
     "ExperienceOrbAccessor",
-    "PlayerListRespawnMixin",
+    "PlayerListMixin",
     "RespawnAnchorBlockMixin",
-    "ServerPlayerSetRespawnPosMixin",
+    "ServerPlayerMixin",
     "STPAccessor"
   ],
   "injectors": {

@@ -1,0 +1,8 @@
+{
+  "values": [
+    "respawnobelisks:respawn_obelisk",
+    "respawnobelisks:respawn_obelisk_nether",
+    "respawnobelisks:respawn_obelisk_end"
+  ],
+  "replace": false
+}

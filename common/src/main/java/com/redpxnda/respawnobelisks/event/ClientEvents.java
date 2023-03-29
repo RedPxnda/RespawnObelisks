@@ -6,6 +6,7 @@ import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
@@ -16,12 +17,20 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.state.BlockState;
@@ -45,6 +54,50 @@ public class ClientEvents {
                         Component.translatable("text.respawnobelisks.tooltip.max_charge").withStyle(ChatFormatting.GRAY)
                         .append(Component.literal(" " + RespawnObeliskBlockEntity.getMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
                 );
+            if (stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities")) {
+                lines.add(
+                        Component.translatable("text.respawnobelisks.tooltip.saved_entities").withStyle(ChatFormatting.GRAY)
+                                .append(Component.literal(" [").withStyle(ChatFormatting.DARK_GRAY))
+                                .append(Component.literal("CTRL").withStyle(Screen.hasControlDown() ? ChatFormatting.WHITE : ChatFormatting.GRAY))
+                                .append(Component.literal("]").withStyle(ChatFormatting.DARK_GRAY))
+                );
+                if (Screen.hasControlDown()) {
+                    ListTag list = stack.getTag().getCompound("RespawnObeliskData").getList("SavedEntities", 10);
+                    for (Tag tag : list) {
+                        if (!(tag instanceof CompoundTag compound) || compound.isEmpty() || !compound.contains("type")) continue;
+                        String type = Registry.ENTITY_TYPE.get(ResourceLocation.tryParse(compound.getString("type"))).getDescriptionId();
+                        MutableComponent component = compound.contains("data") && compound.getCompound("data").contains("CustomName") ?
+                                Component.Serializer.fromJson(compound.getCompound("data").getString("CustomName")) :
+                                null;
+                        MutableComponent finalComponent = Component.literal(" | ").withStyle(ChatFormatting.GRAY)
+                                .append(Component.translatable(type).withStyle(ChatFormatting.WHITE));
+                        if (component != null)
+                            finalComponent = finalComponent
+                                    .append(Component.literal(" (Name: ").withStyle(ChatFormatting.WHITE))
+                                    .append(component.withStyle(ChatFormatting.GRAY))
+                                    .append(Component.literal(")").withStyle(ChatFormatting.WHITE));
+                        lines.add(finalComponent);
+                    }
+                }
+            }
+            if (stack.getTag().getCompound("RespawnObeliskData").contains("TrustedPlayers")) {
+                lines.add(
+                        Component.translatable("text.respawnobelisks.tooltip.trusted_players").withStyle(ChatFormatting.GRAY)
+                                .append(Component.literal(" [").withStyle(ChatFormatting.DARK_GRAY))
+                                .append(Component.literal("ALT").withStyle(Screen.hasAltDown() ? ChatFormatting.WHITE : ChatFormatting.GRAY))
+                                .append(Component.literal("]").withStyle(ChatFormatting.DARK_GRAY))
+                );
+                if (Screen.hasAltDown()) {
+                    ListTag list = stack.getTag().getCompound("RespawnObeliskData").getList("TrustedPlayers", 8);
+                    for (Tag tag : list) {
+                        if (!(tag instanceof StringTag stringTag)) continue;
+                        lines.add(
+                                Component.literal(" | ").withStyle(ChatFormatting.GRAY)
+                                .append(Component.literal(stringTag.toString()).withStyle(ChatFormatting.WHITE))
+                        );
+                    }
+                }
+            }
         }
     }
 
@@ -67,6 +120,7 @@ public class ClientEvents {
     protected static void onTextureStitch(TextureAtlas atlas, Consumer<ResourceLocation> spriteAdder) {
         if (!atlas.location().equals(TextureAtlas.LOCATION_BLOCKS)) return;
         spriteAdder.accept(RespawnObeliskBER.RUNES);
+        ParticlePack.getPackTextures().forEach((str, loc) -> spriteAdder.accept(loc));
     }
 
     public static void onClientSetup(Minecraft mc) {

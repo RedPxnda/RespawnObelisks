@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.Optional;
 
 @Mixin(PlayerList.class)
-public class PlayerListRespawnMixin {
+public class PlayerListMixin {
     @WrapOperation(
             method = "respawn",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;moveTo(DDDFF)V")

@@ -1,26 +1,23 @@
 package com.redpxnda.respawnobelisks.network.handler;
 
-import com.redpxnda.respawnobelisks.config.ServerConfig;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
-import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-
-import java.util.Optional;
 
 @Environment(EnvType.CLIENT)
 public class S2CHandlers {
@@ -43,42 +40,26 @@ public class S2CHandlers {
         }
     }
 
-    public static void obeliskInteractionPacket1(int playerId, BlockPos blockPos, ParticlePack pack, boolean isCurse) {
-        Level pLevel = Minecraft.getInstance().level;
-        if (pLevel != null && pLevel.getEntity(playerId) instanceof Player player) {
-            SoundEvent sound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ServerConfig.obeliskRemovalSound)).orElse(SoundEvents.UI_BUTTON_CLICK);
-            pLevel.playLocalSound(blockPos.getX(), blockPos.getY(), blockPos.getZ(), isCurse ? pack.particleHandler.curseSound() : sound, SoundSource.BLOCKS, 1, 1, false);
-            if (!isCurse) {
-                for (int i = 0; i < 900; i += 5) {
-                    int i1 = i;
-                    if (i1 >= 360) i1 = 0;
-                    double radians = i * Math.PI / 180;
-                    pLevel.addParticle(ParticleTypes.TOTEM_OF_UNDYING, blockPos.getX() + Math.sin(radians) * 0.5 + 0.5, blockPos.getY() + i / 360f, blockPos.getZ() + Math.cos(radians) * 0.5 + 0.5, Math.sin(radians) / 20, 0, Math.cos(radians) / 20);
-                }
-            } else {
-                pack.particleHandler.curseAnimation(pLevel, player, blockPos);
-            }
-        }
-    }
-
-    public static void obeliskInteractionPacket2(int playerId, ParticlePack pack, BlockPos blockPos, boolean isNegative, boolean isRespawn) {
-        Level pLevel = Minecraft.getInstance().level;
-        if (pLevel != null && pLevel.getEntity(playerId) instanceof Player player) {
-            SoundEvent setSpawnSound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ServerConfig.obeliskSetSpawnSound)).orElse(SoundEvents.UI_BUTTON_CLICK);
-            pLevel.playLocalSound(blockPos.getX(), blockPos.getY(), blockPos.getZ(), isNegative ? pack.particleHandler.depleteSound() : isRespawn ? setSpawnSound : pack.particleHandler.chargeSound(), SoundSource.BLOCKS, 1, 1, false);
-            if (isRespawn) return;
-            if (!isNegative) {
-                pack.particleHandler.chargeAnimation(pLevel, player, blockPos);
-            } else {
-                pack.particleHandler.depleteAnimation(pLevel, player, blockPos);
-            }
-        }
+    public static void firePackMethodPacket(String method, int playerId, ParticlePack pack, BlockPos pos) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) return;
+        if (level.getEntity(playerId) instanceof Player player)
+            ParticlePack.firePackMethod(pack.particleHandler, method, level, player, pos);
+        else
+            ParticlePack.firePackMethod(pack.particleHandler, method, level, null, pos);
     }
 
     public static void playClientSound(SoundEvent event, float pitch, float volume) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
             player.playSound(event, pitch, volume);
+        }
+    }
+
+    public static void playerTotemAnimation(Item item) {
+        GameRenderer gameRenderer = Minecraft.getInstance().gameRenderer;
+        if (gameRenderer != null) {
+            gameRenderer.displayItemActivation(new ItemStack(item.arch$holder()));
         }
     }
 

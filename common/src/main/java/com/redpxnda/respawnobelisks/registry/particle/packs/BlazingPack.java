@@ -1,7 +1,6 @@
 package com.redpxnda.respawnobelisks.registry.particle.packs;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Vector3f;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -16,11 +15,24 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.level.Level;
 
-public class BlazingPack extends DefaultPack implements IBasicPack {
+public class BlazingPack extends SimpleRingPack {
     private static Blaze blaze = null;
+    private final SimpleRuneColorPack runePack;
 
     public BlazingPack() {
         super(ParticleTypes.FLAME);
+
+        this.runePack = new SimpleRuneColorPack();
+        runePack.ticks = 100;
+        runePack.colors.add(new float[] { 255, 50, 0 });
+        runePack.colors.add(new float[] { 255, 175, 0 });
+
+        this.increase = 10;
+        this.max = 1800;
+        this.setVertFuncs((orig, i, rad) -> orig+0.5 + ((i/360) / 3f));
+        this.setVertSpeedFuncs((orig, i, rad) -> 0d);
+        this.chargeRadius = 4;
+        this.shouldChangeY = false;
     }
 
     @Override
@@ -28,8 +40,8 @@ public class BlazingPack extends DefaultPack implements IBasicPack {
         EntityRenderDispatcher renderManager = Minecraft.getInstance().getEntityRenderDispatcher(); // getting rendering manager and disabling shadows
         renderManager.setRenderShadow(false);
 
-        if (Minecraft.getInstance().level == null || be.getLevel() == null) return false; // setting blaze if non-existent
-        if (blaze == null) blaze = new Blaze(EntityType.BLAZE, Minecraft.getInstance().level);
+        if (Minecraft.getInstance().level == null || be.getLevel() == null) return false;
+        if (blaze == null) blaze = new Blaze(EntityType.BLAZE, Minecraft.getInstance().level); // setting blaze if non-existent
 
         BlockPos pos = be.getBlockPos(); // setting blaze's pos
         blaze.setPos(pos.getX()+0.5, pos.getY(), pos.getZ()+0.5);
@@ -37,18 +49,18 @@ public class BlazingPack extends DefaultPack implements IBasicPack {
         float renderTicks = be.getLevel().getGameTime() + partialTick;
 
         poseStack.pushPose(); // rendering blaze
-        poseStack.translate(0.375D, -0.1F, 0.6125D);
-        poseStack.scale(1.5f, 1.5f, 1.5f);
+        poseStack.translate(0.375D, -0.65F, 0.6125D);
+        poseStack.scale(1.4f, 1.4f, 1.4f);
         BlazeRenderer renderer = (BlazeRenderer) renderManager.getRenderer(blaze);
         renderer.getModel().root().getChild("head").visible = false;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 4; i < 12; i++) {
             renderer.getModel().root().getChild("part"+i).visible = false;
         }
         renderManager.render(blaze, 0, 0, 0, 0f, renderTicks, poseStack, buffer, 0xFFFFFF);
 
         renderManager.setRenderShadow(true); // setting things back
         renderer.getModel().root().getChild("head").visible = true;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 4; i < 12; i++) {
             renderer.getModel().root().getChild("part"+i).visible = true;
         }
         poseStack.popPose();
@@ -57,9 +69,7 @@ public class BlazingPack extends DefaultPack implements IBasicPack {
 
     @Override
     public float[] runeColor(float partialTick, Level level) {
-        int time = (int) (level.getGameTime() % 100);
-        if (time > 50) time = 50-(time-50);
-        return new float[] {1f, Mth.lerp(time/50f, 0, 1), 0f};
+        return runePack.runeColor(partialTick, level);
     }
 
     @Override
