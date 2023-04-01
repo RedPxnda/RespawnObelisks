@@ -1,6 +1,9 @@
 package com.redpxnda.respawnobelisks.registry.particle;
 
 import com.redpxnda.respawnobelisks.registry.particle.packs.*;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
@@ -24,31 +27,28 @@ public enum ParticlePack implements StringRepresentable {
     BLAZING("blazing", new BlazingPack(), 2),
     RAINBOW("rainbow", new RainbowPack(), 2);
 
-    private static Map<String, ResourceLocation> PACK_TEXTURES = new HashMap<>();
-    public static Map<String, ResourceLocation> getPackTextures() {
-        return PACK_TEXTURES;
-    }
-    static {
-        registerPackTexture("sculk_tendrils", new ResourceLocation("minecraft", "entity/warden/warden"));
-        registerPackTexture("rainbow", new ResourceLocation(MOD_ID, "block/rainbow"));
-    }
-    public static void registerPackTexture(String id, ResourceLocation location) {
-        PACK_TEXTURES.put(id, location);
-    }
     public static void firePackMethod(IBasicPack pack, String method, Level level, @Nullable Player player, BlockPos pos) {
         SoundEvent event = null;
+        float volume = 1f;
+        float pitch = 1f;
         switch (method) {
             case "deplete", "depleteAnimation" -> {
                 pack.depleteAnimation(level, player, pos);
                 event = pack.depleteSound();
+                volume = pack.depleteSoundVolume();
+                pitch = pack.depleteSoundPitch();
             }
             case "charge", "chargeAnimation" -> {
                 pack.chargeAnimation(level, player, pos);
                 event = pack.chargeSound();
+                volume = pack.chargeSoundVolume();
+                pitch = pack.chargeSoundPitch();
             }
             case "curse", "curseAnimation" -> {
                 pack.curseAnimation(level, player, pos);
                 event = pack.curseSound();
+                volume = pack.curseSoundVolume();
+                pitch = pack.curseSoundPitch();
             }
             case "totem", "respawn" -> {
                 event = SoundEvents.TOTEM_USE;
@@ -62,7 +62,7 @@ public enum ParticlePack implements StringRepresentable {
             level.playLocalSound(
                     pos.getX(), pos.getY(), pos.getZ(),
                     event, SoundSource.BLOCKS,
-                    1f, 1f, false
+                    volume, pitch, false
             );
     }
 

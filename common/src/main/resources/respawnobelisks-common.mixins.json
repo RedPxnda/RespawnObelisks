@@ -5,6 +5,7 @@
   "package": "com.redpxnda.respawnobelisks.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "LevelRendererMixin",
     "LivingEntityRendererMixin"
   ],
   "mixins": [

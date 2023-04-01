@@ -6,12 +6,13 @@ import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.registry.item.BoundCompassItem;
 import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
+import com.redpxnda.respawnobelisks.scheduled.client.ScheduledClientTasks;
+import com.redpxnda.respawnobelisks.util.RenderUtils;
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.client.ClientLifecycleEvent;
-import dev.architectury.event.events.client.ClientRawInputEvent;
-import dev.architectury.event.events.client.ClientTextureStitchEvent;
-import dev.architectury.event.events.client.ClientTooltipEvent;
+import dev.architectury.event.events.client.*;
+import dev.architectury.platform.Platform;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -19,6 +20,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
@@ -31,7 +34,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.CompassItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -44,18 +49,19 @@ import java.util.function.Consumer;
 public class ClientEvents {
     protected static void onItemTooltip(ItemStack stack, List<Component> lines, TooltipFlag flag) {
         if (stack.hasTag() && stack.getTag().contains("RespawnObeliskData")) {
+            int pos = 1;
             if (stack.getTag().getCompound("RespawnObeliskData").contains("Charge"))
-                lines.add(
+                lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.charge").withStyle(ChatFormatting.GRAY)
                         .append(Component.literal(" " + RespawnObeliskBlockEntity.getCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
                 );
             if (stack.getTag().getCompound("RespawnObeliskData").contains("MaxCharge"))
-                lines.add(
+                lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.max_charge").withStyle(ChatFormatting.GRAY)
                         .append(Component.literal(" " + RespawnObeliskBlockEntity.getMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
                 );
             if (stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities")) {
-                lines.add(
+                lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.saved_entities").withStyle(ChatFormatting.GRAY)
                                 .append(Component.literal(" [").withStyle(ChatFormatting.DARK_GRAY))
                                 .append(Component.literal("CTRL").withStyle(Screen.hasControlDown() ? ChatFormatting.WHITE : ChatFormatting.GRAY))
@@ -76,7 +82,7 @@ public class ClientEvents {
                                     .append(Component.literal(" (Name: ").withStyle(ChatFormatting.WHITE))
                                     .append(component.withStyle(ChatFormatting.GRAY))
                                     .append(Component.literal(")").withStyle(ChatFormatting.WHITE));
-                        lines.add(finalComponent);
+                        lines.add(pos++, finalComponent);
                     }
                 }
             }
@@ -120,14 +126,17 @@ public class ClientEvents {
     protected static void onTextureStitch(TextureAtlas atlas, Consumer<ResourceLocation> spriteAdder) {
         if (!atlas.location().equals(TextureAtlas.LOCATION_BLOCKS)) return;
         spriteAdder.accept(RespawnObeliskBER.RUNES);
-        ParticlePack.getPackTextures().forEach((str, loc) -> spriteAdder.accept(loc));
+        RenderUtils.getPackTextures().forEach((str, loc) -> spriteAdder.accept(loc));
     }
 
     public static void onClientSetup(Minecraft mc) {
         BlockEntityRendererRegistry.register(ModRegistries.RESPAWN_OBELISK_BE.get(), RespawnObeliskBER::new);
+        if (Platform.isFabric())
+            ItemProperties.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
     }
 
     public static void init() {
+        ClientTickEvent.CLIENT_POST.register(ScheduledClientTasks::onClientTick);
         ClientRawInputEvent.MOUSE_SCROLLED.register(ClientEvents::onClientScroll);
         ClientTextureStitchEvent.PRE.register(ClientEvents::onTextureStitch);
         ClientLifecycleEvent.CLIENT_SETUP.register(ClientEvents::onClientSetup);

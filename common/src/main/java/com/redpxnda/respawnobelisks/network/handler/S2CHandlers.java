@@ -2,6 +2,8 @@ package com.redpxnda.respawnobelisks.network.handler;
 
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
+import com.redpxnda.respawnobelisks.scheduled.client.ClientRuneCircleTask;
+import com.redpxnda.respawnobelisks.scheduled.client.ScheduledClientTasks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -21,6 +23,10 @@ import net.minecraft.world.level.Level;
 
 @Environment(EnvType.CLIENT)
 public class S2CHandlers {
+    public static void setupRuneCircleRenderPacket(int time, BlockPos pos) {
+        ScheduledClientTasks.schedule(new ClientRuneCircleTask(time, pos));
+    }
+
     public static void respawnAnchorPacket(BlockPos blockPos, int charge, boolean isRun) {
         Level pLevel = Minecraft.getInstance().level;
         Player player = Minecraft.getInstance().player;

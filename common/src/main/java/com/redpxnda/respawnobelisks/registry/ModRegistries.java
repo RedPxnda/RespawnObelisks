@@ -7,17 +7,17 @@ import com.redpxnda.respawnobelisks.registry.block.FakeRespawnAnchorBlock;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.registry.effect.ImmortalityCurseEffect;
+import com.redpxnda.respawnobelisks.registry.item.BoundCompassItem;
 import com.redpxnda.respawnobelisks.registry.structure.NetherLandStructures;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.Registries;
 import dev.architectury.registry.registries.RegistrySupplier;
+import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -38,6 +38,10 @@ public class ModRegistries {
     public static Registrar<MobEffect> EFFECTS = REGISTRIES.get().get(Registry.MOB_EFFECT_REGISTRY);
     public static Registrar<BlockEntityType<?>> BLOCK_ENTITIES = REGISTRIES.get().get(Registry.BLOCK_ENTITY_TYPE_REGISTRY);
     public static Registrar<StructureType<?>> STRUCTURES = REGISTRIES.get().get(Registry.STRUCTURE_TYPE_REGISTRY);
+
+    public static RegistrySupplier<Item> BOUND_COMPASS = ITEMS.register(new ResourceLocation(MOD_ID, "bound_compass"), () -> new BoundCompassItem(new Item.Properties()
+            .tab(CreativeModeTab.TAB_MISC)
+    ));
 
     public static RegistrySupplier<Item> OBELISK_CORE = ITEMS.register(new ResourceLocation(MOD_ID, "obelisk_core"), () -> new Item(new Item.Properties()
             .tab(CreativeModeTab.TAB_MISC)
@@ -63,7 +67,7 @@ public class ModRegistries {
             .strength(2, 3600.0F)
             .requiresCorrectToolForDrops(),
             Either.left(Level.OVERWORLD),
-            OBELISK_CORE.get()
+            OBELISK_CORE
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK.get(), new Item.Properties()
@@ -79,7 +83,7 @@ public class ModRegistries {
             .strength(2, 3600.0F)
             .requiresCorrectToolForDrops(),
             Either.left(Level.NETHER),
-            OBELISK_CORE_NETHER.get()
+            OBELISK_CORE_NETHER
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_NETHER = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_nether"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_NETHER.get(), new Item.Properties()
@@ -95,7 +99,7 @@ public class ModRegistries {
             .strength(2, 3600.0F)
             .requiresCorrectToolForDrops(),
             Either.left(Level.END),
-            OBELISK_CORE_END.get()
+            OBELISK_CORE_END
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_END = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_end"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_END.get(), new Item.Properties()
@@ -107,7 +111,6 @@ public class ModRegistries {
 
     public static RegistrySupplier<Item> DORMANT_OBELISK = ITEMS.register(new ResourceLocation(MOD_ID, "dormant_obelisk"), () -> new Item(new Item.Properties()
             .tab(CreativeModeTab.TAB_MISC)
-            .fireResistant()
             .rarity(Rarity.UNCOMMON)
     ));
 

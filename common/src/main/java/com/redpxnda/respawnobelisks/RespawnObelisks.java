@@ -1,6 +1,6 @@
 package com.redpxnda.respawnobelisks;
 
-import com.redpxnda.respawnobelisks.config.ServerConfig;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.event.ClientEvents;
 import com.redpxnda.respawnobelisks.event.CommonEvents;
 import com.redpxnda.respawnobelisks.network.ModPackets;
@@ -14,7 +14,7 @@ public class RespawnObelisks {
     public static final Configurator CONFIGURATOR = new Configurator(true);
     
     public static void init() {
-        CONFIGURATOR.registerConfig(ServerConfig.class);
+        CONFIGURATOR.registerConfig(RespawnObelisksConfig.class);
 
         ModRegistries.init();
         ModPackets.init();

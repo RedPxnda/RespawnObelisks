@@ -1,5 +1,7 @@
 package com.redpxnda.respawnobelisks.registry.block.entity;
 
+import com.redpxnda.respawnobelisks.config.ChargeConfig;
+import com.redpxnda.respawnobelisks.config.TrustedPlayersConfig;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import net.minecraft.core.BlockPos;
@@ -15,11 +17,14 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
+import javax.annotation.Nullable;
 
 public class RespawnObeliskBlockEntity extends BlockEntity {
     private static CompoundTag setupNbt(RespawnObeliskBlockEntity be, Item core) {
@@ -34,6 +39,7 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     }
 
     private CompoundTag itemNbt;
+    private CompoundTag playerCharges;
     private boolean hasLimboEntity;
     private long lastRespawn;
     private long lastCharge;
@@ -43,15 +49,16 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     public RespawnObeliskBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(ModRegistries.RESPAWN_OBELISK_BE.get(), pPos, pBlockState);
         itemNbt = new CompoundTag();
+        playerCharges = new CompoundTag();
         lastRespawn = 0;
         lastCharge = 0;
         hasLimboEntity = false;
         if (pBlockState.getBlock() instanceof RespawnObeliskBlock block)
-            setupNbt(this, block.CORE_ITEM);
+            setupNbt(this, block.CORE_ITEM.get());
     }
 
     public boolean isPlayerTrusted(String username) {
-        if (this.itemNbt.contains("tag") && this.itemNbt.getCompound("tag").contains("RespawnObeliskData")) {
+        if (TrustedPlayersConfig.enablePlayerTrust && this.itemNbt.contains("tag") && this.itemNbt.getCompound("tag").contains("RespawnObeliskData")) {
             CompoundTag obeliskData = this.itemNbt.getCompound("tag").getCompound("RespawnObeliskData");
             if (obeliskData.contains("TrustedPlayers")) {
                 ListTag list = obeliskData.getList("TrustedPlayers", 8);
@@ -69,9 +76,6 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     public boolean hasLimboEntity() {
         return hasLimboEntity;
     }
-    public void setHasLimboEntity(boolean hasLimboEntity) {
-        this.hasLimboEntity = hasLimboEntity;
-    }
     public long getLastRespawn() {
         return lastRespawn;
     }
@@ -84,7 +88,12 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     public void setLastCharge(long lastCharge) {
         this.lastCharge = lastCharge;
     }
-    public double getCharge() {
+    public double getCharge(@Nullable Player player) {
+        if (ChargeConfig.perPlayerCharge && player != null) {
+            if (!playerCharges.contains(player.getScoreboardName(), 6))
+                playerCharges.putDouble(player.getScoreboardName(), 0);
+            return playerCharges.getDouble(player.getScoreboardName());
+        }
         if (itemNbt.isEmpty()) return 0;
         return itemNbt.getCompound("tag").getCompound("RespawnObeliskData").getDouble("Charge");
     }
@@ -104,7 +113,11 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     public void setItemNbt(CompoundTag tag) {
         itemNbt = tag;
     }
-    public void setCharge(double charge) {
+    public void setCharge(Player player, double charge) {
+        if (ChargeConfig.perPlayerCharge) {
+            playerCharges.putDouble(player.getScoreboardName(), charge);
+            return;
+        }
         itemNbt.getCompound("tag").getCompound("RespawnObeliskData").putDouble("Charge", charge);
     }
     public void setItem(ItemStack stack) {
@@ -116,14 +129,14 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
         return ItemStack.of(itemNbt);
     }
 
-    public BlockEntity decreaseCharge(double amnt, Level level, BlockPos pos, BlockState state) {
-        this.setCharge(Mth.clamp(this.getCharge() - amnt, 0, this.getMaxCharge()));
+    public BlockEntity decreaseCharge(Player player, double amnt, Level level, BlockPos pos, BlockState state) {
+        this.setCharge(player, Mth.clamp(this.getCharge(player) - amnt, 0, this.getMaxCharge()));
         setChanged(level, pos, state);
         return this;
     }
 
-    public BlockEntity increaseCharge(double amnt, Level level, BlockPos pos, BlockState state) {
-        this.setCharge(Mth.clamp(this.getCharge() + amnt, 0, this.getMaxCharge()));
+    public BlockEntity increaseCharge(Player player, double amnt, Level level, BlockPos pos, BlockState state) {
+        this.setCharge(player, Mth.clamp(this.getCharge(player) + amnt, 0, this.getMaxCharge()));
         setChanged(level, pos, state);
         return this;
     }
@@ -136,6 +149,7 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     public void load(CompoundTag tag) {
         super.load(tag);
         this.itemNbt = tag.getCompound("Item");
+        this.playerCharges = tag.getCompound("PlayerCharges");
         this.lastRespawn = tag.getLong("LastRespawn");
         this.lastCharge = tag.getLong("LastCharge");
         this.hasLimboEntity = tag.getBoolean("HasLimboEntity");
@@ -147,6 +161,7 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.put("Item", this.itemNbt);
+        tag.put("PlayerCharges", playerCharges);
         tag.putLong("LastRespawn", this.lastRespawn);
         tag.putLong("LastCharge", this.lastCharge);
         tag.putBoolean("HasLimboEntity", this.hasLimboEntity);
@@ -157,6 +172,7 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     public CompoundTag getUpdateTag() {
         CompoundTag tag = new CompoundTag();
         tag.put("Item", this.itemNbt);
+        tag.put("PlayerCharges", playerCharges);
         tag.putLong("LastRespawn", this.lastRespawn);
         tag.putLong("LastCharge", this.lastCharge);
         tag.putBoolean("HasLimboEntity", this.hasLimboEntity);

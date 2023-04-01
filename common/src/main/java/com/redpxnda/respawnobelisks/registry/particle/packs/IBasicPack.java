@@ -1,7 +1,9 @@
 package com.redpxnda.respawnobelisks.registry.particle.packs;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.redpxnda.respawnobelisks.config.ServerConfig;
+import com.redpxnda.respawnobelisks.config.ChargeConfig;
+import com.redpxnda.respawnobelisks.config.CurseConfig;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
@@ -42,16 +44,35 @@ public interface IBasicPack {
     }
 
     default SoundEvent depleteSound() {
-        Optional<SoundEvent> sound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ServerConfig.obeliskDepleteSound));
+        Optional<SoundEvent> sound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ChargeConfig.obeliskDepleteSound));
         return sound.orElse(SoundEvents.UI_BUTTON_CLICK);
     }
     default SoundEvent chargeSound() {
-        Optional<SoundEvent> sound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ServerConfig.obeliskChargeSound));
+        Optional<SoundEvent> sound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ChargeConfig.obeliskChargeSound));
         return sound.orElse(SoundEvents.UI_BUTTON_CLICK);
     }
     default SoundEvent curseSound() {
-        Optional<SoundEvent> sound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(ServerConfig.curseSound));
+        Optional<SoundEvent> sound = Registry.SOUND_EVENT.getOptional(new ResourceLocation(CurseConfig.curseSound));
         return sound.orElse(SoundEvents.UI_BUTTON_CLICK);
+    }
+
+    default float depleteSoundVolume() {
+        return 1f;
+    }
+    default float chargeSoundVolume() {
+        return 1f;
+    }
+    default float curseSoundVolume() {
+        return 1f;
+    }
+    default float depleteSoundPitch() {
+        return 1f;
+    }
+    default float chargeSoundPitch() {
+        return 1f;
+    }
+    default float curseSoundPitch() {
+        return 1f;
     }
 
     default float[] runeColor(float partialTick, Level level) {

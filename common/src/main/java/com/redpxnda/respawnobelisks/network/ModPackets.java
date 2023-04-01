@@ -15,5 +15,6 @@ public class ModPackets {
         CHANNEL.register(ScrollWheelPacket.class, ScrollWheelPacket::toBytes, ScrollWheelPacket::new, ScrollWheelPacket::handle);
         CHANNEL.register(PlaySoundPacket.class, PlaySoundPacket::toBytes, PlaySoundPacket::new, PlaySoundPacket::handle);
         CHANNEL.register(PlayTotemAnimationPacket.class, PlayTotemAnimationPacket::toBytes, PlayTotemAnimationPacket::new, PlayTotemAnimationPacket::handle);
+        CHANNEL.register(RuneCirclePacket.class, RuneCirclePacket::toBytes, RuneCirclePacket::new, RuneCirclePacket::handle);
     }
 }

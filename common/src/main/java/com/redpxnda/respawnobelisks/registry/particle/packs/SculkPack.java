@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
+import com.redpxnda.respawnobelisks.util.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -60,7 +61,7 @@ public class SculkPack extends SimpleRuneColorPack {
 
     @Override
     public boolean obeliskRenderTick(RespawnObeliskBlockEntity be, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay) {
-        if (TENDRILS_SPRITE == null) TENDRILS_SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(ParticlePack.getPackTextures().get("sculk_tendrils"));
+        if (TENDRILS_SPRITE == null) TENDRILS_SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RenderUtils.getPackTextures().get("sculk_tendrils"));
         renderSculkTendrils(be, poseStack, TENDRILS_SPRITE, buffer, light);
         return false;
     }
