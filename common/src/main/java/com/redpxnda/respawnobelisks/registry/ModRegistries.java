@@ -3,6 +3,8 @@ package com.redpxnda.respawnobelisks.registry;
 import com.google.common.base.Suppliers;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.redpxnda.respawnobelisks.event.ClientEvents;
+import com.redpxnda.respawnobelisks.mixin.SimpleParticleTypeAccessor;
 import com.redpxnda.respawnobelisks.registry.block.FakeRespawnAnchorBlock;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
@@ -15,6 +17,8 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Registry;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.*;
@@ -35,9 +39,12 @@ public class ModRegistries {
 
     public static Registrar<Block> BLOCKS = REGISTRIES.get().get(Registry.BLOCK_REGISTRY);
     public static Registrar<Item> ITEMS = REGISTRIES.get().get(Registry.ITEM_REGISTRY);
+    public static Registrar<ParticleType<?>> PARTICLE_TYPES = REGISTRIES.get().get(Registry.PARTICLE_TYPE_REGISTRY);
     public static Registrar<MobEffect> EFFECTS = REGISTRIES.get().get(Registry.MOB_EFFECT_REGISTRY);
     public static Registrar<BlockEntityType<?>> BLOCK_ENTITIES = REGISTRIES.get().get(Registry.BLOCK_ENTITY_TYPE_REGISTRY);
     public static Registrar<StructureType<?>> STRUCTURES = REGISTRIES.get().get(Registry.STRUCTURE_TYPE_REGISTRY);
+
+    public static RegistrySupplier<ParticleType<SimpleParticleType>> RUNE_CIRCLE_PARTICLE = PARTICLE_TYPES.register(new ResourceLocation(MOD_ID, "rune_circle"), () -> SimpleParticleTypeAccessor.newTarget(false));
 
     public static RegistrySupplier<Item> BOUND_COMPASS = ITEMS.register(new ResourceLocation(MOD_ID, "bound_compass"), () -> new BoundCompassItem(new Item.Properties()
             .tab(CreativeModeTab.TAB_MISC)

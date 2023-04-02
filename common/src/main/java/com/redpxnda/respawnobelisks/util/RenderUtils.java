@@ -15,12 +15,16 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.entity.BlazeRenderer;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -57,12 +61,44 @@ public class RenderUtils {
 
     private static ItemStack TOTEM_STACK = null;
 
+    private static Blaze BLAZE = null;
+
     private static float[][] RUNE_CIRCLE_COLORS = {
             {80/255f, 0/255f, 170/255f},
             {70/255f, 0/255f, 130/255f}
     };
 
-    public static void renderRunes(TextureAtlasSprite sprite, IBasicPack pack, RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public static void renderBlaze(RespawnObeliskBlockEntity be, float partialTick, PoseStack poseStack, MultiBufferSource buffer) {
+        EntityRenderDispatcher renderManager = Minecraft.getInstance().getEntityRenderDispatcher(); // getting rendering manager and disabling shadows
+        renderManager.setRenderShadow(false);
+
+        if (Minecraft.getInstance().level == null || be.getLevel() == null) return;
+        if (BLAZE == null) BLAZE = new Blaze(EntityType.BLAZE, Minecraft.getInstance().level); // setting blaze if non-existent
+
+        BlockPos pos = be.getBlockPos(); // setting blaze's pos
+        BLAZE.setPos(pos.getX()+0.5, pos.getY(), pos.getZ()+0.5);
+
+        float renderTicks = be.getLevel().getGameTime() + partialTick;
+
+        poseStack.pushPose(); // rendering blaze
+        poseStack.translate(0.375D, -0.65F, 0.6125D);
+        poseStack.scale(1.4f, 1.4f, 1.4f);
+        BlazeRenderer renderer = (BlazeRenderer) renderManager.getRenderer(BLAZE);
+        renderer.getModel().root().getChild("head").visible = false;
+        for (int i = 4; i < 12; i++) {
+            renderer.getModel().root().getChild("part"+i).visible = false;
+        }
+        renderManager.render(BLAZE, 0, 0, 0, 0f, renderTicks, poseStack, buffer, 0xFFFFFF);
+
+        renderManager.setRenderShadow(true); // setting things back
+        renderer.getModel().root().getChild("head").visible = true;
+        for (int i = 4; i < 12; i++) {
+            renderer.getModel().root().getChild("part"+i).visible = true;
+        }
+        poseStack.popPose();
+    }
+
+    public static void renderRunes(TextureAtlasSprite sprite, IBasicPack pack, RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
         VertexConsumer vc = bufferSource.getBuffer(RenderType.translucent());
 
@@ -114,15 +150,14 @@ public class RenderUtils {
         poseStack.popPose();
     }
 
-    public static void renderRuneCircle(long time, float alpha, BlockPos pos, PoseStack poseStack, MultiBufferSource buffer, int light) {
-        System.out.println("should be rendering :P " + pos);
+    public static void renderRuneCircle(long time, float alpha, double x, double y, double z, PoseStack poseStack, VertexConsumer vc, int light) {
+        System.out.println("should be rendering :P\n" + x + "\n" + y + "\n" + z);
         poseStack.pushPose();
-        poseStack.translate(pos.getX()+0.5, pos.getY()+1.01, pos.getZ()+0.5);
+        poseStack.translate(x, y+0.01, z);
 
-        VertexConsumer vc = buffer.getBuffer(RenderType.translucent());
         poseStack.mulPose(Vector3f.XP.rotationDegrees(90));
         TextureAtlasSprite sprite = getAtlasSprite("circle::0");
-        addQuad(false, poseStack.last().pose(), vc, RUNE_CIRCLE_COLORS[0][0], RUNE_CIRCLE_COLORS[0][1], RUNE_CIRCLE_COLORS[0][2], alpha*0.75f, 2f, 2f, 0, 0, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
+        addParticleQuad((f, bl) -> f, (f, bl) -> -f, poseStack.last().pose(), vc, RUNE_CIRCLE_COLORS[0][0], RUNE_CIRCLE_COLORS[0][1], RUNE_CIRCLE_COLORS[0][2], alpha*0.75f, 2f, 2f, 0, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
         poseStack.translate(0, 0.0, -0.2);
         for (int i = 1; i < 5; i++) {
             time*=1 + i/5f;
@@ -130,7 +165,7 @@ public class RenderUtils {
             else poseStack.mulPose(Vector3f.ZN.rotationDegrees(time));
             poseStack.translate(0, 0, 0.01);
             sprite = getAtlasSprite("circle::" + i);
-            addQuad(false, poseStack.last().pose(), vc, RUNE_CIRCLE_COLORS[i%2][0], RUNE_CIRCLE_COLORS[i%2][1], RUNE_CIRCLE_COLORS[i%2][2], alpha, 2f, 2f, 0, 0, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
+            addParticleQuad((f, bl) -> f, (f, bl) -> -f, poseStack.last().pose(), vc, RUNE_CIRCLE_COLORS[i%2][0], RUNE_CIRCLE_COLORS[i%2][1], RUNE_CIRCLE_COLORS[i%2][2], alpha, 2f, 2f, 0, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
             if (i % 2 == 0) poseStack.mulPose(Vector3f.ZN.rotationDegrees(time));
             else poseStack.mulPose(Vector3f.ZP.rotationDegrees(time));
         }
@@ -187,6 +222,17 @@ public class RenderUtils {
         addVertex(matrix4f, vc, red, green, blue, alpha, primary.apply(x, false), secondary.apply(y, true), z, u0, v1, light);
         addVertex(matrix4f, vc, red, green, blue, alpha, secondary.apply(x, false), secondary.apply(y, true), z, u1, v1, light);
         addVertex(matrix4f, vc, red, green, blue, alpha, secondary.apply(x, false), primary.apply(y, true), z, u1, v0, light);
+    }
+
+    public static void addParticleQuad(BiFunction<Float, Boolean, Float> primary, BiFunction<Float, Boolean, Float> secondary, Matrix4f matrix4f, VertexConsumer vc, float red, float green, float blue, float alpha, float x, float y, float z, float u0, float u1, float v0, float v1, int light) {
+        addParticleVertex(matrix4f, vc, red, green, blue, alpha, primary.apply(x, false), primary.apply(y, true), z, u0, v0, light);
+        addParticleVertex(matrix4f, vc, red, green, blue, alpha, primary.apply(x, false), secondary.apply(y, true), z, u0, v1, light);
+        addParticleVertex(matrix4f, vc, red, green, blue, alpha, secondary.apply(x, false), secondary.apply(y, true), z, u1, v1, light);
+        addParticleVertex(matrix4f, vc, red, green, blue, alpha, secondary.apply(x, false), primary.apply(y, true), z, u1, v0, light);
+    }
+
+    public static void addParticleVertex(Matrix4f matrix4f, VertexConsumer vc, float red, float green, float blue, float alpha, float x, float y, float z, float u, float v, int light) {
+        vc.vertex(matrix4f, x, y, z).uv(u, v).color(red, green, blue, alpha).uv2(light).endVertex();
     }
 
     public static void addVertex(Matrix4f matrix4f, VertexConsumer vc, float red, float green, float blue, float alpha, float x, float y, float z, float u, float v, int light) {

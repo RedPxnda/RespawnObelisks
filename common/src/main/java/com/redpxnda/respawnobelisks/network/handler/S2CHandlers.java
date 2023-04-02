@@ -2,6 +2,7 @@ package com.redpxnda.respawnobelisks.network.handler;
 
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
+import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
 import com.redpxnda.respawnobelisks.scheduled.client.ClientRuneCircleTask;
 import com.redpxnda.respawnobelisks.scheduled.client.ScheduledClientTasks;
 import net.fabricmc.api.EnvType;
@@ -20,6 +21,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+
+import javax.annotation.Nullable;
 
 @Environment(EnvType.CLIENT)
 public class S2CHandlers {
@@ -50,9 +53,9 @@ public class S2CHandlers {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
         if (level.getEntity(playerId) instanceof Player player)
-            ParticlePack.firePackMethod(pack.particleHandler, method, level, player, pos);
+            firePackMethod(pack.particleHandler, method, level, player, pos);
         else
-            ParticlePack.firePackMethod(pack.particleHandler, method, level, null, pos);
+            firePackMethod(pack.particleHandler, method, level, null, pos);
     }
 
     public static void playClientSound(SoundEvent event, float pitch, float volume) {
@@ -74,5 +77,44 @@ public class S2CHandlers {
         if (player != null) {
             player.addEffect(new MobEffectInstance(ModRegistries.IMMORTALITY_CURSE.get(), duration, amplifier));
         }
+    }
+
+    public static void firePackMethod(IBasicPack pack, String method, Level level, @Nullable Player player, BlockPos pos) {
+        SoundEvent event = null;
+        float volume = 1f;
+        float pitch = 1f;
+        switch (method) {
+            case "deplete", "depleteAnimation" -> {
+                pack.depleteAnimation(level, player, pos);
+                event = pack.depleteSound();
+                volume = pack.depleteSoundVolume();
+                pitch = pack.depleteSoundPitch();
+            }
+            case "charge", "chargeAnimation" -> {
+                pack.chargeAnimation(level, player, pos);
+                event = pack.chargeSound();
+                volume = pack.chargeSoundVolume();
+                pitch = pack.chargeSoundPitch();
+            }
+            case "curse", "curseAnimation" -> {
+                pack.curseAnimation(level, player, pos);
+                event = pack.curseSound();
+                volume = pack.curseSoundVolume();
+                pitch = pack.curseSoundPitch();
+            }
+            case "totem", "respawn" -> {
+                event = SoundEvents.TOTEM_USE;
+                for (int i = 0; i < 900; i += 5) {
+                    double radians = i * Math.PI / 180;
+                    level.addParticle(ParticleTypes.TOTEM_OF_UNDYING, pos.getX() + Math.sin(radians) * 0.5 + 0.5, pos.getY() + i / 360f, pos.getZ() + Math.cos(radians) * 0.5 + 0.5, Math.sin(radians) / 20, 0, Math.cos(radians) / 20);
+                }
+            }
+        }
+        if (event != null)
+            level.playLocalSound(
+                    pos.getX(), pos.getY(), pos.getZ(),
+                    event, SoundSource.BLOCKS,
+                    volume, pitch, false
+            );
     }
 }

@@ -8,11 +8,13 @@ import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.registry.item.BoundCompassItem;
 import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
+import com.redpxnda.respawnobelisks.registry.particle.RuneCircleParticle;
 import com.redpxnda.respawnobelisks.scheduled.client.ScheduledClientTasks;
 import com.redpxnda.respawnobelisks.util.RenderUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.*;
 import dev.architectury.platform.Platform;
+import dev.architectury.registry.client.particle.ParticleProviderRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -131,8 +133,10 @@ public class ClientEvents {
 
     public static void onClientSetup(Minecraft mc) {
         BlockEntityRendererRegistry.register(ModRegistries.RESPAWN_OBELISK_BE.get(), RespawnObeliskBER::new);
-        if (Platform.isFabric())
+        if (Platform.isFabric()) {
             ItemProperties.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
+            //ParticleProviderRegistry.register(ModRegistries.RUNE_CIRCLE_PARTICLE, new RuneCircleParticle.Provider());
+        }
     }
 
     public static void init() {

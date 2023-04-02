@@ -15,6 +15,9 @@
   "entrypoints": {
     "main": [
       "com.redpxnda.respawnobelisks.fabric.RespawnObelisksFabric"
+    ],
+    "client": [
+      "com.redpxnda.respawnobelisks.fabric.RespawnObelisksClient"
     ]
   },
   "mixins": [

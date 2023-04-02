@@ -2,6 +2,7 @@ package com.redpxnda.respawnobelisks.registry.particle.packs;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.util.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.BlazeRenderer;
@@ -16,7 +17,6 @@ import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.level.Level;
 
 public class BlazingPack extends SimpleRingPack {
-    private static Blaze blaze = null;
     private final SimpleRuneColorPack runePack;
 
     public BlazingPack() {
@@ -37,33 +37,7 @@ public class BlazingPack extends SimpleRingPack {
 
     @Override
     public boolean obeliskRenderTick(RespawnObeliskBlockEntity be, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay) {
-        EntityRenderDispatcher renderManager = Minecraft.getInstance().getEntityRenderDispatcher(); // getting rendering manager and disabling shadows
-        renderManager.setRenderShadow(false);
-
-        if (Minecraft.getInstance().level == null || be.getLevel() == null) return false;
-        if (blaze == null) blaze = new Blaze(EntityType.BLAZE, Minecraft.getInstance().level); // setting blaze if non-existent
-
-        BlockPos pos = be.getBlockPos(); // setting blaze's pos
-        blaze.setPos(pos.getX()+0.5, pos.getY(), pos.getZ()+0.5);
-
-        float renderTicks = be.getLevel().getGameTime() + partialTick;
-
-        poseStack.pushPose(); // rendering blaze
-        poseStack.translate(0.375D, -0.65F, 0.6125D);
-        poseStack.scale(1.4f, 1.4f, 1.4f);
-        BlazeRenderer renderer = (BlazeRenderer) renderManager.getRenderer(blaze);
-        renderer.getModel().root().getChild("head").visible = false;
-        for (int i = 4; i < 12; i++) {
-            renderer.getModel().root().getChild("part"+i).visible = false;
-        }
-        renderManager.render(blaze, 0, 0, 0, 0f, renderTicks, poseStack, buffer, 0xFFFFFF);
-
-        renderManager.setRenderShadow(true); // setting things back
-        renderer.getModel().root().getChild("head").visible = true;
-        for (int i = 4; i < 12; i++) {
-            renderer.getModel().root().getChild("part"+i).visible = true;
-        }
-        poseStack.popPose();
+        RenderUtils.renderBlaze(be, partialTick, poseStack, buffer);
         return false;
     }
 

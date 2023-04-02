@@ -13,6 +13,7 @@
     "PlayerListMixin",
     "RespawnAnchorBlockMixin",
     "ServerPlayerMixin",
+    "SimpleParticleTypeAccessor",
     "STPAccessor"
   ],
   "injectors": {

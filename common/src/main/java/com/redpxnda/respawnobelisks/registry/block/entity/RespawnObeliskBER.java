@@ -16,7 +16,7 @@ import static com.redpxnda.respawnobelisks.util.RenderUtils.*;
 public class RespawnObeliskBER implements BlockEntityRenderer<RespawnObeliskBlockEntity> {
 
     public static final ResourceLocation RUNES = new ResourceLocation(MOD_ID, "block/runes");
-    private static TextureAtlasSprite SPRITE = null;
+    public static TextureAtlasSprite SPRITE = null;
     private final BlockEntityRendererProvider.Context context;
 
     public RespawnObeliskBER(BlockEntityRendererProvider.Context context) {
@@ -32,6 +32,6 @@ public class RespawnObeliskBER implements BlockEntityRenderer<RespawnObeliskBloc
             renderTotemItem(context, blockEntity, poseStack, bufferSource, packedLight, packedOverlay);
         if (pack.obeliskRenderTick(blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay)) return;
         if (SPRITE == null) SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RUNES);
-        renderRunes(SPRITE, pack, blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+        renderRunes(SPRITE, pack, blockEntity, partialTick, poseStack, bufferSource, packedLight);
     }
 }
