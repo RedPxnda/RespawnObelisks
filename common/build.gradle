@@ -9,6 +9,7 @@ loom {
 repositories {
     maven { url 'https://jitpack.io' }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
+    maven { url = 'https://maven.blamejared.com' }
 }
 
 dependencies {
@@ -18,9 +19,11 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-1.19.2:1.0.20"
+    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
 
-    implementation(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: '0.1.1')
+    modApi("foundry.veil:Veil-common-${rootProject.minecraft_version}:${rootProject.veil_version}")
+
+    implementation(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
 }
 
 publishing {

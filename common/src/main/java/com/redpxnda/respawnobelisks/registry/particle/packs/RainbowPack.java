@@ -2,23 +2,16 @@ package com.redpxnda.respawnobelisks.registry.particle.packs;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
-import com.redpxnda.respawnobelisks.util.ClientTickTrackers;
+import com.redpxnda.respawnobelisks.util.ClientUtils;
 import com.redpxnda.respawnobelisks.util.RenderUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.particles.ShriekParticleOption;
-import net.minecraft.core.particles.VibrationParticleOption;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.gameevent.BlockPositionSource;
 
 import static com.redpxnda.respawnobelisks.util.RenderUtils.renderRainbow;
 
@@ -41,7 +34,7 @@ public class RainbowPack extends SimpleRuneColorPack {
             if (time <= 50) renderRainbow(time/50f, 1f, blockEntity, stack, RenderUtils.getAtlasSprite("rainbow"), buffer, light);
             else renderRainbow(1, (60-time)/10f, blockEntity, stack, RenderUtils.getAtlasSprite("rainbow"), buffer, light);
             if (time % 5 == 0 && time < 50) {
-                if (!ClientTickTrackers.hasTracker("rainbow_pack_sound_ticker") || ClientTickTrackers.getTracker("rainbow_pack_sound_ticker") != time) {
+                if (!ClientUtils.hasTracker("rainbow_pack_sound_ticker") || ClientUtils.getTracker("rainbow_pack_sound_ticker") != time) {
                     BlockPos pos = blockEntity.getBlockPos();
                     level.playLocalSound(
                             pos.getX(), pos.getY(), pos.getZ(),
@@ -51,7 +44,7 @@ public class RainbowPack extends SimpleRuneColorPack {
                             false
                     );
                 }
-                ClientTickTrackers.setTracker("rainbow_pack_sound_ticker", time);
+                ClientUtils.setTracker("rainbow_pack_sound_ticker", time);
             }
         }
 

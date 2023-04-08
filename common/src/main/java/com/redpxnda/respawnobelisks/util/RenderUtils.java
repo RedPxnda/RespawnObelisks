@@ -3,14 +3,17 @@ package com.redpxnda.respawnobelisks.util;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
+import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -25,10 +28,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Blaze;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
@@ -44,11 +52,11 @@ public class RenderUtils {
     static {
         registerPackTexture("sculk_tendrils", new ResourceLocation("minecraft", "entity/warden/warden"));
         registerPackTexture("rainbow", new ResourceLocation(MOD_ID, "block/rainbow"));
-        registerPackTexture("circle::0", new ResourceLocation(MOD_ID, "block/circle_rune/background"));
-        registerPackTexture("circle::1", new ResourceLocation(MOD_ID, "block/circle_rune/circle_rim"));
-        registerPackTexture("circle::2", new ResourceLocation(MOD_ID, "block/circle_rune/octagon_rim"));
-        registerPackTexture("circle::3", new ResourceLocation(MOD_ID, "block/circle_rune/middle_inner"));
-        registerPackTexture("circle::4", new ResourceLocation(MOD_ID, "block/circle_rune/far_inner"));
+//        registerParticleTexture("circle::0", new ResourceLocation(MOD_ID, "block/circle_rune/background"));
+//        registerParticleTexture("circle::1", new ResourceLocation(MOD_ID, "block/circle_rune/circle_rim"));
+//        registerParticleTexture("circle::2", new ResourceLocation(MOD_ID, "block/circle_rune/octagon_rim"));
+//        registerParticleTexture("circle::3", new ResourceLocation(MOD_ID, "block/circle_rune/middle_inner"));
+//        registerParticleTexture("circle::4", new ResourceLocation(MOD_ID, "block/circle_rune/far_inner"));
     }
     public static void registerPackTexture(String id, ResourceLocation location) {
         PACK_TEXTURES.put(id, location);
@@ -63,9 +71,10 @@ public class RenderUtils {
 
     private static Blaze BLAZE = null;
 
-    private static float[][] RUNE_CIRCLE_COLORS = {
-            {80/255f, 0/255f, 170/255f},
-            {70/255f, 0/255f, 130/255f}
+    private static final float[][] RUNE_CIRCLE_COLORS = {
+            {19/255f, 142/255f, 153/255f},
+            {41/255f, 223/255f, 235/255f}
+
     };
 
     public static void renderBlaze(RespawnObeliskBlockEntity be, float partialTick, PoseStack poseStack, MultiBufferSource buffer) {
@@ -150,26 +159,38 @@ public class RenderUtils {
         poseStack.popPose();
     }
 
-    public static void renderRuneCircle(long time, float alpha, double x, double y, double z, PoseStack poseStack, VertexConsumer vc, int light) {
-        System.out.println("should be rendering :P\n" + x + "\n" + y + "\n" + z);
-        poseStack.pushPose();
-        poseStack.translate(x, y+0.01, z);
-
-        poseStack.mulPose(Vector3f.XP.rotationDegrees(90));
-        TextureAtlasSprite sprite = getAtlasSprite("circle::0");
-        addParticleQuad((f, bl) -> f, (f, bl) -> -f, poseStack.last().pose(), vc, RUNE_CIRCLE_COLORS[0][0], RUNE_CIRCLE_COLORS[0][1], RUNE_CIRCLE_COLORS[0][2], alpha*0.75f, 2f, 2f, 0, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
-        poseStack.translate(0, 0.0, -0.2);
+    public static void renderRuneCircle(long time, float alpha, float x, float y, float z, SpriteSet set, Vector3f[] vertices, VertexConsumer vc, int light) {
+        rotateVectors(vertices, Vector3f.XP.rotationDegrees(90));
+        TextureAtlasSprite sprite;
         for (int i = 1; i < 5; i++) {
             time*=1 + i/5f;
-            if (i % 2 == 0) poseStack.mulPose(Vector3f.ZP.rotationDegrees(time));
-            else poseStack.mulPose(Vector3f.ZN.rotationDegrees(time));
-            poseStack.translate(0, 0, 0.01);
-            sprite = getAtlasSprite("circle::" + i);
-            addParticleQuad((f, bl) -> f, (f, bl) -> -f, poseStack.last().pose(), vc, RUNE_CIRCLE_COLORS[i%2][0], RUNE_CIRCLE_COLORS[i%2][1], RUNE_CIRCLE_COLORS[i%2][2], alpha, 2f, 2f, 0, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
-            if (i % 2 == 0) poseStack.mulPose(Vector3f.ZN.rotationDegrees(time));
-            else poseStack.mulPose(Vector3f.ZP.rotationDegrees(time));
+            if (i % 2 == 0) rotateVectors(vertices, Vector3f.YP.rotationDegrees(time));
+            else rotateVectors(vertices, Vector3f.YN.rotationDegrees(time));
+            RenderUtils.scaleVectors(vertices, 2);
+            sprite = set.get(i, 4);
+            RenderUtils.translateVectors(vertices, x, y+(0.01f*i), z);
+            addParticleQuad(vertices, vc, RUNE_CIRCLE_COLORS[i%2][0], RUNE_CIRCLE_COLORS[i%2][1], RUNE_CIRCLE_COLORS[i%2][2], alpha, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
+            RenderUtils.translateVectors(vertices, -x, -y, -z);
+            RenderUtils.scaleVectors(vertices, 1/2f);
+            if (i % 2 == 0) rotateVectors(vertices, Vector3f.YN.rotationDegrees(time));
+            else rotateVectors(vertices, Vector3f.YP.rotationDegrees(time));
         }
-        poseStack.popPose();
+    }
+
+    public static void rotateVectors(Vector3f[] vectors, Quaternion quaternion) {
+        for (Vector3f vec : vectors) {
+            vec.transform(quaternion);
+        }
+    }
+    public static void translateVectors(Vector3f[] vectors, float x, float y, float z) {
+        for (Vector3f vec : vectors) {
+            vec.add(x, y, z);
+        }
+    }
+    public static void scaleVectors(Vector3f[] vectors, float amnt) {
+        for (Vector3f vec : vectors) {
+            vec.mul(amnt);
+        }
     }
 
     public static void renderTotemItem(BlockEntityRendererProvider.Context context, RespawnObeliskBlockEntity blockEntity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
@@ -224,15 +245,15 @@ public class RenderUtils {
         addVertex(matrix4f, vc, red, green, blue, alpha, secondary.apply(x, false), primary.apply(y, true), z, u1, v0, light);
     }
 
-    public static void addParticleQuad(BiFunction<Float, Boolean, Float> primary, BiFunction<Float, Boolean, Float> secondary, Matrix4f matrix4f, VertexConsumer vc, float red, float green, float blue, float alpha, float x, float y, float z, float u0, float u1, float v0, float v1, int light) {
-        addParticleVertex(matrix4f, vc, red, green, blue, alpha, primary.apply(x, false), primary.apply(y, true), z, u0, v0, light);
-        addParticleVertex(matrix4f, vc, red, green, blue, alpha, primary.apply(x, false), secondary.apply(y, true), z, u0, v1, light);
-        addParticleVertex(matrix4f, vc, red, green, blue, alpha, secondary.apply(x, false), secondary.apply(y, true), z, u1, v1, light);
-        addParticleVertex(matrix4f, vc, red, green, blue, alpha, secondary.apply(x, false), primary.apply(y, true), z, u1, v0, light);
+    public static void addParticleQuad(Vector3f[] vertices, VertexConsumer vc, float red, float green, float blue, float alpha, float u0, float u1, float v0, float v1, int light) {
+        addParticleVertex(vc, red, green, blue, alpha, vertices[0].x(), vertices[0].y(), vertices[0].z(), u0, v0, light);
+        addParticleVertex(vc, red, green, blue, alpha, vertices[1].x(), vertices[1].y(), vertices[1].z(), u0, v1, light);
+        addParticleVertex(vc, red, green, blue, alpha, vertices[2].x(), vertices[2].y(), vertices[2].z(), u1, v1, light);
+        addParticleVertex(vc, red, green, blue, alpha, vertices[3].x(), vertices[3].y(), vertices[3].z(), u1, v0, light);
     }
 
-    public static void addParticleVertex(Matrix4f matrix4f, VertexConsumer vc, float red, float green, float blue, float alpha, float x, float y, float z, float u, float v, int light) {
-        vc.vertex(matrix4f, x, y, z).uv(u, v).color(red, green, blue, alpha).uv2(light).endVertex();
+    public static void addParticleVertex(VertexConsumer vc, float red, float green, float blue, float alpha, float x, float y, float z, float u, float v, int light) {
+        vc.vertex(x, y, z).uv(u, v).color(red, green, blue, alpha).uv2(light).endVertex();
     }
 
     public static void addVertex(Matrix4f matrix4f, VertexConsumer vc, float red, float green, float blue, float alpha, float x, float y, float z, float u, float v, int light) {

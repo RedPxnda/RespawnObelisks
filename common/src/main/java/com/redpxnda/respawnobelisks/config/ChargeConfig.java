@@ -24,7 +24,9 @@ public final class ChargeConfig {
             The same logic is applied to going below 0 with negative charge values."""
     )
     public static String[] obeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
-
+    public static String[] getObeliskChargeItems() {
+        return obeliskChargeItems;
+    }
 
     @ConfigEntry(
             id = "netherObeliskChargeItems",
@@ -32,7 +34,9 @@ public final class ChargeConfig {
             translation = "text.respawnobelisks.config.charge_items_nether"
     )
     public static String[] netherObeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
-
+    public static String[] getNetherObeliskChargeItems() {
+        return netherObeliskChargeItems;
+    }
 
     @ConfigEntry(
             id = "endObeliskChargeItems",
@@ -40,6 +44,10 @@ public final class ChargeConfig {
             translation = "text.respawnobelisks.config.charge_items_end"
     )
     public static String[] endObeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
+
+    public static String[] getEndObeliskChargeItems() {
+        return endObeliskChargeItems;
+    }
 
     @ConfigEntry(
             id = "obeliskChargeSound",

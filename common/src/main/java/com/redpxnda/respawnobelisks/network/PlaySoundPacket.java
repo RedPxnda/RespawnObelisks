@@ -1,7 +1,6 @@
 package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
-import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;

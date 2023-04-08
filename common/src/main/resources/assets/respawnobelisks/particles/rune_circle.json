@@ -1,5 +1,9 @@
 {
   "textures": [
-    "minecraft:effect_7"
+    "respawnobelisks:circle_rune/background",
+    "respawnobelisks:circle_rune/circle_rim",
+    "respawnobelisks:circle_rune/octagon_rim",
+    "respawnobelisks:circle_rune/middle_inner",
+    "respawnobelisks:circle_rune/far_inner"
   ]
 }

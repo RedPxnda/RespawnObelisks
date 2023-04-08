@@ -1,8 +1,7 @@
 package com.redpxnda.respawnobelisks.mixin;
 
+import com.redpxnda.respawnobelisks.data.saved.AnchorExplosions;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
-import com.redpxnda.respawnobelisks.scheduled.server.RespawnAnchorTask;
-import com.redpxnda.respawnobelisks.scheduled.server.ScheduledServerTasks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -19,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(RespawnAnchorBlock.class)
-public class RespawnAnchorBlockMixin {
+public abstract class RespawnAnchorBlockMixin {
     @Inject(
             method = "use",
             at = @At(value = "HEAD"),
@@ -30,8 +29,7 @@ public class RespawnAnchorBlockMixin {
             if (pLevel instanceof ServerLevel level) {
                 int charge = pState.getValue(RespawnAnchorBlock.CHARGE);
                 pLevel.setBlock(pPos, ModRegistries.FAKE_ANCHOR_BLOCK.get().defaultBlockState().setValue(RespawnAnchorBlock.CHARGE, charge), 3);
-                RespawnAnchorTask newTask = new RespawnAnchorTask(60, level, pPos, charge);
-                ScheduledServerTasks.schedule(newTask);
+                AnchorExplosions.getCache(level).create(0, 60, charge, pPos);
                 cir.setReturnValue(InteractionResult.SUCCESS);
             }
         }

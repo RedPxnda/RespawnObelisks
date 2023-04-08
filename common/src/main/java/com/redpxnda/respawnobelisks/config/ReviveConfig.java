@@ -4,9 +4,25 @@ import com.teamresourceful.resourcefulconfig.common.annotations.Category;
 import com.teamresourceful.resourcefulconfig.common.annotations.Comment;
 import com.teamresourceful.resourcefulconfig.common.annotations.ConfigEntry;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.item.trading.Merchant;
+import net.minecraft.world.level.block.Block;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Category(id = "revive", translation = "text.respawnobelisks.config.revive_config")
 public final class ReviveConfig {
+    private static List<EntityType<?>> listedEntities = new ArrayList<>();
+
     @ConfigEntry(
             id = "enableRevival",
             type = EntryType.BOOLEAN,
@@ -45,6 +61,33 @@ public final class ReviveConfig {
         '$merchants' (villagers)"""
     )
     public static String[] revivableEntities = {"$tamables", "$animals", "$merchants"};
+    public static boolean isEntityListed(Entity entity) {
+        if (listedEntities.isEmpty()) {
+            for (String str : revivableEntities) {
+                if (str.startsWith("#")) {
+                    str = str.substring(1);
+                    ResourceLocation loc = ResourceLocation.tryParse(str);
+                    if (loc == null) continue;
+                    var tag = TagKey.create(Registry.ENTITY_TYPE_REGISTRY, loc);
+                    if (Registry.ENTITY_TYPE.getTag(tag).isPresent()) {
+                        for (Holder<EntityType<?>> entityTypeHolder : Registry.ENTITY_TYPE.getTag(tag).get()) {
+                            listedEntities.add(entityTypeHolder.value());
+                        }
+                    }
+                } else {
+                    ResourceLocation loc = ResourceLocation.tryParse(str);
+                    if (loc == null) continue;
+                    Registry.ENTITY_TYPE.getOptional(loc).ifPresent(e -> listedEntities.add(e));
+                }
+            }
+        }
+        List<String> entities = Arrays.asList(revivableEntities);
+        boolean result = listedEntities.contains(entity.getType()) ||
+                (entities.contains("$tamables") && entity instanceof OwnableEntity) ||
+                (entities.contains("$animals") && entity instanceof Animal) ||
+                (entities.contains("$merchants") && entity instanceof Merchant);
+        return entitiesIsBlacklist != result;
+    }
 
     @ConfigEntry(
             id = "revivableEntitiesBlacklist",

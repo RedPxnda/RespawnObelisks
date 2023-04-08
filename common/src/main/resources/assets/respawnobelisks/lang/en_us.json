@@ -7,18 +7,27 @@
   "item.respawnobelisks.obelisk_core_end": "End Obelisk Core",
   "item.respawnobelisks.dormant_obelisk": "Dormant Obelisk",
   "item.respawnobelisks.bound_compass": "Recovery Compass",
+  "item.respawnobelisks.bound_bound_compass": "Bound Recovery Compass",
 
   "text.respawnobelisks.cannot_set_spawn": "An ancient force seems to have once protected this seemingly mundane object. However, that force now lays dormant. §7[§9§nHover§r§7]",
   "text.respawnobelisks.cannot_set_spawn.hover": "You cannot set your spawn at beds. Instead, explore the world to find respawn obelisks.",
-  "text.respawnobelisks.no_charge": "This respawn obelisk has no charge",
-  "text.respawnobelisks.insufficient_charge": "This respawn obelisk has insufficient charge to respawn entities.",
+  "text.respawnobelisks.no_charge": "This obelisk has no charge",
+  "text.respawnobelisks.insufficient_charge": "This obelisk has insufficient charge to respawn entities.",
   "text.respawnobelisks.no_core": "This respawn obelisk has no obelisk core.",
-  "text.respawnobelisks.has_core": "Remove the obelisk's core to break it",
+  "text.respawnobelisks.has_core": "This obelisk contains a core. Sneak to bypass.",
+  "text.respawnobelisks.items_are_stored": "The obelisk contains stored items. Sneak to bypass.",
+  "text.respawnobelisks.wormhole_open": "The obelisk has an open wormhole.",
+  "text.respawnobelisks.wormhole_cursed": "A mysterious curse seems to be holding you down.",
+  "text.respawnobelisks.wormhole_invalid": "Could not find valid warp location.",
+  "text.respawnobelisks.wormhole_closed": "Vessel moved, wormhole closed.",
   "text.respawnobelisks.untrusted": "You do not have permission for this obelisk.",
   "text.respawnobelisks.tooltip.saved_entities": "Saved Entities:",
+  "text.respawnobelisks.tooltip.loaded": "Loaded",
   "text.respawnobelisks.tooltip.trusted_players": "Trusted Players:",
   "text.respawnobelisks.tooltip.charge": "Charge:",
   "text.respawnobelisks.tooltip.max_charge": "Max Charge:",
+
+  "text.respawnobelisks.config.allow_bed_respawning": "Allow Respawning at Beds",
 
   "text.respawnobelisks.config.curse_config": "Immortality Curse Config",
   "text.respawnobelisks.config.enable_curse": "Enable Immortality Curse",
@@ -47,7 +56,6 @@
   "text.respawnobelisks.config.revivable_entities_blacklist": "Revivable Entities Blacklist",
 
   "text.respawnobelisks.config.trusted_players_config": "Player Trust Config",
-
   "text.respawnobelisks.config.enable_player_trust": "Enable Player Trust",
   "text.respawnobelisks.config.allow_obelisk_breaking": "Allow Untrusted Breaking",
   "text.respawnobelisks.config.allow_obelisk_respawning": "Allow Untrusted Respawning",
@@ -55,6 +63,24 @@
 
   "text.respawnobelisks.config.cores_config": "Obelisk Cores Config",
   "text.respawnobelisks.config.max_stored_entities": "Max Stored Entities",
+  "text.respawnobelisks.config.overworld_core": "Default Overworld Core",
+  "text.respawnobelisks.config.nether_core": "Default Nether Core",
+  "text.respawnobelisks.config.end_core": "Default End Core",
+
+  "text.respawnobelisks.config.perks_config": "Respawn Perks Config",
+  "text.respawnobelisks.config.keep_inventory": "Keep Inner Inventory on Respawn",
+  "text.respawnobelisks.config.keep_hotbar": "Keep Hotbar on Respawn",
+  "text.respawnobelisks.config.keep_offhand": "Keep Offhand on Respawn",
+  "text.respawnobelisks.config.keep_armor": "Keep Armor on Respawn",
+  "text.respawnobelisks.config.keep_trinkets": "Keep Trinkets on Respawn",
+
+  "text.respawnobelisks.config.teleport_config": "Obelisk Teleportation Config",
+  "text.respawnobelisks.config.enable_teleportation": "Enable Obelisk Teleportation",
+  "text.respawnobelisks.config.tp_cooldown": "Obelisk Teleportation Cooldown",
+  "text.respawnobelisks.config.allow_cursed_tp": "Allow Cursed Teleportation",
+  "text.respawnobelisks.config.forced_curse_tp": "Force Curse on Teleportation",
+  "text.respawnobelisks.config.minimum_tp_charge": "Minimum Teleportation Charge",
+  "text.respawnobelisks.config.teleportation_cost": "Teleportation Charge Cost",
 
   "block.minecraft.spawn.not_valid": "You have no home or charged respawn obelisk, or it was obstructed",
   "block.minecraft.respawn_anchor": "Destruction Catalyst",

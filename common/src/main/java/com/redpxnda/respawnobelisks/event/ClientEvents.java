@@ -1,5 +1,6 @@
 package com.redpxnda.respawnobelisks.event;
 
+import com.redpxnda.respawnobelisks.mixin.ItemPropertiesAccessor;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.ScrollWheelPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
@@ -7,14 +8,11 @@ import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.registry.item.BoundCompassItem;
-import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
-import com.redpxnda.respawnobelisks.registry.particle.RuneCircleParticle;
-import com.redpxnda.respawnobelisks.scheduled.client.ScheduledClientTasks;
+import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.RenderUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.*;
 import dev.architectury.platform.Platform;
-import dev.architectury.registry.client.particle.ParticleProviderRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -35,10 +33,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.CompassItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -62,7 +57,7 @@ public class ClientEvents {
                         Component.translatable("text.respawnobelisks.tooltip.max_charge").withStyle(ChatFormatting.GRAY)
                         .append(Component.literal(" " + RespawnObeliskBlockEntity.getMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
                 );
-            if (stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities")) {
+            if (CoreUtils.hasCapability(stack, CoreUtils.Capability.REVIVE) && stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities")) {
                 lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.saved_entities").withStyle(ChatFormatting.GRAY)
                                 .append(Component.literal(" [").withStyle(ChatFormatting.DARK_GRAY))
@@ -88,7 +83,7 @@ public class ClientEvents {
                     }
                 }
             }
-            if (stack.getTag().getCompound("RespawnObeliskData").contains("TrustedPlayers")) {
+            if (CoreUtils.hasCapability(stack, CoreUtils.Capability.PROTECT) && stack.getTag().getCompound("RespawnObeliskData").contains("TrustedPlayers")) {
                 lines.add(
                         Component.translatable("text.respawnobelisks.tooltip.trusted_players").withStyle(ChatFormatting.GRAY)
                                 .append(Component.literal(" [").withStyle(ChatFormatting.DARK_GRAY))
@@ -133,14 +128,10 @@ public class ClientEvents {
 
     public static void onClientSetup(Minecraft mc) {
         BlockEntityRendererRegistry.register(ModRegistries.RESPAWN_OBELISK_BE.get(), RespawnObeliskBER::new);
-        if (Platform.isFabric()) {
-            ItemProperties.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
-            //ParticleProviderRegistry.register(ModRegistries.RUNE_CIRCLE_PARTICLE, new RuneCircleParticle.Provider());
-        }
+        ItemPropertiesAccessor.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
     }
 
     public static void init() {
-        ClientTickEvent.CLIENT_POST.register(ScheduledClientTasks::onClientTick);
         ClientRawInputEvent.MOUSE_SCROLLED.register(ClientEvents::onClientScroll);
         ClientTextureStitchEvent.PRE.register(ClientEvents::onTextureStitch);
         ClientLifecycleEvent.CLIENT_SETUP.register(ClientEvents::onClientSetup);

@@ -1,7 +1,7 @@
 package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
-import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
+import com.redpxnda.respawnobelisks.registry.particle.packs.ParticlePack;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,7 +15,6 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.function.Supplier;
 
 public class ScrollWheelPacket {

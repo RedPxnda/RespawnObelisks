@@ -2,6 +2,7 @@ package com.redpxnda.respawnobelisks.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -9,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.Optional;
 
 @Mixin(PlayerList.class)
-public class PlayerListMixin {
+public abstract class PlayerListMixin {
     @WrapOperation(
             method = "respawn",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;moveTo(DDDFF)V")
@@ -42,6 +44,7 @@ public class PlayerListMixin {
     )
     private Optional<Vec3> findRespawnPositionAndUseSpawnBlock(ServerLevel pServerLevel, BlockPos pSpawnBlockPos, float pPlayerOrientation, boolean pIsRespawnForced, boolean pRespawnAfterWinningTheGame, Operation<Optional<Vec3>> original, ServerPlayer pPlayer) {
         BlockState blockState = pServerLevel.getBlockState(pSpawnBlockPos);
+        if (RespawnObelisksConfig.isBlockBanned(blockState)) return Optional.empty();
         return blockState.getBlock() instanceof RespawnObeliskBlock block ?
                 block.getRespawnLocation(blockState, pSpawnBlockPos, pServerLevel, pPlayer) :
                 Player.findRespawnPositionAndUseSpawnBlock(pServerLevel, pSpawnBlockPos, pPlayerOrientation, pIsRespawnForced, pRespawnAfterWinningTheGame);

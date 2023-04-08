@@ -1,4 +1,4 @@
-package com.redpxnda.respawnobelisks.registry.particle;
+package com.redpxnda.respawnobelisks.registry.particle.packs;
 
 import com.redpxnda.respawnobelisks.registry.particle.packs.*;
 import net.minecraft.core.BlockPos;

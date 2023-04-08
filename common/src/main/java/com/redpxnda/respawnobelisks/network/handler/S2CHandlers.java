@@ -1,10 +1,10 @@
 package com.redpxnda.respawnobelisks.network.handler;
 
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
-import com.redpxnda.respawnobelisks.registry.particle.ParticlePack;
+import com.redpxnda.respawnobelisks.registry.particle.RuneCircleType;
+import com.redpxnda.respawnobelisks.registry.particle.packs.ParticlePack;
 import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
-import com.redpxnda.respawnobelisks.scheduled.client.ClientRuneCircleTask;
-import com.redpxnda.respawnobelisks.scheduled.client.ScheduledClientTasks;
+import com.redpxnda.respawnobelisks.util.ClientUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -26,8 +26,20 @@ import javax.annotation.Nullable;
 
 @Environment(EnvType.CLIENT)
 public class S2CHandlers {
-    public static void setupRuneCircleRenderPacket(int time, BlockPos pos) {
-        ScheduledClientTasks.schedule(new ClientRuneCircleTask(time, pos));
+    public static void setupRuneCircleRenderPacket(int age, double x, double y, double z) {
+        if (Minecraft.getInstance().level == null) return;
+        ClientUtils.activeRuneParticles.removeIf(particle -> {
+            if (particle.getX() == x && particle.getY() == y && particle.getZ() == z) {
+                particle.remove();
+                return true;
+            }
+            return false;
+        });
+        Minecraft.getInstance().level.addParticle(
+                new RuneCircleType.Options(age, 100),
+                x, y, z,
+                0, 0, 0
+        );
     }
 
     public static void respawnAnchorPacket(BlockPos blockPos, int charge, boolean isRun) {
@@ -62,6 +74,13 @@ public class S2CHandlers {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
             player.playSound(event, pitch, volume);
+        }
+    }
+
+    public static void playLocalClientSound(SoundEvent event, float pitch, float volume, double x, double y, double z) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level != null) {
+            level.playLocalSound(x, y, z, event, SoundSource.MASTER, pitch, volume, false);
         }
     }
 

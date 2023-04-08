@@ -5,15 +5,17 @@
   "package": "com.redpxnda.respawnobelisks.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "LevelRendererMixin",
+    "ItemPropertiesAccessor",
     "LivingEntityRendererMixin"
   ],
   "mixins": [
     "ExperienceOrbAccessor",
+    "LivingEntityAccessor",
+    "LivingEntityMixin",
+    "PlayerAccessor",
     "PlayerListMixin",
     "RespawnAnchorBlockMixin",
     "ServerPlayerMixin",
-    "SimpleParticleTypeAccessor",
     "STPAccessor"
   ],
   "injectors": {

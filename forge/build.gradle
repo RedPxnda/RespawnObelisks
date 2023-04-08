@@ -30,6 +30,7 @@ configurations {
 repositories {
     maven { url 'https://jitpack.io' }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
+    maven { url = 'https://maven.blamejared.com' }
 }
 
 dependencies {
@@ -37,11 +38,13 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-1.19.2:1.0.20"
+    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
 
-    forgeRuntimeLibrary(include(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: '0.1.1'))
+    modApi(include("foundry.veil:Veil-forge-${rootProject.minecraft_version}:${rootProject.veil_version}"))
 
-    annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: '0.1.1')
+    forgeRuntimeLibrary(include(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}"))
+
+    annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
