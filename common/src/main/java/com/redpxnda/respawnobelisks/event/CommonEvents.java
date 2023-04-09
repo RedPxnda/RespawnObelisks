@@ -56,8 +56,15 @@ public class CommonEvents {
         if (state.getBlock() instanceof RespawnObeliskBlock) {
             if (state.getValue(RespawnObeliskBlock.HALF).equals(DoubleBlockHalf.UPPER))
                 pos = pos.below();
-            if (!TrustedPlayersConfig.allowObeliskBreaking && level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity && !blockEntity.isPlayerTrusted(player.getScoreboardName()))
-                return EventResult.interruptFalse();
+            if (
+                    level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity && ( // making sure the block is a respawn obelisk block (entity)
+                            (!TrustedPlayersConfig.allowObeliskBreaking && !blockEntity.isPlayerTrusted(player.getScoreboardName())) || // if untrusted
+                            (blockEntity.hasStoredItems && !player.isShiftKeyDown()) || // if has items inside
+                            (!blockEntity.getItemStack().isEmpty() && !player.isShiftKeyDown()) || // if has core inside
+                            (blockEntity.hasTeleportingEntity) // if has teleporting entity
+                    )
+            )
+                return EventResult.interruptFalse(); // prevent block break
         }
         return EventResult.pass();
     }

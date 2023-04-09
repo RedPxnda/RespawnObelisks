@@ -105,7 +105,8 @@ public class RuneCircle {
             ModPackets.CHANNEL.sendToPlayers(players, new PlayLocalSoundPacket(SoundEvents.BEACON_DEACTIVATE, 1f, 1f, startPos.x, startPos.y, startPos.z));
             ModPackets.CHANNEL.sendToPlayers(players, new RuneCirclePacket(80, startPos.x, startPos.y, startPos.z));
             stopped = true;
-            ((RespawnObeliskBlockEntity)level.getBlockEntity(pos)).hasTeleportingEntity = false;
+            if (level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity be)
+                be.hasTeleportingEntity = false;
             return;
         }
         List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
@@ -118,9 +119,13 @@ public class RuneCircle {
 
     public void execute(ServerLevel level, ServerPlayer player) {
         RespawnObeliskBlockEntity blockEntity = (RespawnObeliskBlockEntity)level.getBlockEntity(pos);
+        if (blockEntity == null) return;
         RespawnObeliskBlock block = (RespawnObeliskBlock) level.getBlockState(pos).getBlock();
         if (!player.getAbilities().instabuild) {
             ((LivingEntityAccessor) player).dropEverything(DamageSource.OUT_OF_WORLD);
+            System.out.println("dropped?");
+            player.setExperienceLevels(0);
+            player.setExperiencePoints(0);
         }
         player.teleportTo(target.getX()+0.5, target.getY(), target.getZ()+0.5);
         blockEntity.restoreSavedItems(player);

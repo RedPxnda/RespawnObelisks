@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 public class RespawnObelisksClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
+        ItemProperties.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
         ParticleFactoryRegistry.getInstance().register(ModRegistries.RUNE_CIRCLE_PARTICLE.get(), RuneCircleParticle.Provider::new);
     }
 }

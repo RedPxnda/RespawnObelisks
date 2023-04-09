@@ -21,8 +21,13 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
 
-    modApi("foundry.veil:Veil-common-${rootProject.minecraft_version}:${rootProject.veil_version}")
+    if ("${rootProject.use_veil}" == "true") {
+        modApi("foundry.veil:Veil-common-${rootProject.minecraft_version}:${rootProject.veil_version}")
+    } else {
+        modCompileOnlyApi("foundry.veil:Veil-common-${rootProject.minecraft_version}:${rootProject.veil_version}")
+    }
 
+    annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
     implementation(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
 }
 

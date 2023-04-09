@@ -5,6 +5,7 @@ import com.redpxnda.respawnobelisks.network.ModPackets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
@@ -33,5 +34,11 @@ public class ObeliskUtils {
         if (!players.contains(player)) players.add(player);
         ModPackets.CHANNEL.sendToPlayers(players, new FirePackMethodPacket("curse", player.getId(), state.getValue(PACK), pos));
         state.getValue(PACK).particleHandler.curseServerHandler(level, player, pos);
+    }
+
+    public static int getTotalXpForLevel(int level) {
+        if (level < 17) return level * level + 6 * level;
+        if (level < 32) return Mth.floor(2.5 * level * level - 40.5 * level + 360);
+        return Mth.floor(4.5 * level * level - 162.5 * level + 2220);
     }
 }

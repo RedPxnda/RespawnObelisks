@@ -6,6 +6,7 @@ import com.redpxnda.respawnobelisks.event.CommonEvents;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.teamresourceful.resourcefulconfig.common.config.Configurator;
+import dev.architectury.platform.Platform;
 import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
 

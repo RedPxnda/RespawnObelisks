@@ -71,10 +71,9 @@ public class RenderUtils {
 
     private static Blaze BLAZE = null;
 
-    private static final float[][] RUNE_CIRCLE_COLORS = {
-            {19/255f, 142/255f, 153/255f},
-            {41/255f, 223/255f, 235/255f}
-
+    public static final Vector3f[] runeCircleColors = {
+            new Vector3f(19/255f, 142/255f, 153/255f),
+            new Vector3f(41/255f, 223/255f, 235/255f)
     };
 
     public static void renderBlaze(RespawnObeliskBlockEntity be, float partialTick, PoseStack poseStack, MultiBufferSource buffer) {
@@ -159,19 +158,19 @@ public class RenderUtils {
         poseStack.popPose();
     }
 
-    public static void renderRuneCircle(long time, float alpha, float x, float y, float z, SpriteSet set, Vector3f[] vertices, VertexConsumer vc, int light) {
+    public static void renderRuneCircle(long time, float scale, Vector3f[] colors, float alpha, float x, float y, float z, SpriteSet set, Vector3f[] vertices, VertexConsumer vc, int light) {
         rotateVectors(vertices, Vector3f.XP.rotationDegrees(90));
         TextureAtlasSprite sprite;
         for (int i = 1; i < 5; i++) {
             time*=1 + i/5f;
             if (i % 2 == 0) rotateVectors(vertices, Vector3f.YP.rotationDegrees(time));
             else rotateVectors(vertices, Vector3f.YN.rotationDegrees(time));
-            RenderUtils.scaleVectors(vertices, 2);
+            RenderUtils.scaleVectors(vertices, scale);
             sprite = set.get(i, 4);
             RenderUtils.translateVectors(vertices, x, y+(0.01f*i), z);
-            addParticleQuad(vertices, vc, RUNE_CIRCLE_COLORS[i%2][0], RUNE_CIRCLE_COLORS[i%2][1], RUNE_CIRCLE_COLORS[i%2][2], alpha, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
+            addParticleQuad(vertices, vc, colors[i%2].x(), colors[i%2].y(), colors[i%2].z(), alpha, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), light);
             RenderUtils.translateVectors(vertices, -x, -y, -z);
-            RenderUtils.scaleVectors(vertices, 1/2f);
+            RenderUtils.scaleVectors(vertices, 1/scale);
             if (i % 2 == 0) rotateVectors(vertices, Vector3f.YN.rotationDegrees(time));
             else rotateVectors(vertices, Vector3f.YP.rotationDegrees(time));
         }

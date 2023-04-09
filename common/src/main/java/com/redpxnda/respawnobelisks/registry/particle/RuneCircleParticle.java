@@ -18,16 +18,22 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public class RuneCircleParticle extends Particle {
-    SpriteSet set;
+    private final SpriteSet set;
+    private final Vector3f[] colors = new Vector3f[2];
+    private final float scale;
 
-    protected RuneCircleParticle(int age, int lifetime, ClientLevel clientLevel, SpriteSet set, double d, double e, double f) {
+
+    protected RuneCircleParticle(int age, int lifetime, float scale, Vector3f primCol, Vector3f secCol, ClientLevel clientLevel, SpriteSet set, double d, double e, double f) {
         super(clientLevel, d, e, f);
         this.setAge(age);
         this.lifetime = lifetime;
         this.set = set;
         this.setSize(1, 1);
         this.hasPhysics = false;
-        ClientUtils.activeRuneParticles.add(this);
+        this.colors[0] = primCol;
+        this.colors[1] = secCol;
+        this.scale = scale;
+        ClientUtils.activeRuneParticles.add(new Vec3(d, e, f));
     }
 
     public void setAge(int newAge) {
@@ -54,7 +60,7 @@ public class RuneCircleParticle extends Particle {
         float alpha = 1f;
         float life = lifetime;
         if (age/life >= 0.8f) alpha*=(life-age)/(life-life*0.8);
-        RenderUtils.renderRuneCircle(level.getGameTime(), alpha, g, h, i, set, vector3fs, vertexConsumer, LightTexture.FULL_BRIGHT);
+        RenderUtils.renderRuneCircle(level.getGameTime(), scale, colors, alpha, g, h, i, set, vector3fs, vertexConsumer, LightTexture.FULL_BRIGHT);
     }
 
     @Override
@@ -73,7 +79,7 @@ public class RuneCircleParticle extends Particle {
         @Nullable
         @Override
         public Particle createParticle(RuneCircleType.Options options, ClientLevel clientLevel, double d, double e, double f, double g, double h, double i) {
-            return new RuneCircleParticle(options.time(), options.maxTime(), clientLevel, set, d, e, f);
+            return new RuneCircleParticle(options.time(), options.maxTime(), options.scale(), options.primary(), options.secondary(), clientLevel, set, d, e, f);
         }
     }
 }

@@ -1,18 +1,15 @@
 package com.redpxnda.respawnobelisks.event;
 
-import com.redpxnda.respawnobelisks.mixin.ItemPropertiesAccessor;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.ScrollWheelPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import com.redpxnda.respawnobelisks.registry.item.BoundCompassItem;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.RenderUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.*;
-import dev.architectury.platform.Platform;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -20,8 +17,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
@@ -50,12 +45,12 @@ public class ClientEvents {
             if (stack.getTag().getCompound("RespawnObeliskData").contains("Charge"))
                 lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.charge").withStyle(ChatFormatting.GRAY)
-                        .append(Component.literal(" " + RespawnObeliskBlockEntity.getCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
+                        .append(Component.literal(" " + RespawnObeliskBlockEntity.getTagCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
                 );
             if (stack.getTag().getCompound("RespawnObeliskData").contains("MaxCharge"))
                 lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.max_charge").withStyle(ChatFormatting.GRAY)
-                        .append(Component.literal(" " + RespawnObeliskBlockEntity.getMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
+                        .append(Component.literal(" " + RespawnObeliskBlockEntity.getTaxMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
                 );
             if (CoreUtils.hasCapability(stack, CoreUtils.Capability.REVIVE) && stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities")) {
                 lines.add(pos++,
@@ -128,7 +123,8 @@ public class ClientEvents {
 
     public static void onClientSetup(Minecraft mc) {
         BlockEntityRendererRegistry.register(ModRegistries.RESPAWN_OBELISK_BE.get(), RespawnObeliskBER::new);
-        ItemPropertiesAccessor.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
+//        if (Platform.isFabric())
+//            ItemPropertiesAccessor.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
     }
 
     public static void init() {

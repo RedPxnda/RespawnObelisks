@@ -5,6 +5,7 @@ import com.redpxnda.respawnobelisks.registry.particle.RuneCircleType;
 import com.redpxnda.respawnobelisks.registry.particle.packs.ParticlePack;
 import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
 import com.redpxnda.respawnobelisks.util.ClientUtils;
+import com.redpxnda.respawnobelisks.util.RenderUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -21,22 +22,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
 
 @Environment(EnvType.CLIENT)
 public class S2CHandlers {
     public static void setupRuneCircleRenderPacket(int age, double x, double y, double z) {
-        if (Minecraft.getInstance().level == null) return;
-        ClientUtils.activeRuneParticles.removeIf(particle -> {
-            if (particle.getX() == x && particle.getY() == y && particle.getZ() == z) {
-                particle.remove();
-                return true;
-            }
-            return false;
-        });
+        if (Minecraft.getInstance().level == null || ClientUtils.activeRuneParticles.contains(new Vec3(x, y, z))) return;
         Minecraft.getInstance().level.addParticle(
-                new RuneCircleType.Options(age, 100),
+                new RuneCircleType.Options(age, 100, 2, RenderUtils.runeCircleColors[0], RenderUtils.runeCircleColors[1]),
                 x, y, z,
                 0, 0, 0
         );

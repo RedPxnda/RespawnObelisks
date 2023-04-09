@@ -40,11 +40,14 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
 
-    modApi(include("foundry.veil:Veil-forge-${rootProject.minecraft_version}:${rootProject.veil_version}"))
-
-    forgeRuntimeLibrary(include(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}"))
+    if ("${rootProject.use_veil}" == "true") {
+        modApi(include("foundry.veil:Veil-forge-${rootProject.minecraft_version}:${rootProject.veil_version}"))
+    } else {
+        modCompileOnlyApi("foundry.veil:Veil-forge-${rootProject.minecraft_version}:${rootProject.veil_version}")
+    }
 
     annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
+    forgeRuntimeLibrary(include(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}"))
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }

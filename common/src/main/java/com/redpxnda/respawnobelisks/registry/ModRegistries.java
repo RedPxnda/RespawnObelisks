@@ -3,6 +3,7 @@ package com.redpxnda.respawnobelisks.registry;
 import com.google.common.base.Suppliers;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.redpxnda.respawnobelisks.compat.veil.TooltipBlockEntity;
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.config.ObeliskCoreConfig;
 import com.redpxnda.respawnobelisks.registry.block.FakeRespawnAnchorBlock;
@@ -14,6 +15,7 @@ import com.redpxnda.respawnobelisks.registry.item.CoreItem;
 import com.redpxnda.respawnobelisks.registry.particle.RuneCircleType;
 import com.redpxnda.respawnobelisks.registry.structure.NetherLandStructures;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
+import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.Registries;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -138,7 +140,7 @@ public class ModRegistries {
     ));
 
     public static RegistrySupplier<BlockEntityType<RespawnObeliskBlockEntity>> RESPAWN_OBELISK_BE = BLOCK_ENTITIES.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () ->
-            BlockEntityType.Builder.of(RespawnObeliskBlockEntity::new, RESPAWN_OBELISK_BLOCK.get(), RESPAWN_OBELISK_BLOCK_NETHER.get(), RESPAWN_OBELISK_BLOCK_END.get()).build(null)
+            BlockEntityType.Builder.of((Platform.isModLoaded("veil") ? TooltipBlockEntity::new : RespawnObeliskBlockEntity::new), RESPAWN_OBELISK_BLOCK.get(), RESPAWN_OBELISK_BLOCK_NETHER.get(), RESPAWN_OBELISK_BLOCK_END.get()).build(null)
     );
 
     // effects

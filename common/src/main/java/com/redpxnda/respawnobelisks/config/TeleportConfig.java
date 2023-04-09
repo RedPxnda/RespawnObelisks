@@ -57,8 +57,8 @@ public final class TeleportConfig {
             type = EntryType.DOUBLE,
             translation = "text.respawnobelisks.config.minimum_tp_charge"
     )
-    @Comment("Minimum charge required to teleport. Values lower than 0 will disable this requirement.")
-    public static double minimumTpCharge = 0;
+    @Comment("Minimum charge required to teleport. Values of 0 or lower will disable this requirement.")
+    public static double minimumTpCharge = 1;
 
     @ConfigEntry(
             id = "teleportationChargeCost",

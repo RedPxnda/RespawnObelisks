@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.Containers;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
@@ -14,6 +15,7 @@ public class ObeliskInventory {
     public final List<ItemStack> items = new ArrayList<>();
     public final List<ItemStack> armor = new ArrayList<>();
     public final List<ItemStack> offhand = new ArrayList<>();
+    public int xp = 0;
 
     public boolean isEmpty() {
         return isItemsEmpty() && isArmorEmpty() && isOffhandEmpty();
@@ -28,6 +30,9 @@ public class ObeliskInventory {
         }
         for (ItemStack stack : offhand) {
             Containers.dropItemStack(level, x, y, z, stack);
+        }
+        if (xp > 0) {
+            level.addFreshEntity(new ExperienceOrb(level, x, y, z, xp));
         }
     }
 
@@ -64,6 +69,10 @@ public class ObeliskInventory {
         return bl;
     }
 
+    public boolean isXpEmpty() {
+        return xp > 0;
+    }
+
     public CompoundTag saveToNbt() {
         ListTag armor = new ListTag();
         ListTag items = new ListTag();
@@ -75,6 +84,7 @@ public class ObeliskInventory {
         allItems.put("Armor", armor);
         allItems.put("Items", items);
         allItems.put("Offhand", offhand);
+        allItems.putInt("Xp", xp);
         return allItems;
     }
 
@@ -97,6 +107,7 @@ public class ObeliskInventory {
         if (tag.contains("Offhand", 10)) {
             inventory.offhand.add(ItemStack.of(tag.getCompound("Offhand")));
         }
+        if (tag.contains("Xp", 3)) inventory.xp = tag.getInt("Xp");
         return inventory;
     }
 }
