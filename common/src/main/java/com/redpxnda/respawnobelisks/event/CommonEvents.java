@@ -134,11 +134,6 @@ public class CommonEvents {
     }
 
     public static void onPlayerClone(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean wonGame) {
-        if (Platform.isFabric()) { // architectury messed up params on fabric, i have to switch em myself until arch fixes.
-            ServerPlayer temp = oldPlayer;
-            oldPlayer = newPlayer;
-            newPlayer = temp;
-        }
         if (wonGame) return;
         if (oldPlayer.hasEffect(ModRegistries.IMMORTALITY_CURSE.get())) cloneAddCurse(newPlayer, oldPlayer);
         if (

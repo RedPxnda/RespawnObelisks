@@ -25,6 +25,10 @@ public class CoreUtils {
     public static double getCharge(CompoundTag tag) {
         return tag.getCompound("RespawnObeliskData").getDouble("Charge");
     }
+    public static void setCharge(CompoundTag tag, double charge) {
+        if (!tag.contains("RespawnObeliskData", 10)) tag.put("RespawnObeliskData", new CompoundTag());
+        tag.getCompound("RespawnObeliskData").putDouble("Charge", charge);
+    }
     public static double getMaxCharge(CompoundTag tag) {
         return Math.min(ObeliskCoreConfig.maxMaxCharge, tag.getCompound("RespawnObeliskData").getDouble("MaxCharge"));
     }
