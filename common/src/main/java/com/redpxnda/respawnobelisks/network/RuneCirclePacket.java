@@ -7,12 +7,14 @@ import net.minecraft.network.FriendlyByteBuf;
 import java.util.function.Supplier;
 
 public class RuneCirclePacket {
+    private final boolean kill;
     private final int age;
     private final double x;
     private final double y;
     private final double z;
 
-    public RuneCirclePacket(int age, double x, double y, double z) {
+    public RuneCirclePacket(boolean kill, int age, double x, double y, double z) {
+        this.kill = kill;
         this.age = age;
         this.x = x;
         this.y = y;
@@ -20,6 +22,7 @@ public class RuneCirclePacket {
     }
 
     public RuneCirclePacket(FriendlyByteBuf buffer) {
+        this.kill = buffer.readBoolean();
         this.age = buffer.readInt();
         this.x = buffer.readDouble();
         this.y = buffer.readDouble();
@@ -27,6 +30,7 @@ public class RuneCirclePacket {
     }
 
     public void toBytes(FriendlyByteBuf buffer) {
+        buffer.writeBoolean(kill);
         buffer.writeInt(age);
         buffer.writeDouble(x);
         buffer.writeDouble(y);
@@ -34,6 +38,6 @@ public class RuneCirclePacket {
     }
 
     public void handle(Supplier<NetworkManager.PacketContext> supplier) {
-        supplier.get().queue(() -> S2CHandlers.setupRuneCircleRenderPacket(age, x, y, z));
+        supplier.get().queue(() -> S2CHandlers.setupRuneCircleRenderPacket(kill, age, x, y, z));
     }
 }

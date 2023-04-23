@@ -93,6 +93,9 @@ public class CommonEvents {
                         player.getCooldowns().addCooldown(stack.getItem(), 100); // add item cooldown
                         return EventResult.interruptFalse();
                     }
+                } else {
+                    removeUUID(listTag, entity.getUUID());
+                    player.getCooldowns().addCooldown(stack.getItem(), 100);
                 }
             }
         }
@@ -107,6 +110,11 @@ public class CommonEvents {
                 if (!listTag.contains(StringTag.valueOf(player.getScoreboardName()))) listTag.add(StringTag.valueOf(player.getScoreboardName()));
                 player.getCooldowns().addCooldown(stack.getItem(), 100); // add item cooldown
                 return EventResult.interruptFalse();
+            } else {
+                listTag.remove(StringTag.valueOf(interacted.getScoreboardName()));
+                if (!listTag.contains(StringTag.valueOf(player.getScoreboardName()))) listTag.add(StringTag.valueOf(player.getScoreboardName()));
+                player.getCooldowns().addCooldown(stack.getItem(), 100);
+                return EventResult.interruptFalse();
             }
         }
         return EventResult.pass();
@@ -119,6 +127,10 @@ public class CommonEvents {
                     return true;
             }
         return false;
+    }
+
+    private static void removeUUID(ListTag tag, UUID uuid) {
+        tag.removeIf(t -> t instanceof CompoundTag compound && compound.getUUID("uuid").equals(uuid));
     }
 
     public static void onPlayerClone(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean wonGame) {

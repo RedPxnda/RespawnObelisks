@@ -12,6 +12,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,7 +33,6 @@ public abstract class LivingEntityMixin {
             at = @At("HEAD")
     )
     private void RESPAWNOBELISKS_preventEquipmentDrop(DamageSource damageSource, CallbackInfo ci) {
-        System.out.println("items are getting dropped!");
         if (
                 (Object)this instanceof ServerPlayer player &&
                 !player.level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) &&
@@ -43,17 +43,20 @@ public abstract class LivingEntityMixin {
                 (RespawnPerkConfig.allowCursedItemKeeping || !player.hasEffect(ModRegistries.IMMORTALITY_CURSE.get()))
         ) {
             ObeliskInventory inventory = be.storedItems.containsKey(player.getUUID()) ? be.storedItems.get(player.getUUID()) : new ObeliskInventory();
-            if (!player.wasExperienceConsumed() && RespawnPerkConfig.keepExperience && inventory.xp <= 0) {
-                int rawXp = Mth.floor(player.experienceProgress * player.getXpNeededForNextLevel() + ObeliskUtils.getTotalXpForLevel(player.experienceLevel));
-                inventory.xp = Mth.floor(rawXp*(RespawnPerkConfig.keepExperiencePercent/100f));
-                if (RespawnPerkConfig.keepExperiencePercent >= 100) player.skipDropExperience();
+            if (!player.wasExperienceConsumed() && RespawnPerkConfig.Experience.keepExperience && inventory.xp <= 0) {
+                int rawXp = ObeliskUtils.getTotalXp(player);
+                inventory.xp = Mth.floor(rawXp*(RespawnPerkConfig.Experience.keepExperiencePercent/100f));
+                if (RespawnPerkConfig.Experience.keepExperiencePercent >= 100) player.skipDropExperience();
                 else player.giveExperiencePoints(-inventory.xp);
             }
-            if (RespawnPerkConfig.Armor.keepArmor && inventory.isArmorEmpty()) {
+            if (inventory.isArmorEmpty()) {
                 inventory.armor.clear();
                 List<ItemStack> stacks = new ArrayList<>(
                         player.getInventory().armor.stream().map(i -> {
-                            if (random.nextInt(100) <= RespawnPerkConfig.Armor.keepArmorChance-1) {
+                            if (
+                                    (RespawnPerkConfig.Armor.keepArmor && random.nextInt(100) <= RespawnPerkConfig.Armor.keepArmorChance-1) ||
+                                    (ObeliskUtils.shouldEnchantmentApply(i, random))
+                            ) {
                                 int index = player.getInventory().armor.indexOf(i);
                                 player.getInventory().armor.set(index, ItemStack.EMPTY);
                                 return i;
@@ -64,22 +67,34 @@ public abstract class LivingEntityMixin {
                 );
                 inventory.armor.addAll(stacks);
             }
-            if (RespawnPerkConfig.Offhand.keepOffhand && !player.getOffhandItem().isEmpty() && inventory.isOffhandEmpty()) {
+            if (!player.getOffhandItem().isEmpty() && inventory.isOffhandEmpty()) {
                 inventory.offhand.clear();
-                if (random.nextInt(100) <= RespawnPerkConfig.Offhand.keepOffhandChance-1) {
-                    ItemStack stack = player.getOffhandItem();
-                    inventory.offhand.add(stack);
+                if (
+                        (RespawnPerkConfig.Offhand.keepOffhand && random.nextInt(100) <= RespawnPerkConfig.Offhand.keepOffhandChance-1) ||
+                        (ObeliskUtils.shouldEnchantmentApply(player.getOffhandItem(), random))
+                ) {
+                    inventory.offhand.add(player.getOffhandItem());
                     player.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
                 }
             }
-            if ((RespawnPerkConfig.Inventory.keepInventory || RespawnPerkConfig.Hotbar.keepHotbar) && inventory.isItemsEmpty()) {
+            if (inventory.isItemsEmpty()) {
                 inventory.items.clear();
                 boolean onlyHotbar = RespawnPerkConfig.Hotbar.keepHotbar && !RespawnPerkConfig.Inventory.keepInventory;
                 List<ItemStack> rawStacks = onlyHotbar ? player.getInventory().items.subList(0, 9) : player.getInventory().items;
                 double chance = onlyHotbar ? RespawnPerkConfig.Hotbar.keepHotbarChance : RespawnPerkConfig.Inventory.keepInventoryChance;
-                List<ItemStack> stacks = new ArrayList<>(rawStacks.stream().filter(i -> random.nextInt(100) <= chance).toList());
+                List<ItemStack> stacks = new ArrayList<>(rawStacks.stream().map(i -> {
+                    if (
+                            ((RespawnPerkConfig.Inventory.keepInventory || RespawnPerkConfig.Hotbar.keepHotbar) && random.nextInt(100) <= chance) ||
+                            (ObeliskUtils.shouldEnchantmentApply(i, random))
+                    ) {
+                        int index = player.getInventory().items.indexOf(i);
+                        player.getInventory().items.set(index, ItemStack.EMPTY);
+                        return i;
+                    } else {
+                        return ItemStack.EMPTY;
+                    }
+                }).toList());
                 inventory.items.addAll(stacks);
-                Collections.fill(stacks, ItemStack.EMPTY);
             }
             be.storedItems.put(player.getUUID(), inventory);
             be.syncWithClient();

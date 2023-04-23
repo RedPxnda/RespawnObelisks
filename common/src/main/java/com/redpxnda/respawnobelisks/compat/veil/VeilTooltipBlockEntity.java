@@ -1,26 +1,7 @@
 package com.redpxnda.respawnobelisks.compat.veil;
 
-import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import foundry.veil.color.Color;
-import foundry.veil.color.ColorTheme;
-import foundry.veil.ui.Tooltippable;
-import foundry.veil.ui.VeilUIItemTooltipDataHolder;
-import foundry.veil.ui.anim.TooltipKeyframe;
-import foundry.veil.ui.anim.TooltipTimeline;
-import joptsimple.internal.Strings;
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
-
-import java.util.Arrays;
-import java.util.List;
-
-public class TooltipBlockEntity extends RespawnObeliskBlockEntity implements Tooltippable {
-    public List<Component> tooltip = Arrays.asList(
+public class VeilTooltipBlockEntity /*extends RespawnObeliskBlockEntity implements Tooltippable*/ {
+    /*public List<Component> tooltip = Arrays.asList(
             Component.translatable("block.respawnobelisks.respawn_obelisk").withStyle(ChatFormatting.GOLD),
             Component.literal(Strings.repeat('|', 50)).withStyle(ChatFormatting.GREEN)
     );
@@ -133,5 +114,5 @@ public class TooltipBlockEntity extends RespawnObeliskBlockEntity implements Too
         String str2 = Strings.repeat('|', maxIcons-chargedIcons);
         Component component = Component.literal(str).withStyle(ChatFormatting.GRAY).append(Component.literal(str2).withStyle(ChatFormatting.DARK_GRAY));
         this.tooltip.set(1, component);
-    }
+    }*/
 }

@@ -5,7 +5,6 @@ import com.redpxnda.respawnobelisks.network.ScrollWheelPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
-import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.RenderUtils;
 import dev.architectury.event.EventResult;
@@ -45,13 +44,14 @@ public class ClientEvents {
             if (stack.getTag().getCompound("RespawnObeliskData").contains("Charge"))
                 lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.charge").withStyle(ChatFormatting.GRAY)
-                        .append(Component.literal(" " + RespawnObeliskBlockEntity.getTagCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
+                        .append(Component.literal(" " + CoreUtils.getCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
                 );
-            if (stack.getTag().getCompound("RespawnObeliskData").contains("MaxCharge"))
+            if (stack.getTag().getCompound("RespawnObeliskData").contains("MaxCharge")) {
                 lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.max_charge").withStyle(ChatFormatting.GRAY)
-                        .append(Component.literal(" " + RespawnObeliskBlockEntity.getTaxMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
+                                .append(Component.literal(" " + CoreUtils.getTextMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
                 );
+            }
             if (CoreUtils.hasCapability(stack, CoreUtils.Capability.REVIVE) && stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities")) {
                 lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.saved_entities").withStyle(ChatFormatting.GRAY)
@@ -79,7 +79,7 @@ public class ClientEvents {
                 }
             }
             if (CoreUtils.hasCapability(stack, CoreUtils.Capability.PROTECT) && stack.getTag().getCompound("RespawnObeliskData").contains("TrustedPlayers")) {
-                lines.add(
+                lines.add(pos++,
                         Component.translatable("text.respawnobelisks.tooltip.trusted_players").withStyle(ChatFormatting.GRAY)
                                 .append(Component.literal(" [").withStyle(ChatFormatting.DARK_GRAY))
                                 .append(Component.literal("ALT").withStyle(Screen.hasAltDown() ? ChatFormatting.WHITE : ChatFormatting.GRAY))
@@ -89,7 +89,7 @@ public class ClientEvents {
                     ListTag list = stack.getTag().getCompound("RespawnObeliskData").getList("TrustedPlayers", 8);
                     for (Tag tag : list) {
                         if (!(tag instanceof StringTag stringTag)) continue;
-                        lines.add(
+                        lines.add(pos++,
                                 Component.literal(" | ").withStyle(ChatFormatting.GRAY)
                                 .append(Component.literal(stringTag.toString()).withStyle(ChatFormatting.WHITE))
                         );

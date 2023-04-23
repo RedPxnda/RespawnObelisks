@@ -2,5 +2,9 @@
   "parent": "minecraft:item/generated",
   "textures": {
     "layer0": "respawnobelisks:item/dormant_obelisk"
-  }
+  },
+  "overrides": [
+    {"predicate": {"respawnobelisks:dimension": 0.01},"model": "respawnobelisks:item/dormant_obelisk_nether"},
+    {"predicate": {"respawnobelisks:dimension": 0.02},"model": "respawnobelisks:item/dormant_obelisk_end"}
+  ]
 }

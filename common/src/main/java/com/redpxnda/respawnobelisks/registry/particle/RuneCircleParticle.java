@@ -1,5 +1,6 @@
 package com.redpxnda.respawnobelisks.registry.particle;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Vector3f;
 import com.redpxnda.respawnobelisks.util.ClientUtils;
@@ -33,11 +34,15 @@ public class RuneCircleParticle extends Particle {
         this.colors[0] = primCol;
         this.colors[1] = secCol;
         this.scale = scale;
-        ClientUtils.activeRuneParticles.add(new Vec3(d, e, f));
+        ClientUtils.activeRuneParticles.put(ImmutableList.of(d, e, f), this);
     }
 
     public void setAge(int newAge) {
         this.age = newAge;
+    }
+
+    public int getAge() {
+        return this.age;
     }
 
     public double getX() {

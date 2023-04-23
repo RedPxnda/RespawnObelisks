@@ -37,6 +37,46 @@ public final class TeleportConfig {
     public static int teleportationCooldown = 3600;
 
     @ConfigEntry(
+            id = "teleportationBackupCooldown",
+            type = EntryType.INTEGER,
+            translation = "text.respawnobelisks.config.tp_backup_cooldown"
+    )
+    @Comment("The delay before being able to teleport again after an unsuccessful teleport. (Eg. player moves or switches items, etc.")
+    public static int teleportationBackupCooldown = 200;
+
+    @ConfigEntry(
+            id = "dropItemsOnTeleport",
+            type = EntryType.BOOLEAN,
+            translation = "text.respawnobelisks.config.drop_on_tp"
+    )
+    @Comment("Whether players drop their items when teleporting. If enabled, all enabled perks in the 'perks' section will apply.")
+    public static boolean dropItemsOnTeleport = false;
+
+    @ConfigEntry(
+            id = "dropCompassOnTp",
+            type = EntryType.BOOLEAN,
+            translation = "text.respawnobelisks.config.drop_compass"
+    )
+    @Comment("Whether players drop their recovery compass when teleporting.")
+    public static boolean dropCompassOnTp = true;
+
+    @ConfigEntry(
+            id = "xpCost",
+            type = EntryType.INTEGER,
+            translation = "text.respawnobelisks.config.xp_cost"
+    )
+    @Comment("The amount of experience(points, not levels) consumed when teleporting to an obelisk.\nUseful numbers: https://minecraft.fandom.com/wiki/Experience#Leveling_up (See 'Total XP')\nDefault value: 27 points/3 levels")
+    public static int xpCost = 27;
+
+    @ConfigEntry(
+            id = "levelCost",
+            type = EntryType.INTEGER,
+            translation = "text.respawnobelisks.config.level_cost"
+    )
+    @Comment("The amount of experience(levels, not points) consumed when teleporting to an obelisk.\nThis is different to 'xpCost' as the cost to teleport will technically get more expensive the more levels you have.\nThis is similar to how Waystones works.")
+    public static int levelCost = 0;
+
+    @ConfigEntry(
             id = "allowCursedTeleportation",
             type = EntryType.BOOLEAN,
             translation = "text.respawnobelisks.config.allow_cursed_tp"

@@ -1,6 +1,8 @@
 package com.redpxnda.respawnobelisks.network.handler;
 
+import com.google.common.collect.ImmutableList;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
+import com.redpxnda.respawnobelisks.registry.particle.RuneCircleParticle;
 import com.redpxnda.respawnobelisks.registry.particle.RuneCircleType;
 import com.redpxnda.respawnobelisks.registry.particle.packs.ParticlePack;
 import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
@@ -25,16 +27,23 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class S2CHandlers {
-    public static void setupRuneCircleRenderPacket(int age, double x, double y, double z) {
-        if (Minecraft.getInstance().level == null || ClientUtils.activeRuneParticles.contains(new Vec3(x, y, z))) return;
-        Minecraft.getInstance().level.addParticle(
-                new RuneCircleType.Options(age, 100, 2, RenderUtils.runeCircleColors[0], RenderUtils.runeCircleColors[1]),
-                x, y, z,
-                0, 0, 0
-        );
+    public static void setupRuneCircleRenderPacket(boolean kill, int age, double x, double y, double z) {
+        if (Minecraft.getInstance().level == null) return;
+        List<Double> pos = ImmutableList.of(x, y, z);
+        if (ClientUtils.activeRuneParticles.containsKey(pos)) {
+            RuneCircleParticle particle = ClientUtils.activeRuneParticles.get(pos);
+            particle.setAge(age);
+            if (kill || !particle.isAlive() || particle.getAge() >= 100) ClientUtils.activeRuneParticles.remove(pos);
+        } else
+            Minecraft.getInstance().level.addParticle(
+                    new RuneCircleType.Options(age, 100, 2, RenderUtils.runeCircleColors[0], RenderUtils.runeCircleColors[1]),
+                    x, y, z,
+                    0, 0, 0
+            );
     }
 
     public static void respawnAnchorPacket(BlockPos blockPos, int charge, boolean isRun) {

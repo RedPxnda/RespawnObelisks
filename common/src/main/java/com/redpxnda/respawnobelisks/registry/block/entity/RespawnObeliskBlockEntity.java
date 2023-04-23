@@ -1,6 +1,7 @@
 package com.redpxnda.respawnobelisks.registry.block.entity;
 
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
+import com.redpxnda.respawnobelisks.config.ObeliskCoreConfig;
 import com.redpxnda.respawnobelisks.config.TrustedPlayersConfig;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
@@ -15,7 +16,6 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -95,13 +95,7 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     }
     public double getMaxCharge() {
         if (coreItem.isEmpty()) return 0;
-        return coreItem.getOrCreateTag().getCompound("RespawnObeliskData").getDouble("MaxCharge");
-    }
-    public static double getTagCharge(CompoundTag tag) {
-        return tag.getCompound("RespawnObeliskData").getDouble("Charge");
-    }
-    public static double getTaxMaxCharge(CompoundTag tag) {
-        return tag.getCompound("RespawnObeliskData").getDouble("MaxCharge");
+        return Math.min(ObeliskCoreConfig.maxMaxCharge, coreItem.getOrCreateTag().getCompound("RespawnObeliskData").getDouble("MaxCharge"));
     }
     public CompoundTag getItemNbt() {
         return coreItem.save(new CompoundTag());
@@ -139,12 +133,12 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
         ObeliskInventory inv = storedItems.get(player.getUUID());
         if (inv == null) return;
         if (!inv.isItemsEmpty()) {
-            System.out.println("restoring items...");
-            inv.items.forEach(i -> player.getInventory().placeItemBackInInventory(i));
+            inv.items.forEach(i -> {
+                if (!i.isEmpty()) player.getInventory().placeItemBackInInventory(i);
+            });
             inv.items.clear();
         }
         if (!inv.isArmorEmpty()) {
-            System.out.println("restoring armor...");
             for (EquipmentSlot slot : EquipmentSlot.values()) {
                 if (slot.getType().equals(EquipmentSlot.Type.ARMOR)) {
                     if (inv.armor.size() <= slot.getIndex())
@@ -158,7 +152,6 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
             inv.armor.clear();
         }
         if (!inv.isOffhandEmpty()) {
-            System.out.println("restoring offhand...");
             if (player.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty())
                 player.setItemSlot(EquipmentSlot.OFFHAND, inv.offhand.get(0));
             else
@@ -166,7 +159,6 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
             inv.offhand.clear();
         }
         if (inv.isXpEmpty()) {
-            System.out.println("restoring xp...");
             player.giveExperiencePoints(inv.xp);
             inv.xp = 0;
         }

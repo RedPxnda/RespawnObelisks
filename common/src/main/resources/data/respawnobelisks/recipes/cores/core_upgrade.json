@@ -1,0 +1,41 @@
+{
+  "type": "respawnobelisks:core_upgrade",
+  "key": {
+    "#": {
+      "tag": "minecraft:saplings"
+    },
+    "R": {
+      "item": "minecraft:red_mushroom"
+    },
+    "P": {
+      "item": "minecraft:prismarine_shard"
+    },
+    "N": {
+      "item": "minecraft:nether_wart"
+    },
+    "C": {
+      "tag": "respawnobelisks:obelisk_cores"
+    },
+    "B": {
+      "item": "minecraft:blaze_powder"
+    },
+    "G": {
+      "item": "minecraft:ghast_tear"
+    },
+    "I": {
+      "item": "minecraft:glow_berries"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    }
+  },
+  "pattern": [
+    "#RP",
+    "NCB",
+    "GIE"
+  ],
+  "charge": 250,
+  "result": {
+    "item": "respawnobelisks:obelisk_core"
+  }
+}

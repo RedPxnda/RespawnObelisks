@@ -1,16 +1,24 @@
 package com.redpxnda.respawnobelisks.util;
 
+import com.redpxnda.respawnobelisks.config.RespawnPerkConfig;
 import com.redpxnda.respawnobelisks.network.FirePackMethodPacket;
 import com.redpxnda.respawnobelisks.network.ModPackets;
+import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import static com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock.PACK;
 
@@ -40,5 +48,16 @@ public class ObeliskUtils {
         if (level < 17) return level * level + 6 * level;
         if (level < 32) return Mth.floor(2.5 * level * level - 40.5 * level + 360);
         return Mth.floor(4.5 * level * level - 162.5 * level + 2220);
+    }
+
+    public static int getTotalXp(Player player) {
+        return Mth.floor(player.experienceProgress * player.getXpNeededForNextLevel() + ObeliskUtils.getTotalXpForLevel(player.experienceLevel));
+    }
+
+    public static boolean shouldEnchantmentApply(ItemStack stack, Random random) {
+        if (!RespawnPerkConfig.Enchantment.enableEnchantment) return false;
+        Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(stack);
+        return enchantments.containsKey(ModRegistries.OBELISKBOUND.get()) &&
+                random.nextInt(100) <= Math.round(enchantments.get(ModRegistries.OBELISKBOUND.get())*RespawnPerkConfig.Enchantment.chancePerLevel)-1;
     }
 }

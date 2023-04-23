@@ -22,11 +22,19 @@ public final class ObeliskCoreConfig {
     public static int maxStoredEntities = 5;
 
     @ConfigEntry(
+            id = "maxMaxCharge",
+            type = EntryType.INTEGER,
+            translation = "text.respawnobelisks.config.max_max_charge"
+    )
+    @Comment("The maximum amount of 'max charge' an obelisk can have. (Cores can be upgraded in order to reach this amount, but cannot go over.)")
+    public static int maxMaxCharge = 1000;
+
+    @ConfigEntry(
             id = "defaultOverworldCore",
             type = EntryType.STRING,
             translation = "text.respawnobelisks.config.overworld_core"
     )
-    @Comment("The default core item for overworld obelisks.\nIf you are a modder, datapacker, or modpacker, and want to add alternate core types, see the respective item tag.")
+    @Comment("The default core item for overworld obelisks.\nIf you are a modder, datapacker, or modpacker, and want to add alternative core types, see the respective item tag.")
     public static String defaultOverworldCore = "respawnobelisks:obelisk_core";
     private static Supplier<Item> defaultOverworldCoreItem = null;
     public static Supplier<Item> getDefaultOverworldCoreItem() {
@@ -42,7 +50,7 @@ public final class ObeliskCoreConfig {
             type = EntryType.STRING,
             translation = "text.respawnobelisks.config.nether_core"
     )
-    @Comment("The default core item for nether obelisks.\nIf you are a modder, datapacker, or modpacker, and want to add alternate core types, see the respective item tag.")
+    @Comment("The default core item for nether obelisks.\nIf you are a modder, datapacker, or modpacker, and want to add alternative core types, see the respective item tag.")
     public static String defaultNetherCore = "respawnobelisks:obelisk_core_nether";
     private static Supplier<Item> defaultNetherCoreItem = null;
     public static Supplier<Item> getDefaultNetherCoreItem() {
@@ -58,7 +66,7 @@ public final class ObeliskCoreConfig {
             type = EntryType.STRING,
             translation = "text.respawnobelisks.config.end_core"
     )
-    @Comment("The default core item for end obelisks.\nIf you are a modder, datapacker, or modpacker, and want to add alternate core types, see the respective item tag.")
+    @Comment("The default core item for end obelisks.\nIf you are a modder, datapacker, or modpacker, and want to add alternative core types, see the respective item tag.")
     public static String defaultEndCore = "respawnobelisks:obelisk_core_end";
     private static Supplier<Item> defaultEndCoreItem = null;
     public static Supplier<Item> getDefaultEndCoreItem() {

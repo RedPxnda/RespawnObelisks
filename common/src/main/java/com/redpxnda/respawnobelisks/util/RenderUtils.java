@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
+import com.redpxnda.respawnobelisks.config.ReviveConfig;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
@@ -24,6 +25,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -198,7 +200,7 @@ public class RenderUtils {
         poseStack.scale(1.5f, 1.5f, 1.5f);
         if (blockEntity.getLevel() != null) poseStack.mulPose(Vector3f.YP.rotationDegrees(blockEntity.getLevel().getGameTime() % 360));
         ItemRenderer itemRenderer = context.getItemRenderer();
-        if (TOTEM_STACK == null) TOTEM_STACK = new ItemStack(Items.TOTEM_OF_UNDYING.arch$holder());
+        if (TOTEM_STACK == null) TOTEM_STACK = new ItemStack(Registry.ITEM.get(new ResourceLocation(ReviveConfig.revivalItem)));
         itemRenderer.renderStatic(
                 TOTEM_STACK,
                 ItemTransforms.TransformType.GROUND,

@@ -1,6 +1,8 @@
 package com.redpxnda.respawnobelisks.util;
 
+import com.redpxnda.respawnobelisks.config.ObeliskCoreConfig;
 import com.redpxnda.respawnobelisks.registry.item.CoreItem;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.world.item.ItemStack;
@@ -18,6 +20,29 @@ public class CoreUtils {
         if (stack.getItem() instanceof CoreItem item)
             return item.hasCapability(capability);
         return false;
+    }
+
+    public static double getCharge(CompoundTag tag) {
+        return tag.getCompound("RespawnObeliskData").getDouble("Charge");
+    }
+    public static double getMaxCharge(CompoundTag tag) {
+        return Math.min(ObeliskCoreConfig.maxMaxCharge, tag.getCompound("RespawnObeliskData").getDouble("MaxCharge"));
+    }
+    public static String getTextMaxCharge(CompoundTag tag) {
+        return String.valueOf(tag.getCompound("RespawnObeliskData").get("MaxCharge"));
+    }
+    public static void setMaxCharge(CompoundTag tag, double charge) {
+        if (!tag.contains("RespawnObeliskData", 10)) tag.put("RespawnObeliskData", new CompoundTag());
+        tag.getCompound("RespawnObeliskData").putDouble("MaxCharge", Math.min(ObeliskCoreConfig.maxMaxCharge, charge));
+    }
+
+    public static void setMaxCharge(CompoundTag tag, String charge) {
+        if (!tag.contains("RespawnObeliskData", 10)) tag.put("RespawnObeliskData", new CompoundTag());
+        tag.getCompound("RespawnObeliskData").putString("MaxCharge", charge);
+    }
+
+    public static void incMaxCharge(CompoundTag tag, double charge) {
+        setMaxCharge(tag, getMaxCharge(tag)+charge);
     }
 
     public record Capability(String capTag) {

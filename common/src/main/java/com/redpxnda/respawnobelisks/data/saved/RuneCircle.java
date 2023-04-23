@@ -7,6 +7,7 @@ import com.redpxnda.respawnobelisks.network.PlayLocalSoundPacket;
 import com.redpxnda.respawnobelisks.network.RuneCirclePacket;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.util.ObeliskUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
@@ -16,7 +17,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -29,29 +32,41 @@ public class RuneCircle {
     public int idleTick = 0;
     public final int maxTick = 100;
     public final UUID playerUUID;
+    private final ItemStack item;
     public final BlockPos pos;
     public final BlockPos target;
     public final Vec3 startPos;
     public boolean stopped = false;
 
-    public RuneCircle(ServerLevel level, int tick, UUID player, BlockPos pos, BlockPos target, double x, double y, double z) {
+    public RuneCircle(ServerLevel level, int tick, UUID player, CompoundTag stack, BlockPos pos, BlockPos target, double x, double y, double z) {
         this.tick = tick;
         this.playerUUID = player;
+        this.item = ItemStack.of(stack);
         this.pos = pos;
         RespawnObeliskBlockEntity blockEntity = (RespawnObeliskBlockEntity)level.getBlockEntity(pos);
         blockEntity.hasTeleportingEntity = true;
         blockEntity.syncWithClient();
         this.target = target;
         this.startPos = new Vec3(x, y, z);
-        List<ServerPlayer> toContact = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
-        ModPackets.CHANNEL.sendToPlayers(toContact, new RuneCirclePacket(tick, x, y, z));
     }
 
-    public RuneCircle(ServerLevel level, ServerPlayer player, BlockPos pos, BlockPos target, double x, double y, double z) {
-        this(level, 0, player.getUUID(), pos, target, x, y, z);
+    public RuneCircle(ServerLevel level, int tick, UUID player, ItemStack stack, BlockPos pos, BlockPos target, double x, double y, double z) {
+        this.tick = tick;
+        this.playerUUID = player;
+        this.item = stack;
+        this.pos = pos;
+        RespawnObeliskBlockEntity blockEntity = (RespawnObeliskBlockEntity)level.getBlockEntity(pos);
+        blockEntity.hasTeleportingEntity = true;
+        blockEntity.syncWithClient();
+        this.target = target;
+        this.startPos = new Vec3(x, y, z);
+    }
+
+    public RuneCircle(ServerLevel level, ServerPlayer player, ItemStack stack, BlockPos pos, BlockPos target, double x, double y, double z) {
+        this(level, 0, player.getUUID(), stack, pos, target, x, y, z);
         List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
         ModPackets.CHANNEL.sendToPlayers(players, new PlayLocalSoundPacket(SoundEvents.BEACON_ACTIVATE, 1f, 1f, x, y, z));
-        ModPackets.CHANNEL.sendToPlayers(players, new RuneCirclePacket(tick, x, y, z));
+        ModPackets.CHANNEL.sendToPlayers(players, new RuneCirclePacket(false, tick, x, y, z));
     }
 
     public AABB getAABB() {
@@ -64,6 +79,7 @@ public class RuneCircle {
     public CompoundTag save(CompoundTag tag) {
         tag.putInt("Tick", tick);
         tag.putUUID("Player", playerUUID);
+        tag.put("Item", item.save(new CompoundTag()));
         tag.putIntArray("ObeliskPos", new int[]{ pos.getX(), pos.getY(), pos.getZ() });
         tag.putIntArray("TeleportPos", new int[]{ target.getX(), target.getY(), target.getZ() });
         ListTag list = new ListTag();
@@ -89,41 +105,57 @@ public class RuneCircle {
         double y = startPosList.getDouble(1);
         double z = startPosList.getDouble(2);
 
-        return new RuneCircle(level, tag.getInt("Tick"), player, obeliskPos, teleportPos, x, y, z);
+        return new RuneCircle(level, tag.getInt("Tick"), player, tag.getCompound("Item"), obeliskPos, teleportPos, x, y, z);
     }
 
     public void tick(ServerLevel level) {
         PlayerList list = level.getServer().getPlayerList();
         if (list.getPlayer(playerUUID) == null || list.getPlayer(playerUUID).isRemoved()) {
-            if (idleTick++ >= 200) stopped = true;
+            if (idleTick++ >= 200)
+                stop(level);
             return;
         }
         ServerPlayer player = list.getPlayer(playerUUID);
-        if (player.getX() != startPos.x || player.getY() != startPos.y || player.getZ() != startPos.z) {
+        if (
+                player.getX() != startPos.x || player.getY() != startPos.y || player.getZ() != startPos.z ||
+                ObeliskUtils.getTotalXp(player) < TeleportConfig.xpCost || player.experienceLevel < TeleportConfig.levelCost ||
+                player.getMainHandItem() != item
+        ) {
+            player.getCooldowns().addCooldown(item.getItem(), TeleportConfig.teleportationBackupCooldown);
             player.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_closed"), true);
-            List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
-            ModPackets.CHANNEL.sendToPlayers(players, new PlayLocalSoundPacket(SoundEvents.BEACON_DEACTIVATE, 1f, 1f, startPos.x, startPos.y, startPos.z));
-            ModPackets.CHANNEL.sendToPlayers(players, new RuneCirclePacket(80, startPos.x, startPos.y, startPos.z));
-            stopped = true;
-            if (level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity be)
-                be.hasTeleportingEntity = false;
+            stop(level);
             return;
         }
         List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
-        ModPackets.CHANNEL.sendToPlayers(players, new RuneCirclePacket(tick, startPos.x, startPos.y, startPos.z));
+        ModPackets.CHANNEL.sendToPlayers(players, new RuneCirclePacket(false, tick, startPos.x, startPos.y, startPos.z));
         if (tick++ >= maxTick) {
             stopped = true;
             execute(level, player);
         }
     }
 
+    private void stop(ServerLevel level) {
+        List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
+        ModPackets.CHANNEL.sendToPlayers(players, new PlayLocalSoundPacket(SoundEvents.BEACON_DEACTIVATE, 1f, 1f, startPos.x, startPos.y, startPos.z));
+        ModPackets.CHANNEL.sendToPlayers(players, new RuneCirclePacket(true, 80, startPos.x, startPos.y, startPos.z));
+        stopped = true;
+        if (level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity be)
+            be.hasTeleportingEntity = false;
+    }
+
     public void execute(ServerLevel level, ServerPlayer player) {
         RespawnObeliskBlockEntity blockEntity = (RespawnObeliskBlockEntity)level.getBlockEntity(pos);
         if (blockEntity == null) return;
         RespawnObeliskBlock block = (RespawnObeliskBlock) level.getBlockState(pos).getBlock();
-        if (!player.getAbilities().instabuild) {
+        player.getCooldowns().addCooldown(player.getMainHandItem().getItem(), TeleportConfig.teleportationCooldown);
+        if (TeleportConfig.xpCost > 0) player.giveExperiencePoints(-TeleportConfig.xpCost);
+        if (TeleportConfig.levelCost > 0) player.giveExperienceLevels(-TeleportConfig.levelCost);
+        if (TeleportConfig.dropCompassOnTp) {
+            player.drop(player.getMainHandItem(), true, true);
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        }
+        if (!player.getAbilities().instabuild && TeleportConfig.dropItemsOnTeleport) {
             ((LivingEntityAccessor) player).dropEverything(DamageSource.OUT_OF_WORLD);
-            System.out.println("dropped?");
             player.setExperienceLevels(0);
             player.setExperiencePoints(0);
         }

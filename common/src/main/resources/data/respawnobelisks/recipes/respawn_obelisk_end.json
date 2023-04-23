@@ -1,22 +1,32 @@
 {
   "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#T#",
+    "ERE",
+    "POP"
+  ],
   "key": {
-    "G": {
+    "#": {
+      "item": "minecraft:end_crystal"
+    },
+    "T": {
+      "item": "minecraft:totem_of_undying"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "R": {
       "item": "respawnobelisks:dormant_obelisk"
     },
-    "O": {
-      "item": "respawnobelisks:obelisk_core_end"
-    },
     "P": {
-      "item": "minecraft:shulker_shell"
+      "item": "minecraft:end_stone_bricks"
+    },
+    "O": {
+      "item": "minecraft:dragon_head"
     }
   },
-  "pattern": [
-    " O ",
-    "PGP",
-    " O "
-  ],
   "result": {
-    "item": "respawnobelisks:respawn_obelisk_end"
+    "item": "respawnobelisks:respawn_obelisk_end",
+    "count": 1
   }
 }

@@ -7,9 +7,10 @@ loom {
 }
 
 repositories {
-    maven { url 'https://jitpack.io' }
+    maven { url = "https://jitpack.io" }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
     maven { url = 'https://maven.blamejared.com' }
+    maven { url = "https://maven.shedaniel.me/" }
 }
 
 dependencies {
@@ -21,11 +22,12 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
 
-    if ("${rootProject.use_veil}" == "true") {
-        modApi("foundry.veil:Veil-common-${rootProject.minecraft_version}:${rootProject.veil_version}")
-    } else {
-        modCompileOnlyApi("foundry.veil:Veil-common-${rootProject.minecraft_version}:${rootProject.veil_version}")
+    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}") {
+        transitive = false
     }
+
+    modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-api:${rootProject.rei_version}")
+    modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-default-plugin:${rootProject.rei_version}")
 
     annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
     implementation(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")

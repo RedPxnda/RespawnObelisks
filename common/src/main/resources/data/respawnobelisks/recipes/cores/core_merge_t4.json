@@ -1,0 +1,19 @@
+{
+  "type": "respawnobelisks:core_merge",
+  "ingredients": [
+    {
+      "tag": "respawnobelisks:obelisk_cores"
+    },
+    {
+      "tag": "respawnobelisks:obelisk_cores"
+    },
+    {
+      "item": "minecraft:end_crystal"
+    }
+  ],
+  "multiplier": 1,
+  "result": {
+    "item": "respawnobelisks:obelisk_core",
+    "count": 1
+  }
+}

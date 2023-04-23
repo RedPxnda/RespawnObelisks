@@ -4,9 +4,41 @@ import com.teamresourceful.resourcefulconfig.common.annotations.Category;
 import com.teamresourceful.resourcefulconfig.common.annotations.Comment;
 import com.teamresourceful.resourcefulconfig.common.annotations.ConfigEntry;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 @Category(id = "charge", translation = "text.respawnobelisks.config.charge_config")
 public final class ChargeConfig {
+    private static final Map<Supplier<Item>, Double> overworldChargeItems = new HashMap<>();
+    public static final ArrayList<Supplier<Item>> overworldOverfills = new ArrayList<>();
+    private static final Map<Supplier<Item>, Double> netherChargeItems = new HashMap<>();
+    public static final ArrayList<Supplier<Item>> netherOverfills = new ArrayList<>();
+    private static final Map<Supplier<Item>, Double> endChargeItems = new HashMap<>();
+    public static final ArrayList<Supplier<Item>> endOverfills = new ArrayList<>();
+
+    public static Map<Supplier<Item>, Double> getObeliskChargeItems(Map<Supplier<Item>, Double> map, ArrayList<Supplier<Item>> overfills, String[] raw) {
+        if (map.isEmpty()) {
+            for (String str : raw) {
+                String[] split = str.split("\\|");
+                if (split.length < 2) continue;
+                ResourceLocation location = ResourceLocation.tryParse(split[0]);
+                if (location == null) continue;
+                Supplier<Item> item = () -> Registry.ITEM.get(location);
+                map.put(item, Double.parseDouble(split[1]));
+                if (split.length < 3) continue;
+                if (split[2].equalsIgnoreCase("true")) overfills.add(item);
+            }
+        }
+        return map;
+    }
+
     @ConfigEntry(
             id = "obeliskChargeItems",
             type = EntryType.STRING,
@@ -24,8 +56,8 @@ public final class ChargeConfig {
             The same logic is applied to going below 0 with negative charge values."""
     )
     public static String[] obeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
-    public static String[] getObeliskChargeItems() {
-        return obeliskChargeItems;
+    public static Map<Supplier<Item>, Double> getObeliskChargeItems() {
+        return getObeliskChargeItems(overworldChargeItems, overworldOverfills, obeliskChargeItems);
     }
 
     @ConfigEntry(
@@ -34,8 +66,8 @@ public final class ChargeConfig {
             translation = "text.respawnobelisks.config.charge_items_nether"
     )
     public static String[] netherObeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
-    public static String[] getNetherObeliskChargeItems() {
-        return netherObeliskChargeItems;
+    public static Map<Supplier<Item>, Double> getNetherObeliskChargeItems() {
+        return getObeliskChargeItems(netherChargeItems, netherOverfills, netherObeliskChargeItems);
     }
 
     @ConfigEntry(
@@ -45,8 +77,8 @@ public final class ChargeConfig {
     )
     public static String[] endObeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
 
-    public static String[] getEndObeliskChargeItems() {
-        return endObeliskChargeItems;
+    public static Map<Supplier<Item>, Double> getEndObeliskChargeItems() {
+        return getObeliskChargeItems(endChargeItems, endOverfills, endObeliskChargeItems);
     }
 
     @ConfigEntry(

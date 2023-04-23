@@ -5,8 +5,32 @@
       "rolls": 1,
       "entries": [
         {
-          "type": "minecraft:item",
-          "name": "respawnobelisks:dormant_obelisk",
+          "type": "minecraft:alternatives",
+          "children": [
+            {
+              "type": "minecraft:item",
+              "name": "respawnobelisks:dormant_obelisk",
+              "functions": [
+                {
+                  "function": "minecraft:set_nbt",
+                  "tag": "{Dimension:0.02}"
+                }
+              ],
+              "conditions": [
+                {
+                  "condition": "minecraft:block_state_property",
+                  "block": "respawnobelisks:respawn_obelisk_end",
+                  "properties": {
+                    "wild": "true"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "minecraft:item",
+              "name": "respawnobelisks:respawn_obelisk_end"
+            }
+          ],
           "conditions": [
             {
               "condition": "minecraft:block_state_property",

@@ -33,6 +33,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Block;
@@ -51,9 +52,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static com.redpxnda.respawnobelisks.util.ObeliskUtils.getAABB;
@@ -61,6 +60,7 @@ import static com.redpxnda.respawnobelisks.util.ObeliskUtils.getAABB;
 public class RespawnObeliskBlock extends Block implements EntityBlock {
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
     public static final EnumProperty<ParticlePack> PACK = EnumProperty.create("pack", ParticlePack.class);
+    public static final BooleanProperty WILD = BooleanProperty.create("wild");
     public static final DirectionProperty RESPAWN_SIDE = DirectionProperty.create("respawn_side");
     private static final VoxelShape HITBOX_BOTTOM_BASE = Block.box(1.5D, 1.0D, 1.5D, 14.5D, 32.0D, 14.5D);
     private static final VoxelShape HITBOX_BOTTOM_TRIM = Block.box(0D, 0D, 0D, 16D, 3D, 16D);
@@ -71,15 +71,24 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     public final Either<ResourceKey<Level>, String> obeliskHomeDimension;
     public final Supplier<Item> defaultCoreItem;
     public final TagKey<Item> coreTag;
-    public final Supplier<String[]> obeliskChargeItems;
+    public final Map<Supplier<Item>, Double> rawChargeItems;
+    public final ArrayList<Supplier<Item>> rawOverfillItems;
+    public Map<Item, Double> chargeItems = new HashMap<>();
+    public ArrayList<Item> overfillItems = new ArrayList<>();
 
-    public RespawnObeliskBlock(Properties pProperties, Either<ResourceKey<Level>, String> obeliskDimension, Supplier<Item> coreItem, TagKey<Item> coreTag, Supplier<String[]> obeliskChargeItems) {
+    public RespawnObeliskBlock(Properties pProperties, Either<ResourceKey<Level>, String> obeliskDimension, Supplier<Item> coreItem, TagKey<Item> coreTag, Map<Supplier<Item>, Double> obeliskChargeItems, ArrayList<Supplier<Item>> overfillItems) {
         super(pProperties);
         this.obeliskHomeDimension = obeliskDimension;
         this.defaultCoreItem = coreItem;
         this.coreTag = coreTag;
-        this.obeliskChargeItems = obeliskChargeItems;
-        this.registerDefaultState(this.stateDefinition.any().setValue(HALF, DoubleBlockHalf.LOWER).setValue(RESPAWN_SIDE, Direction.NORTH).setValue(PACK, ParticlePack.DEFAULT));
+        this.rawChargeItems = obeliskChargeItems;
+        this.rawOverfillItems = overfillItems;
+        this.registerDefaultState(this.stateDefinition.any()
+                .setValue(HALF, DoubleBlockHalf.LOWER)
+                .setValue(RESPAWN_SIDE, Direction.NORTH)
+                .setValue(PACK, ParticlePack.DEFAULT)
+                .setValue(WILD, false)
+        );
     }
 
     public boolean propagatesSkylightDown(BlockState pState, BlockGetter pLevel, BlockPos pPos) {
@@ -118,7 +127,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
-        pBuilder.add(HALF, RESPAWN_SIDE, PACK);
+        pBuilder.add(HALF, RESPAWN_SIDE, PACK, WILD);
     }
 
     @Override
@@ -129,7 +138,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     @Override
     public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         if (!ChargeConfig.perPlayerCharge && state.getValue(HALF).equals(DoubleBlockHalf.LOWER) && level.getBlockEntity(pos) != null && level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity)
-            return (int) (blockEntity.getCharge((Player) null)*3f/20f);
+            return (int) (blockEntity.getCharge(null)*3f/20f);
         return 0;
     }
 
@@ -204,6 +213,10 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
         if (pLevel.isClientSide) {
             return InteractionResult.CONSUME;
         } else {
+            if (pPlayer.getMainHandItem().is(Items.BEDROCK) && pPlayer.getOffhandItem().is(Items.TALL_GRASS)) {
+                pLevel.setBlock(pos, state.setValue(WILD, true), 3);
+                return InteractionResult.SUCCESS;
+            }
             if (state.getValue(HALF) == DoubleBlockHalf.UPPER) {
                 pos = pos.below();
                 state = pLevel.getBlockState(pos);
@@ -228,8 +241,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                     return placeCore(player, blockEntity);
 
                 // Charging obelisk
-                String[] chargeItems = obeliskChargeItems.get();
-                if (chargeObelisk(chargeItems, charge, player, state, pos, blockEntity, level)) return InteractionResult.SUCCESS;
+                if (chargeObelisk(charge, player, state, pos, blockEntity, level)) return InteractionResult.SUCCESS;
 
                 Optional<Item> itemHolder = Registry.ITEM.getOptional(new ResourceLocation(ReviveConfig.revivalItem));
                 if (
@@ -262,37 +274,34 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
         return InteractionResult.FAIL;
     }
 
-    public boolean chargeObelisk(String[] chargeItems, double charge, ServerPlayer player, BlockState state, BlockPos pos, RespawnObeliskBlockEntity blockEntity, ServerLevel level) {
-        if (!CoreUtils.hasCapability(blockEntity.getItemStack(), CoreUtils.Capability.CHARGE)) return false;
-        for (String str : chargeItems) {
-            String[] sections = str.split("\\|"); // "minecraft:item|17|true" is str
-            int chargeAmount = Integer.parseInt(sections[1]); // 17 ^
-            boolean allowOverfill = sections.length >= 3 && Boolean.parseBoolean(sections[2]); // true ^
-            Optional<Item> itemHolder = Registry.ITEM.getOptional(new ResourceLocation(sections[0]));
-            boolean fullyCharged = charge == blockEntity.getMaxCharge() && chargeAmount > 0;
-            boolean empty = charge == 0 && chargeAmount < 0;
-            if (itemHolder.isPresent() &&
-                    !player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem()) &&
-                    player.getMainHandItem().getItem() == itemHolder.get() // if held item = item
-                    && (charge + chargeAmount <= blockEntity.getMaxCharge() || allowOverfill) // if charge would go over 100, dont allow unless config says so
-                    && (charge + chargeAmount >= 0 || allowOverfill) // if charge would go under 0, dont allow unless config says so
-                    && !fullyCharged // if fully charged, don't allow more
-                    && !empty // if empty charged, don't allow less
-            ) {
-                for (String str2 : chargeItems) {
-                    Optional<Item> itemHolder2 = Registry.ITEM.getOptional(new ResourceLocation(str2.split("\\|")[0]));
-                    itemHolder2.ifPresent(holder -> player.getCooldowns().addCooldown(holder, 30));
-                }
-                List<ServerPlayer> players = level.getPlayers(p -> getAABB(player.getBlockX(), player.getBlockY(), player.getBlockZ()).contains(p.getX(), p.getY(), p.getZ()));
-                ModPackets.CHANNEL.sendToPlayers(players, new FirePackMethodPacket(chargeAmount < 0 ? "deplete" : "charge", player.getId(), state.getValue(PACK), pos));
-                if (chargeAmount < 0) state.getValue(PACK).particleHandler.depleteServerHandler(level, player, pos);
-                else state.getValue(PACK).particleHandler.chargeServerHandler(level, player, pos);
-                blockEntity.increaseCharge(player, chargeAmount);
-                if (chargeAmount < 0) blockEntity.setLastRespawn(level.getGameTime());
-                else blockEntity.setLastCharge(level.getGameTime());
-                if (!player.isCreative()) player.getMainHandItem().shrink(1);
-                return true;
+    public boolean chargeObelisk(double charge, ServerPlayer player, BlockState state, BlockPos pos, RespawnObeliskBlockEntity blockEntity, ServerLevel level) {
+        Item item = player.getMainHandItem().getItem();
+        if (!CoreUtils.hasCapability(blockEntity.getItemStack(), CoreUtils.Capability.CHARGE) || player.getCooldowns().isOnCooldown(item)) return false;
+        if (chargeItems.isEmpty()) {
+            rawChargeItems.forEach((i, d) -> chargeItems.put(i.get(), d));
+            rawOverfillItems.forEach(i -> overfillItems.add(i.get()));
+        }
+        if (!chargeItems.containsKey(item)) return false;
+        double toAdd = chargeItems.get(item);
+        boolean allowOverfill = overfillItems.contains(item);
+        if (
+                (charge + toAdd <= blockEntity.getMaxCharge() || allowOverfill) &&
+                (charge + toAdd >= 0 || allowOverfill)
+        ) {
+            chargeItems.keySet().forEach(i -> player.getCooldowns().addCooldown(i, 30));
+            List<ServerPlayer> players = level.getPlayers(p -> getAABB(player.getBlockX(), player.getBlockY(), player.getBlockZ()).contains(p.getX(), p.getY(), p.getZ()));
+            ModPackets.CHANNEL.sendToPlayers(players, new FirePackMethodPacket(toAdd < 0 ? "deplete" : "charge", player.getId(), state.getValue(PACK), pos));
+            if (toAdd < 0) {
+                state.getValue(PACK).particleHandler.depleteServerHandler(level, player, pos);
+                blockEntity.setLastRespawn(level.getGameTime());
             }
+            else {
+                state.getValue(PACK).particleHandler.chargeServerHandler(level, player, pos);
+                blockEntity.setLastCharge(level.getGameTime());
+            }
+            blockEntity.increaseCharge(player, toAdd);
+            if (!player.isCreative()) player.getMainHandItem().shrink(1);
+            return true;
         }
         return false;
     }

@@ -15,30 +15,6 @@ import java.util.function.Supplier;
 @Category(id = "perks", translation = "text.respawnobelisks.config.perks_config")
 public final class RespawnPerkConfig {
     @ConfigEntry(
-            id = "keepTrinkets",
-            type = EntryType.BOOLEAN,
-            translation = "text.respawnobelisks.config.keep_trinkets"
-    )
-    @Comment("Whether you should keep your curios/trinkets (if installed) when respawning at an obelisk.")
-    public static boolean keepTrinkets = false;
-
-    @ConfigEntry(
-            id = "keepExperience",
-            type = EntryType.BOOLEAN,
-            translation = "text.respawnobelisks.config.keep_experience"
-    )
-    @Comment("Whether you should keep experience after death when respawning at an obelisk.")
-    public static boolean keepExperience = false;
-
-    @ConfigEntry(
-            id = "keepExperiencePercent",
-            type = EntryType.DOUBLE,
-            translation = "text.respawnobelisks.config.keep_experience_percent"
-    )
-    @Comment("How much (%) experience should be kept when respawning at an obelisk.")
-    public static double keepExperiencePercent = 100;
-
-    @ConfigEntry(
             id = "minKeepItemCharge",
             type = EntryType.DOUBLE,
             translation = "text.respawnobelisks.config.min_keep_item_charge"
@@ -66,6 +42,101 @@ public final class RespawnPerkConfig {
     @InlineCategory
     public static Offhand offhandConfig;
 
+    @InlineCategory
+    public static Experience experienceConfig;
+
+    @InlineCategory
+    public static Trinkets trinketsConfig;
+
+
+    @Category(id = "obeliskbound", translation = "text.respawnobelisks.config.obeliskbound_config")
+    public final static class Enchantment {
+        @ConfigEntry(
+                id = "enableEnchantment",
+                type = EntryType.BOOLEAN,
+                translation = "text.respawnobelisks.config.enable_enchantment"
+        )
+        @Comment("Whether the obeliskbound enchantment should be enabled.")
+        public static boolean enableEnchantment = true;
+
+        @ConfigEntry(
+                id = "treasureOnly",
+                type = EntryType.BOOLEAN,
+                translation = "text.respawnobelisks.config.treasure_only"
+        )
+        @Comment("Whether the obeliskbound enchantment should be treasure only. (Can't find in enchantment table)")
+        public static boolean treasureOnly = true;
+
+        @ConfigEntry(
+                id = "tradeable",
+                type = EntryType.BOOLEAN,
+                translation = "text.respawnobelisks.config.tradeable"
+        )
+        @Comment("Whether the obeliskbound enchantment can be found in villager trades.")
+        public static boolean tradeable = false;
+
+        @ConfigEntry(
+                id = "discoverable",
+                type = EntryType.BOOLEAN,
+                translation = "text.respawnobelisks.config.discoverable"
+        )
+        @Comment("Whether the obeliskbound enchantment can be discoverable. (Found throughout chests in world)")
+        public static boolean discoverable = true;
+
+        @ConfigEntry(
+                id = "chancePerLevel",
+                type = EntryType.DOUBLE,
+                translation = "text.respawnobelisks.config.chance_per_level"
+        )
+        @Comment("The chance (%) per level to keep items with the obeliskbound enchantment.")
+        public static double chancePerLevel = 25;
+
+        @ConfigEntry(
+                id = "maxLevel",
+                type = EntryType.INTEGER,
+                translation = "text.respawnobelisks.config.max_level"
+        )
+        @Comment("The highest level the obeliskbound enchantment can have.")
+        public static int maxLevel = 3;
+    }
+
+    @Category(id = "keepExperience", translation = "text.respawnobelisks.config.keep_experience_config")
+    public final static class Experience {
+        @ConfigEntry(
+                id = "keepExperience",
+                type = EntryType.BOOLEAN,
+                translation = "text.respawnobelisks.config.keep_experience"
+        )
+        @Comment("Whether you should keep experience after death when respawning at an obelisk.")
+        public static boolean keepExperience = false;
+
+        @ConfigEntry(
+                id = "keepExperiencePercent",
+                type = EntryType.DOUBLE,
+                translation = "text.respawnobelisks.config.keep_experience_percent"
+        )
+        @Comment("How much (%) experience should be kept when respawning at an obelisk.")
+        public static double keepExperiencePercent = 100;
+    }
+
+    @Category(id = "keepTrinkets", translation = "text.respawnobelisks.config.keep_trinkets_config")
+    public final static class Trinkets {
+        @ConfigEntry(
+                id = "keepTrinkets",
+                type = EntryType.BOOLEAN,
+                translation = "text.respawnobelisks.config.keep_trinkets"
+        )
+        @Comment("Whether you should keep your curios/trinkets (if installed) when respawning at an obelisk.")
+        public static boolean keepTrinkets = false;
+
+        @ConfigEntry(
+                id = "keepTrinketsChance",
+                type = EntryType.DOUBLE,
+                translation = "text.respawnobelisks.config.keep_trinket_chance"
+        )
+        @Comment("The chance (%) to keep each trinket in your trinket inventory.")
+        public static double keepTrinketsChance = 100;
+    }
 
     @Category(id = "keepInv", translation = "text.respawnobelisks.config.keep_inv_config")
     public final static class Inventory {

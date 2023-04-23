@@ -8,6 +8,7 @@ import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.ClientUtils;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
+import com.redpxnda.respawnobelisks.util.ObeliskUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
@@ -88,12 +89,15 @@ public class BoundCompassItem extends CompassItem {
                     serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_invalid"), true);
                     return InteractionResult.FAIL;
                 }
+                if (ObeliskUtils.getTotalXp(player) < TeleportConfig.xpCost || player.experienceLevel < TeleportConfig.levelCost) {
+                    serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_failed_requirements"), true);
+                    return InteractionResult.FAIL;
+                }
                 BlockState state = level.getBlockState(pos.pos().above());
                 Optional<Vec3> obeliskLoc = block.getRespawnLocation(true, false, false, state, pos.pos().above(), serverLevel, serverPlayer);
                 obeliskLoc.ifPresent(vec3 -> {
-                    player.getCooldowns().addCooldown(player.getMainHandItem().getItem(), TeleportConfig.teleportationCooldown);
                     player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 130, 0, true, false));
-                    RuneCircles.getCache(serverLevel).create(serverPlayer, pos.pos().above(), new BlockPos(vec3), serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ());
+                    RuneCircles.getCache(serverLevel).create(serverPlayer, serverPlayer.getMainHandItem(), pos.pos().above(), new BlockPos(vec3), serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ());
                 });
                 return InteractionResult.SUCCESS;
             }

@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.ArrayList;
@@ -15,8 +16,8 @@ public class RuneCircles extends SavedData {
     public final ServerLevel level;
     private final List<RuneCircle> runeCircles = new ArrayList<>();
 
-    public void create(ServerPlayer player, BlockPos pos, BlockPos target, double x, double y, double z) {
-        runeCircles.add(new RuneCircle(level, player, pos, target, x, y, z));
+    public void create(ServerPlayer player, ItemStack stack, BlockPos pos, BlockPos target, double x, double y, double z) {
+        runeCircles.add(new RuneCircle(level, player, stack, pos, target, x, y, z));
         this.setDirty();
     }
 
