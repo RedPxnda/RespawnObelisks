@@ -1,5 +1,6 @@
 package com.redpxnda.respawnobelisks.mixin;
 
+import com.redpxnda.nucleus.util.PlayerUtil;
 import com.redpxnda.respawnobelisks.config.RespawnPerkConfig;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
@@ -38,13 +39,13 @@ public abstract class LivingEntityMixin {
                 !player.level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) &&
                 player.getRespawnPosition() != null &&
                 player.level.getBlockEntity(player.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be &&
-                CoreUtils.hasCapability(be.getItemStack(), CoreUtils.Capability.SAVE_INV) &&
+                CoreUtils.hasCapability(be.getCoreInstance(), CoreUtils.Capability.SAVE_INV) &&
                 be.getCharge(player) >= RespawnPerkConfig.minKeepItemCharge &&
                 (RespawnPerkConfig.allowCursedItemKeeping || !player.hasEffect(ModRegistries.IMMORTALITY_CURSE.get()))
         ) {
             ObeliskInventory inventory = be.storedItems.containsKey(player.getUUID()) ? be.storedItems.get(player.getUUID()) : new ObeliskInventory();
             if (!player.wasExperienceConsumed() && RespawnPerkConfig.Experience.keepExperience && inventory.xp <= 0) {
-                int rawXp = ObeliskUtils.getTotalXp(player);
+                int rawXp = PlayerUtil.getTotalXp(player);
                 inventory.xp = Mth.floor(rawXp*(RespawnPerkConfig.Experience.keepExperiencePercent/100f));
                 if (RespawnPerkConfig.Experience.keepExperiencePercent >= 100) player.skipDropExperience();
                 else player.giveExperiencePoints(-inventory.xp);

@@ -1,7 +1,5 @@
 {
   "values": [
-    "respawnobelisks:obelisk_core",
-    "respawnobelisks:obelisk_core_nether",
-    "respawnobelisks:obelisk_core_end"
+    "respawnobelisks:obelisk_core"
   ]
 }

@@ -2,6 +2,8 @@ package com.redpxnda.respawnobelisks.registry.block.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
+import com.redpxnda.respawnobelisks.registry.block.entity.theme.NamedRenderTheme;
+import com.redpxnda.respawnobelisks.registry.block.entity.theme.RenderTheme;
 import com.redpxnda.respawnobelisks.registry.particle.packs.IBasicPack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -19,19 +21,23 @@ public class RespawnObeliskBER implements BlockEntityRenderer<RespawnObeliskBloc
     public static TextureAtlasSprite SPRITE = null;
     private final BlockEntityRendererProvider.Context context;
 
+    static {
+        var if_i_am_initialized_then_so_are_you = RenderTheme.defaultCharge;
+    }
+
     public RespawnObeliskBER(BlockEntityRendererProvider.Context context) {
         this.context = context;
     }
 
     @Override
     public void render(RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        IBasicPack pack = blockEntity.getBlockState().getValue(RespawnObeliskBlock.PACK).particleHandler;
+        blockEntity.themes.forEach(str -> {
+            if (NamedRenderTheme.THEMES.containsKey(str))
+                NamedRenderTheme.THEMES.get(str).render(blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+        });
         if (!blockEntity.getObeliskName().equals("") && blockEntity.getObeliskNameComponent() != null)
             renderNameTag(context, blockEntity.hasLimboEntity(), blockEntity.getObeliskNameComponent(), poseStack, bufferSource, packedLight);
         if (blockEntity.hasLimboEntity())
             renderTotemItem(context, blockEntity, poseStack, bufferSource, packedLight, packedOverlay);
-        if (pack.obeliskRenderTick(blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay)) return;
-        if (SPRITE == null) SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RUNES);
-        renderRunes(SPRITE, pack, blockEntity, partialTick, poseStack, bufferSource, packedLight);
     }
 }

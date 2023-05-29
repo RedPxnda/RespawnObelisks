@@ -12,7 +12,7 @@
 
   "text.respawnobelisks.cannot_set_spawn": "An ancient force seems to have once protected this seemingly mundane object. However, that force now lays dormant. §7[§9§nHover§r§7]",
   "text.respawnobelisks.cannot_set_spawn.hover": "You cannot set your spawn at beds. Instead, explore the world to find respawn obelisks.",
-  "text.respawnobelisks.no_charge": "This obelisk has no charge",
+  "text.respawnobelisks.no_charge": "This obelisk has no charge.",
   "text.respawnobelisks.insufficient_charge": "This obelisk has insufficient charge to respawn entities.",
   "text.respawnobelisks.no_core": "This respawn obelisk has no obelisk core.",
   "text.respawnobelisks.has_core": "This obelisk contains a core. Sneak to bypass.",

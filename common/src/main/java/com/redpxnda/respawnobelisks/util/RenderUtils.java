@@ -108,14 +108,17 @@ public class RenderUtils {
         poseStack.popPose();
     }
 
-    public static void renderRunes(TextureAtlasSprite sprite, IBasicPack pack, RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+    public static void renderRunes(TextureAtlasSprite sprite, RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        renderRunes(sprite, new float[]{ 1f, 1f, 1f }, blockEntity, partialTick, poseStack, bufferSource, packedLight);
+    }
+
+    public static void renderRunes(TextureAtlasSprite sprite, float[] colors, RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         poseStack.pushPose();
         VertexConsumer vc = bufferSource.getBuffer(RenderType.translucent());
 
-        float[] colors = pack.runeColor(partialTick, blockEntity.getLevel());
         poseStack.translate(0.5, 18/16f, 0.5);
         for (int i = 0; i < 4; i++) {
-            addQuad(false, poseStack.last().pose(), vc, colors[0], colors[1], colors[2], (float) (blockEntity.getCharge(Minecraft.getInstance().player)/blockEntity.getMaxCharge()), 9/32f, 24/32f, -5.501f/16f, 0, sprite.getU(3), sprite.getU(12), sprite.getV(2), sprite.getV(14), packedLight);
+            addQuad(false, poseStack.last().pose(), vc, colors[0], colors[1], colors[2], (float) (blockEntity.getCharge(Minecraft.getInstance().player)/blockEntity.getMaxCharge(Minecraft.getInstance().player)), 9/32f, 24/32f, -5.501f/16f, 0, sprite.getU(3), sprite.getU(12), sprite.getV(2), sprite.getV(14), packedLight);
             poseStack.mulPose(Vector3f.YP.rotationDegrees(90));
         }
         poseStack.popPose();

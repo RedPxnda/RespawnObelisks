@@ -1,7 +1,6 @@
 package com.redpxnda.respawnobelisks.compat.jei;
 
 import com.redpxnda.respawnobelisks.data.recipe.CoreMergeRecipe;
-import com.redpxnda.respawnobelisks.data.recipe.CoreUpgradeRecipe;
 import com.redpxnda.respawnobelisks.registry.item.CoreItem;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;

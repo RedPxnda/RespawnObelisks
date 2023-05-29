@@ -1,5 +1,6 @@
 package com.redpxnda.respawnobelisks.data.saved;
 
+import com.redpxnda.nucleus.util.PlayerUtil;
 import com.redpxnda.respawnobelisks.config.TeleportConfig;
 import com.redpxnda.respawnobelisks.mixin.LivingEntityAccessor;
 import com.redpxnda.respawnobelisks.network.ModPackets;
@@ -118,7 +119,7 @@ public class RuneCircle {
         ServerPlayer player = list.getPlayer(playerUUID);
         if (
                 player.getX() != startPos.x || player.getY() != startPos.y || player.getZ() != startPos.z ||
-                ObeliskUtils.getTotalXp(player) < TeleportConfig.xpCost || player.experienceLevel < TeleportConfig.levelCost ||
+                PlayerUtil.getTotalXp(player) < TeleportConfig.xpCost || player.experienceLevel < TeleportConfig.levelCost ||
                 player.getMainHandItem() != item
         ) {
             player.getCooldowns().addCooldown(item.getItem(), TeleportConfig.teleportationBackupCooldown);

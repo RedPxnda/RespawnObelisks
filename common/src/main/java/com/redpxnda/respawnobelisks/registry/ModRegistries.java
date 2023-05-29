@@ -5,7 +5,6 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.config.ObeliskCoreConfig;
-import com.redpxnda.respawnobelisks.config.RespawnPerkConfig;
 import com.redpxnda.respawnobelisks.data.recipe.CoreMergeRecipe;
 import com.redpxnda.respawnobelisks.data.recipe.CoreUpgradeRecipe;
 import com.redpxnda.respawnobelisks.registry.block.FakeRespawnAnchorBlock;
@@ -18,7 +17,6 @@ import com.redpxnda.respawnobelisks.registry.item.CoreItem;
 import com.redpxnda.respawnobelisks.registry.particle.RuneCircleType;
 import com.redpxnda.respawnobelisks.registry.structure.NetherLandStructures;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
-import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.Registries;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -61,37 +59,31 @@ public class ModRegistries {
             .tab(CreativeModeTab.TAB_MISC)
     ));
 
-    public static RegistrySupplier<Item> OBELISK_CORE = ITEMS.register(new ResourceLocation(MOD_ID, "obelisk_core"), () -> new CoreItem(new Item.Properties()
+    public static ResourceLocation OBELISK_CORE_LOC = new ResourceLocation(MOD_ID, "obelisk_core");
+    public static RegistrySupplier<Item> OBELISK_CORE = ITEMS.register(OBELISK_CORE_LOC, () -> new CoreItem(new Item.Properties()
             .tab(CreativeModeTab.TAB_MISC)
             .fireResistant()
-            .rarity(Rarity.UNCOMMON),
-            CoreUtils.DEFAULT_CAPS
+            .rarity(Rarity.UNCOMMON)
     ));
 
-    public static RegistrySupplier<Item> OBELISK_CORE_NETHER = ITEMS.register(new ResourceLocation(MOD_ID, "obelisk_core_nether"), () -> new CoreItem(new Item.Properties()
-            .tab(CreativeModeTab.TAB_MISC)
-            .fireResistant()
-            .rarity(Rarity.UNCOMMON),
-            CoreUtils.DEFAULT_CAPS
-    ));
-
-    public static RegistrySupplier<Item> OBELISK_CORE_END = ITEMS.register(new ResourceLocation(MOD_ID, "obelisk_core_end"), () -> new CoreItem(new Item.Properties()
-            .tab(CreativeModeTab.TAB_MISC)
-            .fireResistant()
-            .rarity(Rarity.UNCOMMON),
-            CoreUtils.DEFAULT_CAPS
-    ));
+//    public static RegistrySupplier<Item> OBELISK_CORE_NETHER = ITEMS.register(new ResourceLocation(MOD_ID, "obelisk_core_nether"), () -> new CoreItem(new Item.Properties()
+//            .tab(CreativeModeTab.TAB_MISC)
+//            .fireResistant()
+//            .rarity(Rarity.UNCOMMON)
+//    ));
+//
+//    public static RegistrySupplier<Item> OBELISK_CORE_END = ITEMS.register(new ResourceLocation(MOD_ID, "obelisk_core_end"), () -> new CoreItem(new Item.Properties()
+//            .tab(CreativeModeTab.TAB_MISC)
+//            .fireResistant()
+//            .rarity(Rarity.UNCOMMON)
+//    ));
 
     public static RegistrySupplier<Block> RESPAWN_OBELISK_BLOCK = BLOCKS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
             .of(Material.STONE)
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Either.left(Level.OVERWORLD),
-            ObeliskCoreConfig.getDefaultOverworldCoreItem(),
-            ModTags.Items.OVERWORLD_CORES,
-            ChargeConfig.getObeliskChargeItems(),
-            ChargeConfig.overworldOverfills
+            Either.left(Level.OVERWORLD)
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK.get(), new Item.Properties()
@@ -106,11 +98,7 @@ public class ModRegistries {
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Either.left(Level.NETHER),
-            ObeliskCoreConfig.getDefaultNetherCoreItem(),
-            ModTags.Items.NETHER_CORES,
-            ChargeConfig.getNetherObeliskChargeItems(),
-            ChargeConfig.netherOverfills
+            Either.left(Level.NETHER)
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_NETHER = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_nether"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_NETHER.get(), new Item.Properties()
@@ -125,11 +113,7 @@ public class ModRegistries {
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Either.left(Level.END),
-            ObeliskCoreConfig.getDefaultEndCoreItem(),
-            ModTags.Items.END_CORES,
-            ChargeConfig.getEndObeliskChargeItems(),
-            ChargeConfig.endOverfills
+            Either.left(Level.END)
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_END = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_end"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_END.get(), new Item.Properties()

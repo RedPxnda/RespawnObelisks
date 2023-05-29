@@ -20,6 +20,8 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 
+    modApi "com.github.RedPxnda.Nucleus:nucleus:${rootProject.nucleus_version}"
+
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
 
     modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}") {

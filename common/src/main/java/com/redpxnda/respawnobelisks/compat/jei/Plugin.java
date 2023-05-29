@@ -16,7 +16,6 @@ import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.ArrayList;
@@ -48,14 +47,14 @@ public class Plugin implements IModPlugin {
     public void registerRecipes(IRecipeRegistration registration) {
         List<InteractionRecipe> recipes = new ArrayList<>();
 
-        ChargeConfig.getObeliskChargeItems().forEach((supp, charge) ->
-                recipes.add(new InteractionRecipe(supp.get().getDefaultInstance(), ModRegistries.RESPAWN_OBELISK_ITEM.get().getDefaultInstance(), charge)));
-
-        ChargeConfig.getNetherObeliskChargeItems().forEach((supp, charge) ->
-                recipes.add(new InteractionRecipe(supp.get().getDefaultInstance(), ModRegistries.RESPAWN_OBELISK_ITEM_NETHER.get().getDefaultInstance(), charge)));
-
-        ChargeConfig.getEndObeliskChargeItems().forEach((supp, charge) ->
-                recipes.add(new InteractionRecipe(supp.get().getDefaultInstance(), ModRegistries.RESPAWN_OBELISK_ITEM_END.get().getDefaultInstance(), charge)));
+//        ChargeConfig.getObeliskChargeItems().forEach((supp, charge) ->
+//                recipes.add(new InteractionRecipe(supp.get().getDefaultInstance(), ModRegistries.RESPAWN_OBELISK_ITEM.get().getDefaultInstance(), charge)));
+//
+//        ChargeConfig.getNetherObeliskChargeItems().forEach((supp, charge) ->
+//                recipes.add(new InteractionRecipe(supp.get().getDefaultInstance(), ModRegistries.RESPAWN_OBELISK_ITEM_NETHER.get().getDefaultInstance(), charge)));
+//
+//        ChargeConfig.getEndObeliskChargeItems().forEach((supp, charge) ->
+//                recipes.add(new InteractionRecipe(supp.get().getDefaultInstance(), ModRegistries.RESPAWN_OBELISK_ITEM_END.get().getDefaultInstance(), charge)));
 
         registration.addRecipes(INTERACTION_RECIPE_TYPE, recipes);
 

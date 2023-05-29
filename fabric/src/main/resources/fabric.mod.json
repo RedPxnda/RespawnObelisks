@@ -8,6 +8,8 @@
     "RedPxnda"
   ],
   "contact": {
+    "issues": "https://github.com/RedPxnda/RespawnObelisks/issues",
+    "sources": "https://github.com/RedPxnda/RespawnObelisks/"
   },
   "license": "MIT",
   "icon": "assets/respawnobelisks/icon.png",
@@ -30,6 +32,7 @@
   "depends": {
     "fabric": "*",
     "minecraft": ">=1.19.2",
-    "architectury": ">=6.2.43"
+    "architectury": ">=6.2.43",
+    "resourcefulconfig": ">=1.0.20"
   }
 }

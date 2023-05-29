@@ -8,77 +8,31 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 @Category(id = "charge", translation = "text.respawnobelisks.config.charge_config")
 public final class ChargeConfig {
-    private static final Map<Supplier<Item>, Double> overworldChargeItems = new HashMap<>();
-    public static final ArrayList<Supplier<Item>> overworldOverfills = new ArrayList<>();
-    private static final Map<Supplier<Item>, Double> netherChargeItems = new HashMap<>();
-    public static final ArrayList<Supplier<Item>> netherOverfills = new ArrayList<>();
-    private static final Map<Supplier<Item>, Double> endChargeItems = new HashMap<>();
-    public static final ArrayList<Supplier<Item>> endOverfills = new ArrayList<>();
-
-    public static Map<Supplier<Item>, Double> getObeliskChargeItems(Map<Supplier<Item>, Double> map, ArrayList<Supplier<Item>> overfills, String[] raw) {
-        if (map.isEmpty()) {
-            for (String str : raw) {
-                String[] split = str.split("\\|");
-                if (split.length < 2) continue;
-                ResourceLocation location = ResourceLocation.tryParse(split[0]);
-                if (location == null) continue;
-                Supplier<Item> item = () -> Registry.ITEM.get(location);
-                map.put(item, Double.parseDouble(split[1]));
-                if (split.length < 3) continue;
-                if (split[2].equalsIgnoreCase("true")) overfills.add(item);
-            }
-        }
-        return map;
-    }
-
+    private static Map<Item, Double> chargeItems = null;
     @ConfigEntry(
             id = "obeliskChargeItems",
             type = EntryType.STRING,
             translation = "text.respawnobelisks.config.charge_items"
     )
     @Comment("""
-            The items used for charging the obelisk.
+            The items used for charging an obelisk.
             Syntax: ["<ITEM_ID>|<CHARGE_AMOUNT>", ...]
-                    ["<ITEM_ID>|<CHARGE_AMOUNT>|<ALLOW_OVERFILL>", ...]
-            Ex:     ["minecraft:stick|-1|false"]
-            The 'ALLOW_OVERFILL' option is a boolean that determines whether the player
-            is allowed to waste their item in order to get a portion of the actual charge amount.
-            For example, if the obelisk is charged 90% and your trying to add 20% charge,
-            the charge amount WOULD go to 110%. However, since the max is 100%, it only goes to 100%.
-            The same logic is applied to going below 0 with negative charge values."""
+            Ex:     ["minecraft:stick|35"]"""
     )
     public static String[] obeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
-    public static Map<Supplier<Item>, Double> getObeliskChargeItems() {
-        return getObeliskChargeItems(overworldChargeItems, overworldOverfills, obeliskChargeItems);
-    }
-
-    @ConfigEntry(
-            id = "netherObeliskChargeItems",
-            type = EntryType.STRING,
-            translation = "text.respawnobelisks.config.charge_items_nether"
-    )
-    public static String[] netherObeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
-    public static Map<Supplier<Item>, Double> getNetherObeliskChargeItems() {
-        return getObeliskChargeItems(netherChargeItems, netherOverfills, netherObeliskChargeItems);
-    }
-
-    @ConfigEntry(
-            id = "endObeliskChargeItems",
-            type = EntryType.STRING,
-            translation = "text.respawnobelisks.config.charge_items_end"
-    )
-    public static String[] endObeliskChargeItems = {"minecraft:ender_eye|25", "minecraft:ender_pearl|10"};
-
-    public static Map<Supplier<Item>, Double> getEndObeliskChargeItems() {
-        return getObeliskChargeItems(endChargeItems, endOverfills, endObeliskChargeItems);
+    public static Map<Item, Double> getChargeItems() {
+        if (chargeItems != null) return chargeItems;
+        chargeItems = new HashMap<>();
+        for (String str : obeliskChargeItems) {
+            String[] sections = str.split("\\|");
+            chargeItems.put(Registry.ITEM.get(new ResourceLocation(sections[0])), Double.parseDouble(sections[1]));
+        }
+        return chargeItems;
     }
 
     @ConfigEntry(

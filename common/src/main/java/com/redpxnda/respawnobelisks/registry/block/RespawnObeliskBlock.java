@@ -2,10 +2,11 @@ package com.redpxnda.respawnobelisks.registry.block;
 
 import com.mojang.datafixers.util.Either;
 import com.redpxnda.respawnobelisks.config.*;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.network.*;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import com.redpxnda.respawnobelisks.registry.item.CoreItem;
 import com.redpxnda.respawnobelisks.registry.particle.packs.ParticlePack;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.ObeliskUtils;
@@ -21,8 +22,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -45,15 +44,15 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.*;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.Supplier;
 
 import static com.redpxnda.respawnobelisks.util.ObeliskUtils.getAABB;
 
@@ -69,20 +68,10 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     private static final VoxelShape HITBOX_TOP_TRIM = Block.box(0D, -16D, 0D, 16D, -13D, 16D);
     private static final VoxelShape AABB_TOP = Shapes.or(HITBOX_TOP_BASE, HITBOX_TOP_TRIM);
     public final Either<ResourceKey<Level>, String> obeliskHomeDimension;
-    public final Supplier<Item> defaultCoreItem;
-    public final TagKey<Item> coreTag;
-    public final Map<Supplier<Item>, Double> rawChargeItems;
-    public final ArrayList<Supplier<Item>> rawOverfillItems;
-    public Map<Item, Double> chargeItems = new HashMap<>();
-    public ArrayList<Item> overfillItems = new ArrayList<>();
 
-    public RespawnObeliskBlock(Properties pProperties, Either<ResourceKey<Level>, String> obeliskDimension, Supplier<Item> coreItem, TagKey<Item> coreTag, Map<Supplier<Item>, Double> obeliskChargeItems, ArrayList<Supplier<Item>> overfillItems) {
+    public RespawnObeliskBlock(Properties pProperties, Either<ResourceKey<Level>, String> obeliskDimension) {
         super(pProperties);
         this.obeliskHomeDimension = obeliskDimension;
-        this.defaultCoreItem = coreItem;
-        this.coreTag = coreTag;
-        this.rawChargeItems = obeliskChargeItems;
-        this.rawOverfillItems = overfillItems;
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(HALF, DoubleBlockHalf.LOWER)
                 .setValue(RESPAWN_SIDE, Direction.NORTH)
@@ -151,7 +140,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
             pos = pos.below();
             state = level.getBlockState(pos);
         }
-        if (level.getBlockEntity(pos) != null && level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity && (TrustedPlayersConfig.allowObeliskRespawning || blockEntity.isPlayerTrusted(player.getScoreboardName()))) {
+        if (level.getBlockEntity(pos) != null && level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity && !blockEntity.getCoreInstance().isEmpty() && (TrustedPlayersConfig.allowObeliskRespawning || blockEntity.isPlayerTrusted(player.getScoreboardName()))) {
             if (!CurseConfig.enableCurse) forceCurse = false;
             double charge = blockEntity.getCharge(player);
             MobEffectInstance MEI = null;
@@ -187,14 +176,13 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                     if (isNegative) {
                         blockEntity.decreaseCharge(player, isTeleport ? TeleportConfig.teleportationChargeCost : ChargeConfig.obeliskDepleteAmount);
                         blockEntity.setLastRespawn(level.getGameTime());
-                    } else {
+                    } else
                         blockEntity.setLastCharge(level.getGameTime());
-                    }
-                    List<ServerPlayer> players = level.getPlayers(p -> getAABB(player.getBlockX(), player.getBlockY(), player.getBlockZ()).contains(p.getX(), p.getY(), p.getZ()));
+                    /*List<ServerPlayer> players = level.getPlayers(p -> getAABB(blockEntity.getBlockPos()).contains(p.getX(), p.getY(), p.getZ()));
                     if (!players.contains(player)) players.add(player);
                     ModPackets.CHANNEL.sendToPlayers(players, new FirePackMethodPacket(isNegative ? "deplete" : "charge", player.getId(), state.getValue(PACK), pos));
                     if (isNegative) state.getValue(PACK).particleHandler.depleteServerHandler(level, player, pos);
-                    else state.getValue(PACK).particleHandler.chargeServerHandler(level, player, pos);
+                    else state.getValue(PACK).particleHandler.chargeServerHandler(level, player, pos);*/
                 } else if (shouldCost && !forceCurse) {
                     if (CurseConfig.enableCurse) {
                         ObeliskUtils.curseHandler(level, player, pos, state);
@@ -237,11 +225,12 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
 
                 if (player.isShiftKeyDown() && player.getMainHandItem().isEmpty() && !blockEntity.getItemStack().isEmpty())
                     return takeCore(player, blockEntity);
-                if (blockEntity.getItemStack().isEmpty() && player.getMainHandItem().is(coreTag) && player.getMainHandItem().hasTag() && player.getMainHandItem().getOrCreateTag().contains("RespawnObeliskData"))
-                    return placeCore(player, blockEntity);
+                ResourceLocation rl;
+                if (blockEntity.getItemStack().isEmpty() && ObeliskCore.CORES.containsKey(rl = Registry.ITEM.getKey(player.getMainHandItem().getItem())))
+                    return placeCore(player, blockEntity, rl);
 
                 // Charging obelisk
-                if (chargeObelisk(charge, player, state, pos, blockEntity, level)) return InteractionResult.SUCCESS;
+                if (chargeObelisk(player, blockEntity)) return InteractionResult.SUCCESS;
 
                 Optional<Item> itemHolder = Registry.ITEM.getOptional(new ResourceLocation(ReviveConfig.revivalItem));
                 if (
@@ -253,7 +242,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                         blockEntity.getItemNbt().getCompound("tag").contains("RespawnObeliskData")
                 ) {
                     if (reviveEntities(itemHolder.get(), blockEntity, state, player, level, pos)) return InteractionResult.SUCCESS;
-                } else if (blockEntity.getItemStack().isEmpty())
+                } else if (blockEntity.getCoreInstance().isEmpty())
                     player.sendSystemMessage(Component.translatable("text.respawnobelisks.no_core"));
                 else if (charge <= 0)
                     player.sendSystemMessage(Component.translatable("text.respawnobelisks.no_charge"));
@@ -263,7 +252,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                     else if (state.getValue(RESPAWN_SIDE) == Direction.EAST) degrees = -90;
                     else if (state.getValue(RESPAWN_SIDE) == Direction.SOUTH) degrees = 0;
                     if ((player.getRespawnPosition() != null && !player.getRespawnPosition().equals(pos)) || player.getRespawnPosition() == null) {
-                        List<ServerPlayer> players = level.getPlayers(p -> getAABB(player.getBlockX(), player.getBlockY(), player.getBlockZ()).contains(p.getX(), p.getY(), p.getZ()));
+                        List<ServerPlayer> players = level.getPlayers(p -> getAABB(blockEntity.getBlockPos()).contains(p.getX(), p.getY(), p.getZ()));
                         ModPackets.CHANNEL.sendToPlayers(players, new PlaySoundPacket(Registry.SOUND_EVENT.getOptional(new ResourceLocation(ChargeConfig.obeliskSetSpawnSound)).orElse(SoundEvents.UI_BUTTON_CLICK), 1f, 1f));
                     }
                     player.setRespawnPosition(level.dimension(), pos, degrees, false, true);
@@ -274,43 +263,24 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
         return InteractionResult.FAIL;
     }
 
-    public boolean chargeObelisk(double charge, ServerPlayer player, BlockState state, BlockPos pos, RespawnObeliskBlockEntity blockEntity, ServerLevel level) {
-        Item item = player.getMainHandItem().getItem();
-        if (!CoreUtils.hasCapability(blockEntity.getItemStack(), CoreUtils.Capability.CHARGE) || player.getCooldowns().isOnCooldown(item)) return false;
-        if (chargeItems.isEmpty()) {
-            rawChargeItems.forEach((i, d) -> chargeItems.put(i.get(), d));
-            rawOverfillItems.forEach(i -> overfillItems.add(i.get()));
-        }
-        if (!chargeItems.containsKey(item)) return false;
-        double toAdd = chargeItems.get(item);
-        boolean allowOverfill = overfillItems.contains(item);
-        if (
-                (charge + toAdd <= blockEntity.getMaxCharge() || allowOverfill) &&
-                (charge + toAdd >= 0 || allowOverfill)
-        ) {
-            chargeItems.keySet().forEach(i -> player.getCooldowns().addCooldown(i, 30));
-            List<ServerPlayer> players = level.getPlayers(p -> getAABB(player.getBlockX(), player.getBlockY(), player.getBlockZ()).contains(p.getX(), p.getY(), p.getZ()));
-            ModPackets.CHANNEL.sendToPlayers(players, new FirePackMethodPacket(toAdd < 0 ? "deplete" : "charge", player.getId(), state.getValue(PACK), pos));
-            if (toAdd < 0) {
-                state.getValue(PACK).particleHandler.depleteServerHandler(level, player, pos);
-                blockEntity.setLastRespawn(level.getGameTime());
+    public boolean chargeObelisk(Player player, RespawnObeliskBlockEntity blockEntity) {
+        ObeliskCore.Instance core = blockEntity.getCoreInstance();
+        boolean returnValue = false;
+        if (!CoreUtils.hasCapability(core, CoreUtils.Capability.CHARGE)) return false;
+        for (ObeliskInteraction interaction : ObeliskInteraction.RIGHT_CLICK_INTERACTIONS) {
+            if (core.core().interactions.contains(interaction.id)) {
+                boolean bl = interaction.clickHandler.apply(player, player.getMainHandItem(), blockEntity);
+                returnValue = !returnValue ? bl : returnValue;
             }
-            else {
-                state.getValue(PACK).particleHandler.chargeServerHandler(level, player, pos);
-                blockEntity.setLastCharge(level.getGameTime());
-            }
-            blockEntity.increaseCharge(player, toAdd);
-            if (!player.isCreative()) player.getMainHandItem().shrink(1);
-            return true;
         }
-        return false;
+        return returnValue;
     }
 
     public boolean reviveEntities(Item item, RespawnObeliskBlockEntity blockEntity, BlockState state, ServerPlayer player, ServerLevel level, BlockPos pos) {
-        if (!CoreUtils.hasCapability(blockEntity.getItemStack(), CoreUtils.Capability.REVIVE)) return false;
-        if (!blockEntity.getItemNbt().getCompound("tag").getCompound("RespawnObeliskData").contains("SavedEntities"))
-            blockEntity.getItemNbt().getCompound("tag").getCompound("RespawnObeliskData").put("SavedEntities", new ListTag());
-        ListTag listTag = blockEntity.getItemNbt().getCompound("tag").getCompound("RespawnObeliskData").getList("SavedEntities", 10);
+        if (!CoreUtils.hasCapability(blockEntity.getCoreInstance(), CoreUtils.Capability.REVIVE)) return false;
+        if (!blockEntity.getItemTag().getCompound("RespawnObeliskData").contains("SavedEntities"))
+            blockEntity.getItemTag().getCompound("RespawnObeliskData").put("SavedEntities", new ListTag());
+        ListTag listTag = blockEntity.getItemTag().getCompound("RespawnObeliskData").getList("SavedEntities", 10);
 
         if (!listTag.isEmpty()) {
             boolean hasFired = false;
@@ -346,7 +316,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                 blockEntity.checkLimbo(true);
                 ModPackets.CHANNEL.sendToPlayer(player, new PlayTotemAnimationPacket(item));
                 if (!player.isCreative()) player.getMainHandItem().shrink(1);
-                List<ServerPlayer> players = level.getPlayers(p -> getAABB(player.getBlockX(), player.getBlockY(), player.getBlockZ()).contains(p.getX(), p.getY(), p.getZ()));
+                List<ServerPlayer> players = level.getPlayers(p -> getAABB(blockEntity.getBlockPos()).contains(p.getX(), p.getY(), p.getZ()));
                 ModPackets.CHANNEL.sendToPlayers(players, new FirePackMethodPacket("totem", player.getId(), state.getValue(PACK), pos));
             }
         }
@@ -355,7 +325,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
 
     public InteractionResult takeCore(ServerPlayer player, RespawnObeliskBlockEntity blockEntity) {
         player.setItemInHand(InteractionHand.MAIN_HAND, blockEntity.getItemStack());
-        blockEntity.setItem(ItemStack.EMPTY);
+        blockEntity.setCoreInstance(ObeliskCore.Instance.EMPTY);
         blockEntity.checkLimbo(false);
         blockEntity.updateObeliskName();
         blockEntity.syncWithClient();
@@ -363,10 +333,10 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
         return InteractionResult.SUCCESS;
     }
 
-    public InteractionResult placeCore(ServerPlayer player, RespawnObeliskBlockEntity blockEntity) {
+    public InteractionResult placeCore(ServerPlayer player, RespawnObeliskBlockEntity blockEntity, ResourceLocation location) {
         ItemStack toAdd = player.getMainHandItem().copy();
         toAdd.setCount(1);
-        blockEntity.setItem(toAdd);
+        blockEntity.setCoreInstance(toAdd, ObeliskCore.CORES.get(location));
         blockEntity.checkLimbo(false);
         blockEntity.updateObeliskName();
         blockEntity.syncWithClient();
@@ -382,7 +352,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
         }
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof RespawnObeliskBlockEntity be) {
-            if (!be.getItemStack().isEmpty())
+            if (!be.getItemStack().isEmpty()) // outdated code but idc (should be be.getCoreInstance()...)
                 Containers.dropItemStack(level, pos.getX()+0.5, pos.getY(), pos.getZ()+0.5, be.getItemStack());
             if (be.hasStoredItems)
                 be.storedItems.values().forEach(inv -> inv.dropAll(level, pos.getX()+0.5, pos.getY(), pos.getZ()+0.5));
@@ -400,7 +370,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                 if (player instanceof ServerPlayer serverPlayer) serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.untrusted"), true);
                 return 0f;
             }
-            if (!blockEntity.getItemStack().isEmpty() && !player.isShiftKeyDown()) {
+            if (!blockEntity.getItemStack().isEmpty() && !player.isShiftKeyDown()) { // outdated code but idc (should be be.getCoreInstance()...)
                 if (player instanceof ServerPlayer serverPlayer) serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.has_core"), true);
                 return 0f;
             }
@@ -430,5 +400,11 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
             if (be instanceof RespawnObeliskBlockEntity blockEntity)
                 RespawnObeliskBlockEntity.tick(pLevel, pos, blockState, blockEntity);
         } : null;
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> GameEventListener getListener(ServerLevel serverLevel, T blockEntity) {
+        return blockEntity instanceof RespawnObeliskBlockEntity robe ? robe : null;
     }
 }

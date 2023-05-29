@@ -38,67 +38,6 @@ import java.util.function.Consumer;
 
 @Environment(EnvType.CLIENT)
 public class ClientEvents {
-    protected static void onItemTooltip(ItemStack stack, List<Component> lines, TooltipFlag flag) {
-        if (stack.hasTag() && stack.getTag().contains("RespawnObeliskData")) {
-            int pos = 1;
-            if (stack.getTag().getCompound("RespawnObeliskData").contains("Charge"))
-                lines.add(pos++,
-                        Component.translatable("text.respawnobelisks.tooltip.charge").withStyle(ChatFormatting.GRAY)
-                        .append(Component.literal(" " + CoreUtils.getCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
-                );
-            if (stack.getTag().getCompound("RespawnObeliskData").contains("MaxCharge")) {
-                lines.add(pos++,
-                        Component.translatable("text.respawnobelisks.tooltip.max_charge").withStyle(ChatFormatting.GRAY)
-                                .append(Component.literal(" " + CoreUtils.getTextMaxCharge(stack.getTag())).withStyle(ChatFormatting.WHITE))
-                );
-            }
-            if (CoreUtils.hasCapability(stack, CoreUtils.Capability.REVIVE) && stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities")) {
-                lines.add(pos++,
-                        Component.translatable("text.respawnobelisks.tooltip.saved_entities").withStyle(ChatFormatting.GRAY)
-                                .append(Component.literal(" [").withStyle(ChatFormatting.DARK_GRAY))
-                                .append(Component.literal("CTRL").withStyle(Screen.hasControlDown() ? ChatFormatting.WHITE : ChatFormatting.GRAY))
-                                .append(Component.literal("]").withStyle(ChatFormatting.DARK_GRAY))
-                );
-                if (Screen.hasControlDown()) {
-                    ListTag list = stack.getTag().getCompound("RespawnObeliskData").getList("SavedEntities", 10);
-                    for (Tag tag : list) {
-                        if (!(tag instanceof CompoundTag compound) || compound.isEmpty() || !compound.contains("type")) continue;
-                        String type = Registry.ENTITY_TYPE.get(ResourceLocation.tryParse(compound.getString("type"))).getDescriptionId();
-                        MutableComponent component = compound.contains("data") && compound.getCompound("data").contains("CustomName") ?
-                                Component.Serializer.fromJson(compound.getCompound("data").getString("CustomName")) :
-                                null;
-                        MutableComponent finalComponent = Component.literal(" | ").withStyle(ChatFormatting.GRAY)
-                                .append(Component.translatable(type).withStyle(ChatFormatting.WHITE));
-                        if (component != null)
-                            finalComponent = finalComponent
-                                    .append(Component.literal(" (Name: ").withStyle(ChatFormatting.WHITE))
-                                    .append(component.withStyle(ChatFormatting.GRAY))
-                                    .append(Component.literal(")").withStyle(ChatFormatting.WHITE));
-                        lines.add(pos++, finalComponent);
-                    }
-                }
-            }
-            if (CoreUtils.hasCapability(stack, CoreUtils.Capability.PROTECT) && stack.getTag().getCompound("RespawnObeliskData").contains("TrustedPlayers")) {
-                lines.add(pos++,
-                        Component.translatable("text.respawnobelisks.tooltip.trusted_players").withStyle(ChatFormatting.GRAY)
-                                .append(Component.literal(" [").withStyle(ChatFormatting.DARK_GRAY))
-                                .append(Component.literal("ALT").withStyle(Screen.hasAltDown() ? ChatFormatting.WHITE : ChatFormatting.GRAY))
-                                .append(Component.literal("]").withStyle(ChatFormatting.DARK_GRAY))
-                );
-                if (Screen.hasAltDown()) {
-                    ListTag list = stack.getTag().getCompound("RespawnObeliskData").getList("TrustedPlayers", 8);
-                    for (Tag tag : list) {
-                        if (!(tag instanceof StringTag stringTag)) continue;
-                        lines.add(pos++,
-                                Component.literal(" | ").withStyle(ChatFormatting.GRAY)
-                                .append(Component.literal(stringTag.toString()).withStyle(ChatFormatting.WHITE))
-                        );
-                    }
-                }
-            }
-        }
-    }
-
     protected static EventResult onClientScroll(Minecraft mc, double amount) {
         LocalPlayer player = mc.player;
         if (player == null || !player.isShiftKeyDown()) return EventResult.pass();
@@ -131,6 +70,5 @@ public class ClientEvents {
         ClientRawInputEvent.MOUSE_SCROLLED.register(ClientEvents::onClientScroll);
         ClientTextureStitchEvent.PRE.register(ClientEvents::onTextureStitch);
         ClientLifecycleEvent.CLIENT_SETUP.register(ClientEvents::onClientSetup);
-        ClientTooltipEvent.ITEM.register(ClientEvents::onItemTooltip);
     }
 }

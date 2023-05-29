@@ -1,21 +1,22 @@
 package com.redpxnda.respawnobelisks.registry.block.entity;
 
-import com.redpxnda.respawnobelisks.config.ChargeConfig;
-import com.redpxnda.respawnobelisks.config.ObeliskCoreConfig;
+import com.mojang.logging.LogUtils;
 import com.redpxnda.respawnobelisks.config.TrustedPlayersConfig;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskCore.*;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
+import com.redpxnda.respawnobelisks.registry.particle.packs.ParticlePack;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.ObeliskInventory;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -24,38 +25,53 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.BlockPositionSource;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.gameevent.GameEventListener;
+import net.minecraft.world.level.gameevent.PositionSource;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class RespawnObeliskBlockEntity extends BlockEntity {
-    protected final List<Consumer<CompoundTag>> loadConsumers = new ArrayList<>();
+import static com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock.PACK;
+import static com.redpxnda.respawnobelisks.util.ObeliskUtils.getAABB;
 
-    private ItemStack coreItem;
-    private CompoundTag playerCharges;
+public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventListener {
+    protected final List<Consumer<CompoundTag>> loadConsumers = new ArrayList<>();
+    private static Logger LOGGER = LogUtils.getLogger();
+
+    private Instance coreItem;
+    private BlockPositionSource source;
     private boolean hasLimboEntity;
     private long lastRespawn;
+    public long lastRender = -100;
+    public float renderProgress = 1f;
     private long lastCharge;
     private String obeliskName = "";
     private Component obeliskNameComponent = null;
     public final Map<UUID, ObeliskInventory> storedItems = new HashMap<>();
     public boolean hasStoredItems = false;
     public boolean hasTeleportingEntity = false;
+    protected final List<String> themes = new ArrayList<>();
 
     public RespawnObeliskBlockEntity(BlockPos pPos, BlockState pBlockState) {
         super(ModRegistries.RESPAWN_OBELISK_BE.get(), pPos, pBlockState);
-        coreItem = ItemStack.EMPTY;
-        playerCharges = new CompoundTag();
-        lastRespawn = 0;
-        lastCharge = 0;
+        coreItem = Instance.EMPTY;
+        source = new BlockPositionSource(this.getBlockPos());
+        lastRespawn = -100;
+        lastCharge = -100;
         hasLimboEntity = false;
+        themes.add("defaultCharge");
+        themes.add("defaultDeplete");
+        themes.add("defaultRunes");
     }
 
     public boolean isPlayerTrusted(String username) {
         if (!CoreUtils.hasCapability(coreItem, CoreUtils.Capability.PROTECT)) return true;
-        if (TrustedPlayersConfig.enablePlayerTrust && this.coreItem.getOrCreateTag().contains("RespawnObeliskData")) {
-            CompoundTag obeliskData = this.coreItem.getTag().getCompound("RespawnObeliskData");
+        if (TrustedPlayersConfig.enablePlayerTrust && this.coreItem.stack().getOrCreateTag().contains("RespawnObeliskData")) {
+            CompoundTag obeliskData = this.coreItem.stack().getTag().getCompound("RespawnObeliskData");
             if (obeliskData.contains("TrustedPlayers")) {
                 ListTag list = obeliskData.getList("TrustedPlayers", 8);
                 return list.contains(StringTag.valueOf(username));
@@ -85,48 +101,72 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
         this.lastCharge = lastCharge;
     }
     public double getCharge(@Nullable Player player) {
-        if (ChargeConfig.perPlayerCharge && player != null) {
-            if (!playerCharges.contains(player.getScoreboardName(), 6))
-                playerCharges.putDouble(player.getScoreboardName(), 0);
-            return playerCharges.getDouble(player.getScoreboardName());
-        }
-        if (coreItem.isEmpty()) return 0;
-        return coreItem.getOrCreateTag().getCompound("RespawnObeliskData").getDouble("Charge");
+        if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return 0;
+        return coreItem.core().chargeProvider.apply(player, coreItem.stack(), this);
     }
-    public double getMaxCharge() {
-        if (coreItem.isEmpty()) return 0;
-        return Math.min(ObeliskCoreConfig.maxMaxCharge, coreItem.getOrCreateTag().getCompound("RespawnObeliskData").getDouble("MaxCharge"));
+    public double getMaxCharge(@Nullable Player player) {
+        if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return 0;
+        return coreItem.core().maxChargeProvider.apply(player, coreItem.stack(), this);
+    }
+    public void setMaxCharge(@Nullable Player player, double amnt) {
+        if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return;
+        coreItem.core().maxChargeSetter.call(amnt, player, coreItem.stack(), this);
     }
     public CompoundTag getItemNbt() {
-        return coreItem.save(new CompoundTag());
+        return coreItem.stack().save(new CompoundTag());
     }
-    public void setItemNbt(CompoundTag tag) {
-        coreItem = ItemStack.of(tag);
+    public CompoundTag getItemTag() {
+        return coreItem.stack().getOrCreateTag();
+    }
+    public void setItemFromNbt(CompoundTag tag, ObeliskCore core) {
+        coreItem = new Instance(ItemStack.of(tag), core);
     }
     public void setCharge(Player player, double charge) {
-        if (ChargeConfig.perPlayerCharge) {
-            playerCharges.putDouble(player.getScoreboardName(), charge);
-            return;
-        }
-        coreItem.getOrCreateTag().getCompound("RespawnObeliskData").putDouble("Charge", charge);
+        if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return;
+        coreItem.core().chargeSetter.call(charge, player, coreItem.stack(), this);
     }
-    public void setItem(ItemStack stack) {
-        coreItem = stack;
+    public void setCoreInstance(ItemStack stack, ObeliskCore core) {
+        coreItem = new Instance(stack, core);
+    }
+    public void setCoreInstance(Instance instance) {
+        coreItem = instance;
     }
     public ItemStack getItemStack() {
+        return coreItem.stack();
+    }
+    public Instance getCoreInstance() {
         return coreItem;
     }
 
-    public BlockEntity decreaseCharge(Player player, double amnt) {
-        this.setCharge(player, Mth.clamp(this.getCharge(player) - amnt, 0, this.getMaxCharge()));
+    public void chargeAndAnimate(Player player, double amnt) {
+        if (level instanceof ServerLevel sl) {
+            ParticlePack pack = getBlockState().getValue(PACK);
+            List<ServerPlayer> toSend = sl.getPlayers(p -> getAABB(getBlockPos()).contains(p.getX(), p.getY(), p.getZ()));
+            boolean isNegative = amnt < 0;
+            if (hasLevel()) {
+                if (isNegative) setLastRespawn(level.getGameTime());
+                else setLastCharge(level.getGameTime());
+            }
+
+            //ModPackets.CHANNEL.sendToPlayers(toSend, new FirePackMethodPacket(isNegative ? "deplete" : "charge", player == null ? -1 : player.getId(), pack, this.getBlockPos()));
+//            if (isNegative) {
+//                pack.particleHandler.depleteServerHandler(sl, player, getBlockPos());
+//                setLastRespawn(sl.getGameTime());
+//            } else {
+//                pack.particleHandler.chargeServerHandler(sl, sp, getBlockPos());
+//                setLastCharge(sl.getGameTime());
+//            }
+        }
+        increaseCharge(player, amnt);
+    }
+    public void decreaseCharge(Player player, double amnt) {
+        this.setCharge(player, Mth.clamp(this.getCharge(player) - amnt, 0, this.getMaxCharge(player)));
         this.syncWithClient();
-        return this;
     }
 
-    public BlockEntity increaseCharge(Player player, double amnt) {
-        this.setCharge(player, Mth.clamp(this.getCharge(player) + amnt, 0, this.getMaxCharge()));
+    public void increaseCharge(Player player, double amnt) {
+        this.setCharge(player, Mth.clamp(this.getCharge(player) + amnt, 0, this.getMaxCharge(player)));
         this.syncWithClient();
-        return this;
     }
 
     public void restoreSavedItems(Player player) {
@@ -166,7 +206,7 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     }
 
     public void syncWithClient() {
-        if (level.isClientSide) return;
+        if (level == null || level.isClientSide) return;
         updateHasSavedItems();
         setChanged(this.level, this.getBlockPos(), this.getBlockState());
     }
@@ -185,8 +225,10 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     @Override
     public void load(CompoundTag tag) {
         super.load(tag);
-        this.coreItem = ItemStack.of(tag.getCompound("Item"));
-        this.playerCharges = tag.getCompound("PlayerCharges");
+        this.coreItem = Instance.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("Item")).getOrThrow(false, s -> {
+            LOGGER.error("Failed to parse Obelisk's 'Item'. " + s);
+            this.coreItem = new Instance(ItemStack.of(tag.getCompound("Item")), ObeliskCore.ANCIENT_CORE);
+        });
         this.lastRespawn = tag.getLong("LastRespawn");
         this.lastCharge = tag.getLong("LastCharge");
         this.hasLimboEntity = tag.getBoolean("HasLimboEntity");
@@ -200,6 +242,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
         }
         this.obeliskNameComponent = Component.Serializer.fromJson(tag.getString("Name"));
         this.hasTeleportingEntity = tag.getBoolean("HasTeleportingEntity");
+        themes.clear();
+        tag.getList("Themes", 8).forEach(t -> themes.add(t.getAsString()));
         loadConsumers.forEach(c -> c.accept(tag));
     }
 
@@ -217,8 +261,7 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     }
 
     private void saveData(CompoundTag tag, boolean saveItems) {
-        tag.put("Item", coreItem.save(new CompoundTag()));
-        tag.put("PlayerCharges", playerCharges);
+        tag.put("Item", Instance.CODEC.encodeStart(NbtOps.INSTANCE, coreItem).getOrThrow(true, s -> LOGGER.error("Failed to save Obelisk's 'Item'. " + s)));
         tag.putLong("LastRespawn", lastRespawn);
         tag.putLong("LastCharge", lastCharge);
         tag.putBoolean("HasLimboEntity", hasLimboEntity);
@@ -232,6 +275,9 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
             tag.put("StoredItems", allPlayers);
         }
         tag.putBoolean("HasTeleportingEntity", hasTeleportingEntity);
+        ListTag list = new ListTag();
+        themes.forEach(t -> list.add(StringTag.valueOf(t)));
+        tag.put("Themes", list);
     }
 
     protected static void setChanged(Level pLevel, BlockPos pPos, BlockState pState) {
@@ -253,8 +299,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     }
 
     public void updateObeliskName() {
-        if (this.coreItem.getOrCreateTag().contains("display")) {
-            CompoundTag displayData = this.coreItem.getTag().getCompound("display");
+        if (this.coreItem.stack().getOrCreateTag().contains("display")) {
+            CompoundTag displayData = this.coreItem.stack().getTag().getCompound("display");
             if (displayData.contains("Name")) {
                 obeliskName = displayData.getString("Name");
                 return;
@@ -264,8 +310,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
     }
 
     public void checkLimbo(boolean shouldSync) {
-        if (this.coreItem.getOrCreateTag().contains("RespawnObeliskData")) {
-            CompoundTag obeliskData = this.coreItem.getTag().getCompound("RespawnObeliskData");
+        if (this.coreItem.stack().getOrCreateTag().contains("RespawnObeliskData")) {
+            CompoundTag obeliskData = this.coreItem.stack().getTag().getCompound("RespawnObeliskData");
             if (obeliskData.contains("SavedEntities")) {
                 ListTag list = obeliskData.getList("SavedEntities", 10);
                 for (Tag tag : list) {
@@ -288,5 +334,33 @@ public class RespawnObeliskBlockEntity extends BlockEntity {
         }
         this.hasLimboEntity = false;
         if (shouldSync) this.syncWithClient();
+    }
+
+    @Override
+    public boolean handleEventsImmediately() {
+        return true;
+    }
+
+    @Override
+    public PositionSource getListenerSource() {
+        return source;
+    }
+
+    @Override
+    public int getListenerRadius() {
+        return 8;
+    }
+
+    @Override
+    public boolean handleGameEvent(ServerLevel serverLevel, GameEvent.Message message) {
+        if (this.isRemoved() || coreItem.isEmpty()) return false;
+        boolean result = false;
+        for (ObeliskInteraction interaction : ObeliskInteraction.INTERACTIONS.getOrDefault(message.gameEvent(), Map.of()).values()) {
+            if (coreItem.core().interactions.contains(interaction.id)) {
+                boolean bl = interaction.handler.apply(this, message);
+                result = !result ? bl : result;
+            }
+        }
+        return result;
     }
 }

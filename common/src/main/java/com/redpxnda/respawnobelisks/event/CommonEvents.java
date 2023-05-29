@@ -1,6 +1,7 @@
 package com.redpxnda.respawnobelisks.event;
 
 import com.redpxnda.respawnobelisks.config.*;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
 import com.redpxnda.respawnobelisks.data.saved.AnchorExplosions;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
 import com.redpxnda.respawnobelisks.network.ModPackets;
@@ -13,7 +14,6 @@ import com.redpxnda.respawnobelisks.registry.structure.VillageAddition;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.*;
-import dev.architectury.platform.Platform;
 import dev.architectury.utils.value.IntValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,10 +22,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -70,11 +70,15 @@ public class CommonEvents {
     }
 
     public static EventResult onEntityInteract(Player player, Entity entity, InteractionHand hand) {
-        if (player.level.isClientSide || !hand.equals(InteractionHand.MAIN_HAND) || player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem()) || !player.getMainHandItem().hasTag() || !player.getMainHandItem().getTag().contains("RespawnObeliskData")) return EventResult.pass();
+        ResourceLocation rl;
+        if (player.level.isClientSide || !hand.equals(InteractionHand.MAIN_HAND) || !ObeliskCore.CORES.containsKey(rl = Registry.ITEM.getKey(player.getMainHandItem().getItem())) || player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem())) return EventResult.pass();
+        ObeliskCore.Instance core = new ObeliskCore.Instance(player.getMainHandItem(), ObeliskCore.CORES.get(rl));
+        ItemStack stack = core.stack();
+        if (!stack.getOrCreateTag().contains("RespawnObeliskData"))
+            stack.getTag().put("RespawnObeliskData", new CompoundTag());
 
-        if (ReviveConfig.enableRevival && CoreUtils.hasCapability(player.getMainHandItem(), CoreUtils.Capability.REVIVE)) {
+        if (ReviveConfig.enableRevival && CoreUtils.hasCapability(core, CoreUtils.Capability.REVIVE)) {
             if (!(entity instanceof Player) && entity instanceof LivingEntity && ReviveConfig.isEntityListed(entity)) {
-                ItemStack stack = player.getMainHandItem();
                 if (!stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities"))
                     stack.getTag().getCompound("RespawnObeliskData").put("SavedEntities", new ListTag());
                 ListTag listTag = stack.getTag().getCompound("RespawnObeliskData").getList("SavedEntities", 10);
@@ -99,8 +103,7 @@ public class CommonEvents {
                 }
             }
         }
-        if (TrustedPlayersConfig.enablePlayerTrust && entity instanceof Player interacted && CoreUtils.hasCapability(player.getMainHandItem(), CoreUtils.Capability.PROTECT)) {
-            ItemStack stack = player.getMainHandItem();
+        if (TrustedPlayersConfig.enablePlayerTrust && entity instanceof Player interacted && CoreUtils.hasCapability(core, CoreUtils.Capability.PROTECT)) {
             if (!stack.getTag().getCompound("RespawnObeliskData").contains("TrustedPlayers"))
                 stack.getTag().getCompound("RespawnObeliskData").put("TrustedPlayers", new ListTag());
             ListTag listTag = stack.getTag().getCompound("RespawnObeliskData").getList("TrustedPlayers", 8);

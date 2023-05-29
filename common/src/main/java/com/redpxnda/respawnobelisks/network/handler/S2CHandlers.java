@@ -68,7 +68,7 @@ public class S2CHandlers {
     public static void firePackMethodPacket(String method, int playerId, ParticlePack pack, BlockPos pos) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
-        if (level.getEntity(playerId) instanceof Player player)
+        if (playerId >= 0 && level.getEntity(playerId) instanceof Player player)
             firePackMethod(pack.particleHandler, method, level, player, pos);
         else
             firePackMethod(pack.particleHandler, method, level, null, pos);

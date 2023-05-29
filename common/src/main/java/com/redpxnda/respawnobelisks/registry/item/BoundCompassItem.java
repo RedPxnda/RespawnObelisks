@@ -1,6 +1,7 @@
 package com.redpxnda.respawnobelisks.registry.item;
 
 import com.mojang.logging.LogUtils;
+import com.redpxnda.nucleus.util.PlayerUtil;
 import com.redpxnda.respawnobelisks.config.TeleportConfig;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
@@ -85,11 +86,11 @@ public class BoundCompassItem extends CompassItem {
                 level.getBlockEntity(pos.pos().above()) instanceof RespawnObeliskBlockEntity blockEntity &&
                 blockEntity.getCharge(player) >= TeleportConfig.minimumTpCharge
             ) {
-                if (!CoreUtils.hasCapability(blockEntity.getItemStack(), CoreUtils.Capability.TELEPORT)) {
+                if (!CoreUtils.hasCapability(blockEntity.getCoreInstance(), CoreUtils.Capability.TELEPORT)) {
                     serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_invalid"), true);
                     return InteractionResult.FAIL;
                 }
-                if (ObeliskUtils.getTotalXp(player) < TeleportConfig.xpCost || player.experienceLevel < TeleportConfig.levelCost) {
+                if (PlayerUtil.getTotalXp(player) < TeleportConfig.xpCost || player.experienceLevel < TeleportConfig.levelCost) {
                     serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_failed_requirements"), true);
                     return InteractionResult.FAIL;
                 }

@@ -1,18 +1,13 @@
 package com.redpxnda.respawnobelisks.util;
 
-import com.google.common.collect.ImmutableList;
-import com.redpxnda.respawnobelisks.data.recipe.CoreUpgradeRecipe;
 import com.redpxnda.respawnobelisks.registry.particle.RuneCircleParticle;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;

@@ -37,21 +37,18 @@ public class ObeliskUtils {
         ));
     }
 
+    public static AABB getAABB(BlockPos pos) {
+        return AABB.of(new BoundingBox(
+                pos.getX()-10, pos.getY()-10, pos.getZ()-10,
+                pos.getX()+10, pos.getY()+10, pos.getZ()+10
+        ));
+    }
+
     public static void curseHandler(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
         List<ServerPlayer> players = level.getPlayers(p -> getAABB(player.getBlockX(), player.getBlockY(), player.getBlockZ()).contains(p.getX(), p.getY(), p.getZ()));
         if (!players.contains(player)) players.add(player);
         ModPackets.CHANNEL.sendToPlayers(players, new FirePackMethodPacket("curse", player.getId(), state.getValue(PACK), pos));
         state.getValue(PACK).particleHandler.curseServerHandler(level, player, pos);
-    }
-
-    public static int getTotalXpForLevel(int level) {
-        if (level < 17) return level * level + 6 * level;
-        if (level < 32) return Mth.floor(2.5 * level * level - 40.5 * level + 360);
-        return Mth.floor(4.5 * level * level - 162.5 * level + 2220);
-    }
-
-    public static int getTotalXp(Player player) {
-        return Mth.floor(player.experienceProgress * player.getXpNeededForNextLevel() + ObeliskUtils.getTotalXpForLevel(player.experienceLevel));
     }
 
     public static boolean shouldEnchantmentApply(ItemStack stack, Random random) {
