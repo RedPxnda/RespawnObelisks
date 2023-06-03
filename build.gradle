@@ -42,7 +42,7 @@ tasks.register("generateDiscordEmbed") {
                         value : "[Modrinth](" +
                                 "https://modrinth.com/mod/respawn-obelisks/versions" +
                                 ")\n[Curseforge](" +
-                                "curseforge.com/minecraft/mc-mods/respawn-obelisks/files" + ")",
+                                "https://curseforge.com/minecraft/mc-mods/respawn-obelisks/files" + ")",
                         inline: true
                 ]
         ])
