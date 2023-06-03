@@ -12,31 +12,44 @@ import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEnt
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.QuadConsumer;
 import net.minecraft.core.Registry;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
+import org.luaj.vm2.lib.jse.CoerceLuaToJava;
 
 import java.util.*;
+
+import static com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction.*;
+import static org.luaj.vm2.lib.jse.CoerceJavaToLua.coerce;
 
 @SuppressWarnings("unused")
 public class ObeliskCore {
     public static Map<ResourceLocation, ObeliskCore> CORES = new HashMap<>();
+    private static final ItemStack ANCIENT_CORE_STACK = ModRegistries.OBELISK_CORE.get().getDefaultInstance();
+    static {
+        CompoundTag tag = new CompoundTag();
+        CoreUtils.setMaxCharge(tag, 100);
+        CoreUtils.setCharge(tag, 100);
+        ANCIENT_CORE_STACK.setTag(tag);
+    }
 
-    public static ObeliskCore ANCIENT_CORE = new ObeliskCore(
+    public static ObeliskCore ANCIENT_CORE = create(
+            ANCIENT_CORE_STACK,
             ModRegistries.OBELISK_CORE_LOC,
-            (player, stack, blockEntity) -> stack.getOrCreateTag().getCompound("RespawnObeliskData").getDouble("Charge"), // get charge
-            (player, stack, blockEntity) -> stack.getOrCreateTag().getCompound("RespawnObeliskData").getDouble("MaxCharge"), // get max charge
-            (amnt, player, stack, blockEntity) -> stack.getOrCreateTag().getCompound("RespawnObeliskData").putDouble("Charge", amnt), // set charge
-            (amnt, player, stack, blockEntity) -> stack.getOrCreateTag().getCompound("RespawnObeliskData").putDouble("MaxCharge", amnt), // set max charge
-            ObeliskInteraction.DEFAULT_CHARGING,
-            CoreUtils.DEFAULT_CAPS,
+            (player, stack, blockEntity) -> CoreUtils.getCharge(stack.getOrCreateTag()), // get charge
+            (player, stack, blockEntity) -> CoreUtils.getMaxCharge(stack.getOrCreateTag()), // get max charge
+            (amnt, player, stack, blockEntity) -> CoreUtils.setCharge(stack.getOrCreateTag(), amnt), // set charge
+            (amnt, player, stack, blockEntity) -> CoreUtils.setMaxCharge(stack.getOrCreateTag(), amnt), // set max charge
+            List.of(DEFAULT_CHARGING, INFINITE_CHARGE, TELEPORT, REVIVE, PROTECT, SAVE_INV),
             Component.literal("TEST"),
             Component.literal("give charge by TESTInG"),
             Component.literal("give max charge by TESTInG"),
@@ -48,28 +61,35 @@ public class ObeliskCore {
     public final TriFunction<@Nullable Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeProvider, maxChargeProvider;
     public final QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, maxChargeSetter;
     public final List<ResourceLocation> interactions;
-    public final List<CoreUtils.Capability> capabilities;
     public final @Nullable Component jeiGeneral, jeiCharge, jeiMaxCharge;
     public final @Nullable List<ItemStack> jeiChargeItems;
     public final boolean alwaysRequiresPlayer;
+    private final Instance defaultInstance;
+    public Instance getDefaultInstance() {
+        return new Instance(defaultInstance.stack().copy(), this);
+    }
 
-    public ObeliskCore(ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, List<ResourceLocation> interactions, List<CoreUtils.Capability> capabilities, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
+    public ObeliskCore(ItemStack instance, ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, List<ResourceLocation> interactions, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
         this.item = item;
         this.chargeProvider = chargeHandler;
         this.maxChargeProvider = maxChargeHandler;
         this.chargeSetter = chargeSetter;
         this.maxChargeSetter = maxChargeSetter;
         this.interactions = interactions;
-        this.capabilities = capabilities;
         this.jeiGeneral = jeiGeneral;
         this.jeiCharge = jeiCharge;
         this.jeiMaxCharge = jeiMaxCharge;
         this.jeiChargeItems = chargeItems;
         this.alwaysRequiresPlayer = alwaysRequiresPlayer;
+        this.defaultInstance = new Instance(instance, this);
         CORES.put(item, this);
     }
-    public ObeliskCore(ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, ObeliskInteraction interaction, List<CoreUtils.Capability> capabilities, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
-        this(item, chargeHandler, maxChargeHandler, chargeSetter, maxChargeSetter, List.of(interaction.id), capabilities, jeiGeneral, jeiCharge, jeiMaxCharge, chargeItems, alwaysRequiresPlayer);
+    public ObeliskCore(ItemStack instance, ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, ObeliskInteraction interaction, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
+        this(instance, item, chargeHandler, maxChargeHandler, chargeSetter, maxChargeSetter, List.of(interaction.id), jeiGeneral, jeiCharge, jeiMaxCharge, chargeItems, alwaysRequiresPlayer);
+    }
+
+    public static ObeliskCore create(ItemStack instance, ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, List<ObeliskInteraction> interactions, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
+        return new ObeliskCore(instance, item, chargeHandler, maxChargeHandler, chargeSetter, maxChargeSetter, interactions.stream().map(i -> i.id).toList(), jeiGeneral, jeiCharge, jeiMaxCharge, chargeItems, alwaysRequiresPlayer);
     }
 
     public record Instance(ItemStack stack, ObeliskCore core) {
@@ -89,14 +109,10 @@ public class ObeliskCore {
         public TriFunction<@Nullable Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeProvider, maxChargeProvider;
         public QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeConsumer, maxChargeConsumer;
         public List<ResourceLocation> interactions = new ArrayList<>();
-        public List<CoreUtils.Capability> capabilities = new ArrayList<>(){{
-            add(CoreUtils.Capability.CHARGE);
-            add(CoreUtils.Capability.PROTECT);
-            add(CoreUtils.Capability.SAVE_INV);
-        }};
         public @Nullable Component jeiGeneral = null, jeiCharge = null, jeiMaxCharge = null;
         public @Nullable List<ItemStack> jeiChargeItems = null;
         public boolean alwaysRequiresPlayer = false;
+        public ItemStack stack = null;
 
         public static Builder create() {
             return new Builder();
@@ -122,7 +138,7 @@ public class ObeliskCore {
             return this;
         }
         public Builder chargeGetter(LuaFunction handler) {
-            this.chargeProvider = (player, stack, be) -> handler.call(CoerceJavaToLua.coerce(new PlayerReference(player)), CoerceJavaToLua.coerce(new ItemStackReference(stack)), CoerceJavaToLua.coerce(new ROBEReference(be))).todouble();
+            this.chargeProvider = (player, stack, be) -> handler.call(coerce(new PlayerReference(player)), coerce(new ItemStackReference(stack)), coerce(new ROBEReference(be))).todouble();
             return this;
         }
         public Builder maxChargeGetter(TriFunction<@Nullable Player, ItemStack, RespawnObeliskBlockEntity, Double> handler) {
@@ -130,7 +146,7 @@ public class ObeliskCore {
             return this;
         }
         public Builder maxChargeGetter(LuaFunction handler) {
-            this.maxChargeProvider = (player, stack, be) -> handler.call(CoerceJavaToLua.coerce(new PlayerReference(player)), CoerceJavaToLua.coerce(new ItemStackReference(stack)), CoerceJavaToLua.coerce(new ROBEReference(be))).todouble();
+            this.maxChargeProvider = (player, stack, be) -> handler.call(coerce(new PlayerReference(player)), coerce(new ItemStackReference(stack)), coerce(new ROBEReference(be))).todouble();
             return this;
         }
         public Builder chargeSetter(QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> handler) {
@@ -138,7 +154,7 @@ public class ObeliskCore {
             return this;
         }
         public Builder chargeSetter(LuaFunction handler) {
-            this.chargeConsumer = (amnt, player, stack, be) -> handler.invoke(new LuaValue[]{ LuaValue.valueOf(amnt), CoerceJavaToLua.coerce(new PlayerReference(player)), CoerceJavaToLua.coerce(new ItemStackReference(stack)), CoerceJavaToLua.coerce(new ROBEReference(be)) });
+            this.chargeConsumer = (amnt, player, stack, be) -> handler.invoke(new LuaValue[]{ LuaValue.valueOf(amnt), coerce(new PlayerReference(player)), coerce(new ItemStackReference(stack)), coerce(new ROBEReference(be)) });
             return this;
         }
         public Builder maxChargeSetter(QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> handler) {
@@ -146,7 +162,7 @@ public class ObeliskCore {
             return this;
         }
         public Builder maxChargeSetter(LuaFunction handler) {
-            this.maxChargeConsumer = (amnt, player, stack, be) -> handler.invoke(new LuaValue[]{ LuaValue.valueOf(amnt), CoerceJavaToLua.coerce(new PlayerReference(player)), CoerceJavaToLua.coerce(new ItemStackReference(stack)), CoerceJavaToLua.coerce(new ROBEReference(be)) });
+            this.maxChargeConsumer = (amnt, player, stack, be) -> handler.invoke(new LuaValue[]{ LuaValue.valueOf(amnt), coerce(new PlayerReference(player)), coerce(new ItemStackReference(stack)), coerce(new ROBEReference(be)) });
             return this;
         }
         public Builder clearInteractions() {
@@ -163,18 +179,6 @@ public class ObeliskCore {
         }
         public Builder withInteraction(String interaction) {
             interactions.add(new ResourceLocation(interaction));
-            return this;
-        }
-        public Builder clearCapabilities() {
-            capabilities.clear();
-            return this;
-        }
-        public Builder withCapability(CoreUtils.Capability capability) {
-            capabilities.add(capability);
-            return this;
-        }
-        public Builder withCapabilities(CoreUtils.Capability... capability) {
-            Collections.addAll(capabilities, capability);
             return this;
         }
         public Builder jeiGeneralText(Component component) {
@@ -245,9 +249,17 @@ public class ObeliskCore {
             item = new ResourceLocation(str);
             return this;
         }
+        public Builder defaultInstanceHandler(LuaFunction function) {
+            stack = (ItemStack) CoerceLuaToJava.coerce(function.call(
+                    coerce(new ItemStackReference(Registry.ITEM.getOptional(item).orElse(Items.AIR).getDefaultInstance()))
+            ), ItemStack.class);
+            return this;
+        }
 
         public ObeliskCore build() {
-            return new ObeliskCore(item, chargeProvider, maxChargeProvider, chargeConsumer, maxChargeConsumer, interactions, capabilities, jeiGeneral, jeiCharge, jeiMaxCharge, jeiChargeItems, alwaysRequiresPlayer);
+            if (stack == null)
+                stack = Registry.ITEM.getOptional(item).orElse(Items.AIR).getDefaultInstance();
+            return new ObeliskCore(stack, item, chargeProvider, maxChargeProvider, chargeConsumer, maxChargeConsumer, interactions, jeiGeneral, jeiCharge, jeiMaxCharge, jeiChargeItems, alwaysRequiresPlayer);
         }
 
         private Builder() {

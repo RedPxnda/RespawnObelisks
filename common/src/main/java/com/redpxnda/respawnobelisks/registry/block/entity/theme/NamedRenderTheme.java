@@ -10,11 +10,7 @@ import java.util.Map;
 public abstract class NamedRenderTheme implements RenderTheme {
     public static Map<String, NamedRenderTheme> THEMES = new HashMap<>();
 
-    public NamedRenderTheme() {
-        THEMES.put(getName(), this);
-    }
-    public NamedRenderTheme(String str) {
-        THEMES.put(str, this);
+    NamedRenderTheme() {
     }
 
     public static NamedRenderTheme of(String name, RenderTheme handler) {

@@ -18,6 +18,7 @@ public class ObeliskInteractionListener extends LuaResourceReloadListener {
     public static final Globals GLOBALS = ConstantsAccess.completeSetup(ConstantsAccess.readOnly);
     static {
         GLOBALS.set("Interactions", CoerceJavaToLua.coerce(ObeliskInteraction.class));
+        GLOBALS.set("Injections", CoerceJavaToLua.coerce(ObeliskInteraction.Injection.class));
         GLOBALS.set("Cores", CoerceJavaToLua.coerce(ObeliskCore.class));
         GLOBALS.set("Config", new LuaTable(){{
             set("charge", CoerceJavaToLua.coerce(ChargeConfig.class));

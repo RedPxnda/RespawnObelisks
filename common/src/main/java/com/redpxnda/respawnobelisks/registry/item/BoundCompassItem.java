@@ -3,13 +3,13 @@ package com.redpxnda.respawnobelisks.registry.item;
 import com.mojang.logging.LogUtils;
 import com.redpxnda.nucleus.util.PlayerUtil;
 import com.redpxnda.respawnobelisks.config.TeleportConfig;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.ClientUtils;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
-import com.redpxnda.respawnobelisks.util.ObeliskUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.nbt.CompoundTag;
@@ -86,7 +86,7 @@ public class BoundCompassItem extends CompassItem {
                 level.getBlockEntity(pos.pos().above()) instanceof RespawnObeliskBlockEntity blockEntity &&
                 blockEntity.getCharge(player) >= TeleportConfig.minimumTpCharge
             ) {
-                if (!CoreUtils.hasCapability(blockEntity.getCoreInstance(), CoreUtils.Capability.TELEPORT)) {
+                if (!CoreUtils.hasInteraction(blockEntity.getCoreInstance(), ObeliskInteraction.TELEPORT)) {
                     serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_invalid"), true);
                     return InteractionResult.FAIL;
                 }

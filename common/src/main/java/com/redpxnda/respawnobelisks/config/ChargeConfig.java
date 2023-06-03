@@ -76,6 +76,14 @@ public final class ChargeConfig {
     public static String infiniteChargeBlock = "minecraft:beacon";
 
     @ConfigEntry(
+            id = "allowEmptySpawnSetting",
+            type = EntryType.BOOLEAN,
+            translation = "text.respawnobelisks.config.empty_spawn_setting"
+    )
+    @Comment("Whether players can set their spawn at obelisks without charge.")
+    public static boolean allowEmptySpawnSetting = false;
+
+/*    @ConfigEntry(
             id = "enablePerPlayerCharge",
             type = EntryType.BOOLEAN,
             translation = "text.respawnobelisks.config.per_player_charge"
@@ -86,5 +94,5 @@ public final class ChargeConfig {
             Obelisks' max charges don't become per player. They stay per-obelisk.
             Note that this will break things like comparator support."""
     )
-    public static boolean perPlayerCharge = false;
+    public static boolean perPlayerCharge = false;*/
 }

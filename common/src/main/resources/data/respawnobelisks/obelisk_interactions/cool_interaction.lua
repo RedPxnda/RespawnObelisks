@@ -5,4 +5,4 @@ local handler = function(blockEntity, message)
     return true;
 end
 
-Interactions:create("respawnobelisks:cool_interaction", "teleport", handler)
+Interactions:ofEvent("respawnobelisks:cool_interaction", "teleport", handler)

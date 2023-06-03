@@ -58,7 +58,7 @@ public class SculkPack extends SimpleRuneColorPack {
 
     @Override
     public boolean obeliskRenderTick(RespawnObeliskBlockEntity be, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int light, int overlay) {
-        if (TENDRILS_SPRITE == null) TENDRILS_SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RenderUtils.getPackTextures().get("sculk_tendrils"));
+        if (TENDRILS_SPRITE == null) TENDRILS_SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RenderUtils.getThemeTextures().get("sculk_tendrils"));
         renderSculkTendrils(be, poseStack, TENDRILS_SPRITE, buffer, light);
         return false;
     }

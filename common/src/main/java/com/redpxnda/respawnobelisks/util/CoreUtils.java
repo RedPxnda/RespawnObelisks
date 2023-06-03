@@ -2,16 +2,23 @@ package com.redpxnda.respawnobelisks.util;
 
 import com.redpxnda.respawnobelisks.config.ObeliskCoreConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
+import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import net.minecraft.nbt.CompoundTag;
-
-import java.util.List;
+import net.minecraft.resources.ResourceLocation;
 
 public class CoreUtils {
-    public static List<Capability> DEFAULT_CAPS = List.of(Capability.CHARGE, Capability.TELEPORT, Capability.REVIVE, Capability.PROTECT, Capability.SAVE_INV);
-
-    public static boolean hasCapability(ObeliskCore.Instance instance, Capability capability) {
-        if (instance == ObeliskCore.Instance.EMPTY) return false;
-        return instance.core().capabilities.contains(capability);
+    public static boolean hasInteraction(ObeliskCore.Instance inst, String interaction) {
+        if (inst == ObeliskCore.Instance.EMPTY) return false;
+        return inst.core().interactions.contains(new ResourceLocation(interaction));
+    }
+    public static boolean hasInteraction(ObeliskCore.Instance inst, ResourceLocation interaction) {
+        if (inst == ObeliskCore.Instance.EMPTY) return false;
+        return inst.core().interactions.contains(interaction);
+    }
+    public static boolean hasInteraction(ObeliskCore.Instance inst, ObeliskInteraction interaction) {
+        if (inst == ObeliskCore.Instance.EMPTY) return false;
+        return inst.core().interactions.contains(interaction.id);
     }
 
     public static double getCharge(CompoundTag tag) {
@@ -39,13 +46,5 @@ public class CoreUtils {
 
     public static void incMaxCharge(CompoundTag tag, double charge) {
         setMaxCharge(tag, getMaxCharge(tag)+charge);
-    }
-
-    public record Capability(String capTag) {
-            public static final Capability CHARGE = new Capability("charge");
-            public static final Capability TELEPORT = new Capability("teleport");
-            public static final Capability REVIVE = new Capability("revive");
-            public static final Capability PROTECT = new Capability("trust");
-            public static final Capability SAVE_INV = new Capability("soulbound");
     }
 }

@@ -1,7 +1,6 @@
 package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
-import com.redpxnda.respawnobelisks.registry.particle.packs.ParticlePack;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -42,7 +41,7 @@ public class ScrollWheelPacket {
 
     public void handle(Supplier<NetworkManager.PacketContext> supplier) {
         NetworkManager.PacketContext context = supplier.get();
-        supplier.get().queue(() -> {
+        /*supplier.get().queue(() -> {
             BlockPos blockPos = hitResult.getBlockPos();
             if (isUpper) blockPos = blockPos.below();
             if (context.getPlayer() != null && context.getPlayer() instanceof ServerPlayer player) {
@@ -68,6 +67,6 @@ public class ScrollWheelPacket {
                     }
                 }
             }
-        });
+        });*/
     }
 }

@@ -2,6 +2,7 @@ package com.redpxnda.respawnobelisks.event;
 
 import com.redpxnda.respawnobelisks.config.*;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.data.saved.AnchorExplosions;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
 import com.redpxnda.respawnobelisks.network.ModPackets;
@@ -53,6 +54,7 @@ public class CommonEvents {
     }
 
     public static EventResult onBreakBlock(Level level, BlockPos pos, BlockState state, ServerPlayer player, @Nullable IntValue xp) {
+        if (player.getAbilities().instabuild) return EventResult.pass(); // if creative, skip
         if (state.getBlock() instanceof RespawnObeliskBlock) {
             if (state.getValue(RespawnObeliskBlock.HALF).equals(DoubleBlockHalf.UPPER))
                 pos = pos.below();
@@ -77,7 +79,7 @@ public class CommonEvents {
         if (!stack.getOrCreateTag().contains("RespawnObeliskData"))
             stack.getTag().put("RespawnObeliskData", new CompoundTag());
 
-        if (ReviveConfig.enableRevival && CoreUtils.hasCapability(core, CoreUtils.Capability.REVIVE)) {
+        if (ReviveConfig.enableRevival && CoreUtils.hasInteraction(core, ObeliskInteraction.REVIVE)) {
             if (!(entity instanceof Player) && entity instanceof LivingEntity && ReviveConfig.isEntityListed(entity)) {
                 if (!stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities"))
                     stack.getTag().getCompound("RespawnObeliskData").put("SavedEntities", new ListTag());
@@ -103,7 +105,7 @@ public class CommonEvents {
                 }
             }
         }
-        if (TrustedPlayersConfig.enablePlayerTrust && entity instanceof Player interacted && CoreUtils.hasCapability(core, CoreUtils.Capability.PROTECT)) {
+        if (TrustedPlayersConfig.enablePlayerTrust && entity instanceof Player interacted && CoreUtils.hasInteraction(core, ObeliskInteraction.PROTECT)) {
             if (!stack.getTag().getCompound("RespawnObeliskData").contains("TrustedPlayers"))
                 stack.getTag().getCompound("RespawnObeliskData").put("TrustedPlayers", new ListTag());
             ListTag listTag = stack.getTag().getCompound("RespawnObeliskData").getList("TrustedPlayers", 8);

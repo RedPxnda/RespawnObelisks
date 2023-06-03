@@ -22,6 +22,7 @@ import dev.architectury.registry.registries.Registries;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.*;
@@ -52,6 +53,8 @@ public class ModRegistries {
     public static Registrar<RecipeSerializer<?>> RECIPE_SERIALIZERS = REGISTRIES.get().get(Registry.RECIPE_SERIALIZER_REGISTRY);
 
     public static RegistrySupplier<ParticleType<RuneCircleType.Options>> RUNE_CIRCLE_PARTICLE = PARTICLE_TYPES.register(new ResourceLocation(MOD_ID, "rune_circle"), () -> new RuneCircleType(false));
+    public static RegistrySupplier<SimpleParticleType> DEPLETE_RING_PARTICLE = PARTICLE_TYPES.register(new ResourceLocation(MOD_ID, "deplete_ring"), () -> new SimpleParticleType(false));
+    public static RegistrySupplier<SimpleParticleType> CHARGE_INDICATOR_PARTICLE = PARTICLE_TYPES.register(new ResourceLocation(MOD_ID, "charge_indicator"), () -> new SimpleParticleType(false));
 
     public static RegistrySupplier<Enchantment> OBELISKBOUND = ENCHANTMENTS.register(new ResourceLocation(MOD_ID, "obeliskbound"), ObeliskboundEnchantment::new);
 
@@ -83,7 +86,7 @@ public class ModRegistries {
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Either.left(Level.OVERWORLD)
+            Level.OVERWORLD
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK.get(), new Item.Properties()
@@ -98,7 +101,7 @@ public class ModRegistries {
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Either.left(Level.NETHER)
+            Level.NETHER
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_NETHER = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_nether"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_NETHER.get(), new Item.Properties()
@@ -113,7 +116,7 @@ public class ModRegistries {
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Either.left(Level.END)
+            Level.END
     ));
 
     public static RegistrySupplier<Item> RESPAWN_OBELISK_ITEM_END = ITEMS.register(new ResourceLocation(MOD_ID, "respawn_obelisk_end"), () -> new BlockItem(RESPAWN_OBELISK_BLOCK_END.get(), new Item.Properties()
