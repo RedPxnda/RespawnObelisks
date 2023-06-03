@@ -1,0 +1,13 @@
+# v2.1
+- [x] New core system
+  - [x] _Old version compat_
+- [x] New interaction system
+  - [x] _Respawn interactions_
+- [x] New visuals system framework
+- [ ] Port old visuals (half complete)
+- [x] Remove "capabilities" system, replace with void interactions
+- [x] Wild obelisk stuff
+  - [x] _Starting charge range_
+  - [x] _Starting core chance_
+  - [x] _Adjust structures_
+- [x] Creative break check

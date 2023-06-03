@@ -1,6 +1,9 @@
 plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
     id "dev.architectury.loom" version "0.12.0-SNAPSHOT" apply false
+
+    id "com.modrinth.minotaur" version "2.+"
+    id "com.matthewprenger.cursegradle" version "1.4.0"
 }
 
 architectury {
@@ -9,6 +12,8 @@ architectury {
 
 subprojects {
     apply plugin: "dev.architectury.loom"
+    apply plugin: "com.modrinth.minotaur"
+    apply plugin: "com.matthewprenger.cursegradle"
 
     loom {
         silentMojangMappingsLicense()
@@ -20,6 +25,72 @@ subprojects {
         mappings loom.officialMojangMappings()
         // The following line declares the yarn mappings you may select this one as well.
         // mappings "net.fabricmc:yarn:1.19.2+build.3:v2"
+    }
+
+    var env = System.getenv()
+    var modLoader = name
+
+    var changelogFile = rootProject.file("changelog.txt")
+    var changelogText = changelogFile.exists() ? changelogFile.text : ""
+
+    if (env.MODRINTH_TOKEN) {
+        modrinth {
+            //syncBodyFrom = rootProject.file("README.md").text
+
+            projectId = env.MODRINTH_PROJECT
+            uploadFile = tasks.remapJar
+            versionNumber = "${rootProject.mod_version}"
+            gameVersions = [minecraft_version]
+            loaders = [modLoader]
+            changelog = changelogText
+
+            if (modLoader == "fabric") {
+                dependencies {
+                    required.project "fabric-api"
+                    required.project "resourceful-config"
+                    required.project "architectury-api"
+                    optional.project "modmenu"
+                    optional.project "jei"
+                }
+            } else {
+                dependencies {
+                    required.project "resourceful-config"
+                    required.project "architectury-api"
+                    optional.project "jei"
+                }
+            }
+        }
+    }
+
+    if (env.CURSE_TOKEN) {
+        curseforge {
+            apiKey = env.CURSE_TOKEN
+            project {
+                id = env.CURSE_PROJECT
+                changelog = changelogText
+                releaseType = 'release'
+                addGameVersion minecraft_version
+                addGameVersion modLoader.capitalize()
+
+                mainArtifact(tasks.remapJar)
+
+                if (modLoader == "fabric") {
+                    relations {
+                        requiredDependency "fabric-api"
+                        requiredDependency "architectury-api"
+                        requiredDependency "resourceful-config"
+                        optionalDependency "modmenu"
+                        optionalDependency "jei"
+                    }
+                } else {
+                    relations {
+                        requiredDependency "architectury-api"
+                        requiredDependency "resourceful-config"
+                        optionalDependency "jei"
+                    }
+                }
+            }
+        }
     }
 }
 
