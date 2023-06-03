@@ -35,7 +35,6 @@ Obelisks actually have support for comparators! They will produce a redstone sig
 <details><summary>Customizing obelisk</summary>
 If you want to change the side of the obelisk you respawn at, simply hold shift and scroll your mouse wheel. (Make sure you do this on the bottom half of the obelisk)
 <img src="https://i.imgur.com/2BLyFJ2.gif">
-P.S. There's a nifty little cosmetic feature done by doing something similar to this. I'll leave you to figure this out.
 </details>
 
 <details><summary>Teleportation</summary>
@@ -53,7 +52,6 @@ If you are unable to bind an entity, it is likely because said entity can't be r
 <details><summary>Obelisk naming</summary>
 Want your obelisk to stand out? Simply rename the core in an anvil to change the name displayed above the obelisk.
 <img src="https://i.imgur.com/nl2jlkq.gif">
-P.S. Want it to stand out even more? Shift+scroll on the top half of the obelisk. This will change the obelisk's "theme". Ko-fi supporters get access to more of these cool themes!
 </details>
 
 <details><summary>Soulbound/Obeliskbound enchantment</summary>
