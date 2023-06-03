@@ -36,7 +36,7 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
 
-    modApi(include("com.github.RedPxnda.Nucleus:nucleus:${rootProject.nucleus_version}"))
+    modApi(include("com.github.RedPxnda.Nucleus:nucleus-fabric:${rootProject.nucleus_version}"))
 
     if ("${rootProject.use_trinkets}" == "true")
         modApi("dev.emi:trinkets:${rootProject.trinkets_version}")

@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+
 plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
     id "dev.architectury.loom" version "0.12.0-SNAPSHOT" apply false
@@ -8,6 +10,58 @@ plugins {
 
 architectury {
     minecraft = rootProject.minecraft_version
+}
+
+tasks.register("generateDiscordEmbed") {
+    doFirst {
+        var env = System.getenv()
+        var changelogFile = rootProject.file("changelog.txt")
+
+        var fields = []
+
+        if (changelogFile.exists()) {
+            fields.add([
+                    name : "Changelog",
+                    value: changelogFile.text
+            ])
+        }
+
+        fields.addAll([
+                [
+                        name  : "Minecraft Version",
+                        value : minecraft_version,
+                        inline: true
+                ],
+                [
+                        name  : "Mod Version",
+                        value : mod_version,
+                        inline: true
+                ],
+                [
+                        name  : "Download",
+                        value : "[Modrinth](" +
+                                "https://modrinth.com/mod/respawn-obelisks/versions" +
+                                ")\n[Curseforge](" +
+                                "curseforge.com/minecraft/mc-mods/respawn-obelisks/files" + ")",
+                        inline: true
+                ]
+        ])
+
+        var json = JsonOutput.toJson([
+                content     : null,
+                embeds      : [[
+                                       title    : archives_base_name,
+                                       color    : Integer.parseInt("FFFFFF", 16),
+                                       fields   : fields,
+                                       thumbnail: [url: "https://cdn.modrinth.com/data/ZT5K3j93/7bf8535cf164084efa113949722fa59156de7f42.gif"]
+                               ]],
+                username    : "",
+                avatar_url  : "https://cdn.modrinth.com/data/ZT5K3j93/7bf8535cf164084efa113949722fa59156de7f42.gif",
+                attatchments: []
+        ])
+
+        new File(projectDir, "embed.json").write(json)
+    }
 }
 
 subprojects {

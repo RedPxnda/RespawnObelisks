@@ -1,12 +1,17 @@
 package com.redpxnda.respawnobelisks.event;
 
+import com.mojang.math.Vector3f;
+import com.redpxnda.nucleus.registry.particles.DynamicParticle;
+import com.redpxnda.nucleus.util.RenderUtil;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
+import com.redpxnda.respawnobelisks.registry.particle.ChargeIndicatorParticle;
 import com.redpxnda.respawnobelisks.util.RenderUtils;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.*;
+import dev.architectury.registry.client.particle.ParticleProviderRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -56,5 +61,18 @@ public class ClientEvents {
         //ClientRawInputEvent.MOUSE_SCROLLED.register(ClientEvents::onClientScroll);
         ClientTextureStitchEvent.PRE.register(ClientEvents::onTextureStitch);
         ClientLifecycleEvent.CLIENT_SETUP.register(ClientEvents::onClientSetup);
+    }
+
+    public static void registerParticleProviders() {
+        ParticleProviderRegistry.register(ModRegistries.DEPLETE_RING_PARTICLE, set -> new DynamicParticle.Provider(set,
+                setup -> setup.setLifetime(50),
+                tick -> {
+                    tick.scale+=0.25/(tick.getAge()/4f + 1);
+                    if (tick.getAge() > 38)
+                        tick.alpha-=0.05;
+                },
+                (render, vecs) -> RenderUtil.rotateVectors(vecs, Vector3f.XP.rotationDegrees(90f))
+        ));
+        ParticleProviderRegistry.register(ModRegistries.CHARGE_INDICATOR_PARTICLE, ChargeIndicatorParticle.Provider::new);
     }
 }

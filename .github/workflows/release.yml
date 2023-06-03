@@ -26,3 +26,11 @@ jobs:
           CURSE_PROJECT: ${{ secrets.CURSE_PROJECT }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           MODRINTH_PROJECT: ${{ secrets.MODRINTH_PROJECT }}
+
+      - run: ./gradlew generateDiscordEmbed
+
+      - name: Trigger Discord Webhook
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.WEBHOOK_URL }}
+          raw-data: embed.json

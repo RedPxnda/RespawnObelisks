@@ -42,7 +42,7 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
 
-    modApi(include("com.github.RedPxnda.Nucleus:nucleus:${rootProject.nucleus_version}"))
+    modApi(include("com.github.RedPxnda.Nucleus:nucleus-forge:${rootProject.nucleus_version}"))
 
     if ("${rootProject.use_curios}" == "true")
         modRuntimeOnly("top.theillusivec4.curios:curios-forge:${rootProject.minecraft_version}-${rootProject.curios_version}")
