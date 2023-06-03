@@ -55,7 +55,7 @@ tasks.register("generateDiscordEmbed") {
                                        fields   : fields,
                                        thumbnail: [url: "https://cdn.modrinth.com/data/ZT5K3j93/7bf8535cf164084efa113949722fa59156de7f42.gif"]
                                ]],
-                username    : "",
+                username    : "Respawn Obelisks Releases",
                 avatar_url  : "https://cdn.modrinth.com/data/ZT5K3j93/7bf8535cf164084efa113949722fa59156de7f42.gif",
                 attatchments: []
         ])
