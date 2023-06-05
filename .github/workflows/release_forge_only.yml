@@ -1,4 +1,4 @@
-name: Release
+name: Release Forge Only
 on:
   workflow_dispatch:
   
