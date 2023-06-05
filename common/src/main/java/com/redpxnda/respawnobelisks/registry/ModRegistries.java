@@ -36,6 +36,10 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.material.Material;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
@@ -138,8 +142,13 @@ public class ModRegistries {
             .noLootTable()
     ));
 
+    public static final Set<Block> BLOCK_ENTITY_BLOCKS = new HashSet<>(){{
+        add(RESPAWN_OBELISK_BLOCK.get());
+        add(RESPAWN_OBELISK_BLOCK_NETHER.get());
+        add(RESPAWN_OBELISK_BLOCK_END.get());
+    }};
     public static RegistrySupplier<BlockEntityType<RespawnObeliskBlockEntity>> RESPAWN_OBELISK_BE = BLOCK_ENTITIES.register(new ResourceLocation(MOD_ID, "respawn_obelisk"), () ->
-            BlockEntityType.Builder.of(RespawnObeliskBlockEntity::new, RESPAWN_OBELISK_BLOCK.get(), RESPAWN_OBELISK_BLOCK_NETHER.get(), RESPAWN_OBELISK_BLOCK_END.get()).build(null)
+            new BlockEntityType.Builder<>(RespawnObeliskBlockEntity::new, BLOCK_ENTITY_BLOCKS).build(null)
     );
 
     public static RegistrySupplier<MobEffect> IMMORTALITY_CURSE = EFFECTS.register(new ResourceLocation(MOD_ID, "immortality_curse"), ImmortalityCurseEffect::new);

@@ -1,4 +1,5 @@
 build/
+z_lua_docs/
 *.ipr
 run/
 *.iws

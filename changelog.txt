@@ -1,9 +1,5 @@
-# v2.1
-- New (data-based) core system
-- New (data-based) interaction system
-- New visuals system framework
-- Updated default visuals, removed old "particle packs"
-- Removed "capabilities" system, replaced with new interaction system
-- Config for wild obelisk starting charge range
-- Config for wild obelisk starting max charge range
-- Adjusted nether structures, now spawn piglins
+# v2.1-b
+- Fixed multiplayer client side charge bugs with lua based (thanks outrightwings)
+- Set for addons to attach custom blocks to the respawn obelisk block entity
+- Disabled shulker shell core
+    * CAREFUL: Any obelisk that previously had a shulker shell core inside of it will be corrupted. Break it to get your shell back and fix the issue.

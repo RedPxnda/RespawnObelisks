@@ -48,6 +48,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     public ObeliskThemeData themeData = null;
     private long lastRespawn;
     private long lastCharge;
+    public double clientCharge;
+    public double clientMaxCharge;
     public boolean hasRandomCharge = true;
     private String obeliskName = "";
     private Component obeliskNameComponent = null;
@@ -117,11 +119,19 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     public void setLastCharge(long lastCharge) {
         this.lastCharge = lastCharge;
     }
+    public double getClientCharge() {
+        return clientCharge;
+    }
+    public double getClientMaxCharge() {
+        return clientMaxCharge;
+    }
     public double getCharge(@Nullable Player player) {
+        if (level == null || level.isClientSide) return clientCharge;
         if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return 0;
         return coreItem.core().chargeProvider.apply(player, coreItem.stack(), this);
     }
     public double getMaxCharge(@Nullable Player player) {
+        if (level == null || level.isClientSide) return clientMaxCharge;
         if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return 0;
         return coreItem.core().maxChargeProvider.apply(player, coreItem.stack(), this);
     }
@@ -250,6 +260,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
         this.hasLimboEntity = tag.getBoolean("HasLimboEntity");
         this.hasStoredItems = tag.getBoolean("HasStoredItems");
         this.obeliskName = tag.getString("Name");
+        if (tag.contains("ClientCharge")) this.clientCharge = tag.getDouble("ClientCharge");
+        if (tag.contains("ClientMaxCharge")) this.clientMaxCharge = tag.getDouble("ClientMaxCharge");
         if (tag.contains("StoredItems", 10)) {
             CompoundTag stored = tag.getCompound("StoredItems");
             for (String key : stored.getAllKeys()) {
@@ -271,17 +283,21 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     @Override
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        this.saveData(tag, true);
+        this.saveData(tag, true, true);
     }
 
     @Override
     public CompoundTag getUpdateTag() {
         CompoundTag tag = new CompoundTag();
-        this.saveData(tag, false);
+        this.saveData(tag, false, true);
         return tag;
     }
 
     private void saveData(CompoundTag tag, boolean saveItems) {
+        saveData(tag, saveItems, false);
+    }
+
+    private void saveData(CompoundTag tag, boolean saveItems, boolean sendCharge) {
         tag.putBoolean("RandomCharge", hasRandomCharge);
         tag.put("Item", Instance.CODEC.encodeStart(NbtOps.INSTANCE, coreItem).getOrThrow(true, s -> LOGGER.error("Failed to save Obelisk's 'Item'. " + s)));
         tag.putLong("LastRespawn", lastRespawn);
@@ -295,6 +311,10 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
                 allPlayers.put(uuid.toString(), storedItems.get(uuid).saveToNbt());
             }
             tag.put("StoredItems", allPlayers);
+        }
+        if (sendCharge) {
+            tag.putDouble("ClientCharge", this.getCharge(null));
+            tag.putDouble("ClientMaxCharge", this.getMaxCharge(null));
         }
         tag.putBoolean("HasTeleportingEntity", hasTeleportingEntity);
         ListTag list = new ListTag();
