@@ -53,7 +53,8 @@ tasks.register("generateDiscordEmbed") {
                                        title    : archives_base_name,
                                        color    : Integer.parseInt("FFFFFF", 16),
                                        fields   : fields,
-                                       thumbnail: [url: "https://cdn.modrinth.com/data/ZT5K3j93/7bf8535cf164084efa113949722fa59156de7f42.gif"]
+                                       thumbnail: [url: "https://cdn.modrinth.com/data/ZT5K3j93/7bf8535cf164084efa113949722fa59156de7f42.gif"],
+                                       footer   : [text: "Rumor has it cool text might appear in this footer!"]
                                ]],
                 username    : "Respawn Obelisks Releases",
                 avatar_url  : "https://cdn.modrinth.com/data/ZT5K3j93/7bf8535cf164084efa113949722fa59156de7f42.gif",

@@ -53,7 +53,7 @@ public class ClientEvents {
 
     public static void onClientSetup(Minecraft mc) {
         BlockEntityRendererRegistry.register(ModRegistries.RESPAWN_OBELISK_BE.get(), RespawnObeliskBER::new);
-//        if (Platform.isFabric())
+//        if (Platform.isFabric()) // idk this is super goofy: libraries say the `register` method is public, I even AW'd it, but still I get errors :P
 //            ItemPropertiesAccessor.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
     }
 
