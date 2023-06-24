@@ -2,7 +2,7 @@ package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -18,11 +18,11 @@ public class PlayTotemAnimationPacket {
     }
 
     public PlayTotemAnimationPacket(FriendlyByteBuf buffer) {
-        this.item = Registry.ITEM.getOptional(ResourceLocation.tryParse(buffer.readUtf())).orElse(Items.TOTEM_OF_UNDYING);
+        this.item = BuiltInRegistries.ITEM.getOptional(ResourceLocation.tryParse(buffer.readUtf())).orElse(Items.TOTEM_OF_UNDYING);
     }
 
     public void toBytes(FriendlyByteBuf buffer) {
-        buffer.writeUtf(Registry.ITEM.getKey(item).toString());
+        buffer.writeUtf(BuiltInRegistries.ITEM.getKey(item).toString());
     }
 
     public void handle(Supplier<NetworkManager.PacketContext> supplier) {

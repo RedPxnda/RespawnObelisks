@@ -1,0 +1,33 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:saddle"
+    },
+    "title": {
+      "translate": "advancement.respawnobelisks.revive_pig"
+    },
+    "description": {
+      "translate": "advancement.respawnobelisks.revive_pig.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "respawnobelisks:root",
+  "criteria": {
+    "revive": {
+      "trigger": "respawnobelisks:revive_entity",
+      "conditions": {
+        "entity": {
+          "type": "minecraft:pig"
+        }
+      }
+    }
+  },
+  "requirements": [
+    [
+      "revive"
+    ]
+  ]
+}

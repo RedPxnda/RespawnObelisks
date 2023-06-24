@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -54,7 +55,7 @@ public class CoreItem extends Item {
                     ListTag list = stack.getTag().getCompound("RespawnObeliskData").getList("SavedEntities", 10);
                     for (Tag tag : list) {
                         if (!(tag instanceof CompoundTag compound) || compound.isEmpty() || !compound.contains("type")) continue;
-                        String type = Registry.ENTITY_TYPE.get(ResourceLocation.tryParse(compound.getString("type"))).getDescriptionId();
+                        String type = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(compound.getString("type"))).getDescriptionId();
                         MutableComponent component = compound.contains("data") && compound.getCompound("data").contains("CustomName") ?
                                 Component.Serializer.fromJson(compound.getCompound("data").getString("CustomName")) :
                                 null;
@@ -90,13 +91,10 @@ public class CoreItem extends Item {
         }
     }
 
-    @Override
-    public void fillItemCategory(CreativeModeTab creativeModeTab, NonNullList<ItemStack> list) {
-        if (this.allowedIn(creativeModeTab)) {
-            ItemStack stack = this.getDefaultInstance();
-            CoreUtils.setMaxCharge(stack.getOrCreateTag(), 100);
-            CoreUtils.setCharge(stack.getOrCreateTag(), 100);
-            list.add(stack);
-        }
+    public static ItemStack createTabItem(Item item) {
+        ItemStack stack = item.getDefaultInstance();
+        CoreUtils.setMaxCharge(stack.getOrCreateTag(), 100);
+        CoreUtils.setCharge(stack.getOrCreateTag(), 100);
+        return stack;
     }
 }

@@ -41,32 +41,22 @@ public class ScrollWheelPacket {
 
     public void handle(Supplier<NetworkManager.PacketContext> supplier) {
         NetworkManager.PacketContext context = supplier.get();
-        /*supplier.get().queue(() -> {
+        supplier.get().queue(() -> {
             BlockPos blockPos = hitResult.getBlockPos();
             if (isUpper) blockPos = blockPos.below();
             if (context.getPlayer() != null && context.getPlayer() instanceof ServerPlayer player) {
                 Level level = player.getLevel();
                 BlockState state = level.getBlockState(blockPos);
                 if (state.getBlock() instanceof RespawnObeliskBlock && state.getValue(RespawnObeliskBlock.HALF) == DoubleBlockHalf.LOWER) {
-                    if (!isUpper) {
-                        Direction cardinal;
-                        if (delta == -1)
-                            cardinal = state.getValue(RespawnObeliskBlock.RESPAWN_SIDE).getCounterClockWise();
-                        else cardinal = state.getValue(RespawnObeliskBlock.RESPAWN_SIDE).getClockWise();
-                        level.setBlock(blockPos, state.setValue(RespawnObeliskBlock.RESPAWN_SIDE, cardinal), 3);
-                        level.setBlock(blockPos.above(), level.getBlockState(blockPos.above()).setValue(RespawnObeliskBlock.RESPAWN_SIDE, cardinal), 3);
-                        player.sendSystemMessage(Component.literal("Spawn side: " + cardinal.getName()), true);
-                    } else {
-                        List<ParticlePack> list = Arrays.stream(ParticlePack.values()).toList();
-                        ParticlePack pack = state.getValue(RespawnObeliskBlock.PACK);
-                        int index = list.indexOf(pack);
-                        if (list.size() > index+1 && delta > 0) pack = list.get(index+1);
-                        else if (index - 1 >= 0 && delta < 0) pack = list.get(index-1);
-                        level.setBlock(blockPos, state.setValue(RespawnObeliskBlock.PACK, pack), 3);
-                        player.sendSystemMessage(Component.literal("Selected pack: " + pack.getSerializedName()), true);
-                    }
+                    Direction cardinal;
+                    if (delta == -1)
+                        cardinal = state.getValue(RespawnObeliskBlock.RESPAWN_SIDE).getCounterClockWise();
+                    else cardinal = state.getValue(RespawnObeliskBlock.RESPAWN_SIDE).getClockWise();
+                    level.setBlock(blockPos, state.setValue(RespawnObeliskBlock.RESPAWN_SIDE, cardinal), 3);
+                    level.setBlock(blockPos.above(), level.getBlockState(blockPos.above()).setValue(RespawnObeliskBlock.RESPAWN_SIDE, cardinal), 3);
+                    player.sendSystemMessage(Component.literal("Spawn side: " + cardinal.getName()), true);
                 }
             }
-        });*/
+        });
     }
 }

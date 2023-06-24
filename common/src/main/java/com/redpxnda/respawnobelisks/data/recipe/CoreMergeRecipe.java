@@ -24,7 +24,7 @@ public class CoreMergeRecipe extends ShapelessRecipe {
     private final double multiplier;
 
     public CoreMergeRecipe(ShapelessRecipe compose, double multiplier) {
-        super(compose.getId(), compose.getGroup(), compose.getResultItem(), compose.getIngredients());
+        super(compose.getId(), compose.getGroup(), compose.category(), compose.getResultItem(), compose.getIngredients());
         this.compose = compose;
         this.multiplier = multiplier;
     }
@@ -70,7 +70,7 @@ public class CoreMergeRecipe extends ShapelessRecipe {
 
     @Override
     public RecipeSerializer<?> getSerializer() {
-        return ModRegistries.CORE_MERGE_SERIALIZER.get();
+        return ModRegistries.coreMerge.get();
     }
 
     public static class Serializer extends ShapelessRecipe.Serializer {

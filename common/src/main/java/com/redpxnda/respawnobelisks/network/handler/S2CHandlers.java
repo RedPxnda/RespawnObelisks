@@ -14,9 +14,9 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -51,7 +51,7 @@ public class S2CHandlers {
         Level pLevel = Minecraft.getInstance().level;
         Player player = Minecraft.getInstance().player;
         if (pLevel != null && player != null) {
-            pLevel.playSound(player, blockPos, SoundEvents.NOTE_BLOCK_BELL, SoundSource.BLOCKS, 1f, 0.75f);
+            pLevel.playSound(player, blockPos, SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.BLOCKS, 1f, 0.75f);
             if (!isRun) {
                 pLevel.addParticle(ParticleTypes.FLASH, blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5, 0, 0, 0);
                 for (int i = -5; i <= 5; i++) {
@@ -73,7 +73,7 @@ public class S2CHandlers {
             case "curse", "curseAnimation" -> {
                 level.playLocalSound(
                         pos.getX(), pos.getY(), pos.getZ(),
-                        Registry.SOUND_EVENT.getOptional(new ResourceLocation(CurseConfig.curseSound)).orElse(SoundEvents.UI_BUTTON_CLICK), SoundSource.BLOCKS,
+                        BuiltInRegistries.SOUND_EVENT.getOptional(new ResourceLocation(CurseConfig.curseSound)).orElse(SoundEvents.UI_BUTTON_CLICK.value()), SoundSource.BLOCKS,
                         1, 1, false
                 );
                 for (int i = 0; i < 360; i+=3) {
@@ -127,7 +127,7 @@ public class S2CHandlers {
     public static void syncEffectsPacket(int amplifier, int duration) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
-            player.addEffect(new MobEffectInstance(ModRegistries.IMMORTALITY_CURSE.get(), duration, amplifier));
+            player.addEffect(new MobEffectInstance(ModRegistries.immortalityCurse.get(), duration, amplifier));
         }
     }
 }
