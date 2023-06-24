@@ -1,0 +1,41 @@
+{
+  "display": {
+    "icon": {
+      "item": "respawnobelisks:dormant_obelisk"
+    },
+    "title": {
+      "translate": "advancement.respawnobelisks.root"
+    },
+    "description": {
+      "translate": "advancement.respawnobelisks.root.description"
+    },
+    "background": "minecraft:textures/gui/advancements/backgrounds/adventure.png",
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "dormant_obelisk": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "respawnobelisks:obelisk_core",
+              "respawnobelisks:respawn_obelisk_end",
+              "respawnobelisks:respawn_obelisk_nether",
+              "respawnobelisks:respawn_obelisk",
+              "respawnobelisks:dormant_obelisk"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "dormant_obelisk"
+    ]
+  ]
+}

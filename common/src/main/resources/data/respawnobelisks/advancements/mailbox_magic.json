@@ -1,0 +1,29 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:respawn_anchor"
+    },
+    "title": {
+      "translate": "advancement.respawnobelisks.mailbox_magic"
+    },
+    "description": {
+      "translate": "advancement.respawnobelisks.mailbox_magic.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "respawnobelisks:root",
+  "criteria": {
+    "explode_respawn_anchor": {
+      "trigger": "respawnobelisks:destruction_catalyst",
+      "conditions": {}
+    }
+  },
+  "requirements": [
+    [
+      "explode_respawn_anchor"
+    ]
+  ]
+}

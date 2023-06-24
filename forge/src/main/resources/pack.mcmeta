@@ -1,6 +1,14 @@
 {
   "pack": {
-    "description": "Example Mod",
-    "pack_format": 9
+    "description": "Respawn Obelisks data",
+    "pack_format": 12
+  },
+  "filter": {
+    "block": [
+      {
+        "namespace": "minecraft",
+        "path": "advancements/nether/charge_respawn_anchor.json"
+      }
+    ]
   }
 }

@@ -1,0 +1,29 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:totem_of_undying"
+    },
+    "title": {
+      "translate": "advancement.respawnobelisks.lost_and_found"
+    },
+    "description": {
+      "translate": "advancement.respawnobelisks.lost_and_found.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "respawnobelisks:root",
+  "criteria": {
+    "keep_items": {
+      "trigger": "respawnobelisks:items_restored",
+      "conditions": {}
+    }
+  },
+  "requirements": [
+    [
+      "keep_items"
+    ]
+  ]
+}

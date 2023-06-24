@@ -44,6 +44,16 @@ tasks.register("generateDiscordEmbed") {
                                 ")\n[Curseforge](" +
                                 "https://curseforge.com/minecraft/mc-mods/respawn-obelisks/files" + ")",
                         inline: true
+                ],
+                [
+                        name  : "Fabric Version",
+                        value : fabric_loader_version,
+                        inline: true
+                ],
+                [
+                        name  : "Forge Version",
+                        value : forge_version,
+                        inline: true
                 ]
         ])
 

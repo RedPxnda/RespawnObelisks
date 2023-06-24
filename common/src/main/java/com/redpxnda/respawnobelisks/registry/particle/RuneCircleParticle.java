@@ -2,7 +2,6 @@ package com.redpxnda.respawnobelisks.registry.particle;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Vector3f;
 import com.redpxnda.respawnobelisks.util.ClientUtils;
 import com.redpxnda.respawnobelisks.util.RenderUtils;
 import net.fabricmc.api.EnvType;
@@ -17,6 +16,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 public class RuneCircleParticle extends Particle {
     private final SpriteSet set;

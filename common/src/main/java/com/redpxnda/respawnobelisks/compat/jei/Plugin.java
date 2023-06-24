@@ -1,6 +1,5 @@
 package com.redpxnda.respawnobelisks.compat.jei;
 
-import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.data.recipe.CoreMergeRecipe;
 import com.redpxnda.respawnobelisks.compat.jei.ObeliskInteractionCategory.*;
 import com.redpxnda.respawnobelisks.data.recipe.CoreUpgradeRecipe;
@@ -75,7 +74,7 @@ public class Plugin implements IModPlugin {
         }
 
         registration.addIngredientInfo(
-                ModRegistries.DORMANT_OBELISK.get().getDefaultInstance(),
+                ModRegistries.dormantObelisk.get().getDefaultInstance(),
                 VanillaTypes.ITEM_STACK,
                 Component.translatable("text.respawnobelisks.jei.dormant_obelisk_info")
         );

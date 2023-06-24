@@ -1,0 +1,33 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:bone"
+    },
+    "title": {
+      "translate": "advancement.respawnobelisks.revive_wolf"
+    },
+    "description": {
+      "translate": "advancement.respawnobelisks.revive_wolf.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "respawnobelisks:root",
+  "criteria": {
+    "revive": {
+      "trigger": "respawnobelisks:revive_entity",
+      "conditions": {
+        "entity": {
+          "type": "minecraft:wolf"
+        }
+      }
+    }
+  },
+  "requirements": [
+    [
+      "revive"
+    ]
+  ]
+}

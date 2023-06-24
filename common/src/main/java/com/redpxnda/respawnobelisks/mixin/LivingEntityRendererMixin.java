@@ -31,7 +31,7 @@ public abstract class LivingEntityRendererMixin {
                                    Operation<Void> original,
                                    LivingEntity pEntity
     ) {
-        if (pEntity instanceof Player player && player.hasEffect(ModRegistries.IMMORTALITY_CURSE.get())) {
+        if (pEntity instanceof Player player && player.hasEffect(ModRegistries.immortalityCurse.get())) {
             pAlpha *= 0.65;
             pRed *= 0.75;
             pGreen *= 0.75;

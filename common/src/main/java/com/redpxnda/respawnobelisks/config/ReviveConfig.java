@@ -6,6 +6,8 @@ import com.teamresourceful.resourcefulconfig.common.annotations.ConfigEntry;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
@@ -68,16 +70,16 @@ public final class ReviveConfig {
                     str = str.substring(1);
                     ResourceLocation loc = ResourceLocation.tryParse(str);
                     if (loc == null) continue;
-                    var tag = TagKey.create(Registry.ENTITY_TYPE_REGISTRY, loc);
-                    if (Registry.ENTITY_TYPE.getTag(tag).isPresent()) {
-                        for (Holder<EntityType<?>> entityTypeHolder : Registry.ENTITY_TYPE.getTag(tag).get()) {
+                    TagKey<EntityType<?>> tag = TagKey.create(Registries.ENTITY_TYPE, loc);
+                    if (BuiltInRegistries.ENTITY_TYPE.getTag(tag).isPresent()) {
+                        for (Holder<EntityType<?>> entityTypeHolder : BuiltInRegistries.ENTITY_TYPE.getTag(tag).get()) {
                             listedEntities.add(entityTypeHolder.value());
                         }
                     }
                 } else {
                     ResourceLocation loc = ResourceLocation.tryParse(str);
                     if (loc == null) continue;
-                    Registry.ENTITY_TYPE.getOptional(loc).ifPresent(e -> listedEntities.add(e));
+                    BuiltInRegistries.ENTITY_TYPE.getOptional(loc).ifPresent(e -> listedEntities.add(e));
                 }
             }
         }

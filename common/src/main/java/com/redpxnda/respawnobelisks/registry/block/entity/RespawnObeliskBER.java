@@ -1,8 +1,8 @@
 package com.redpxnda.respawnobelisks.registry.block.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.redpxnda.respawnobelisks.registry.block.entity.theme.NamedRenderTheme;
-import com.redpxnda.respawnobelisks.registry.block.entity.theme.ObeliskThemeData;
+import com.redpxnda.respawnobelisks.registry.block.entity.theme.ThemeLayout;
+import com.redpxnda.respawnobelisks.registry.block.entity.theme.RenderTheme;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -24,9 +24,9 @@ public class RespawnObeliskBER implements BlockEntityRenderer<RespawnObeliskBloc
 
     @Override
     public void render(RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        if (blockEntity.themeData == null) blockEntity.themeData = new ObeliskThemeData();
-        blockEntity.themes.forEach(str -> {
-            NamedRenderTheme theme = NamedRenderTheme.THEMES.get(str);
+        if (blockEntity.themeLayout == null) blockEntity.themeLayout = new ThemeLayout();
+        blockEntity.getThemes().forEach(rl -> {
+            RenderTheme theme = RenderTheme.themes.get(rl);
             if (theme != null)
                 theme.render(blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
         });

@@ -38,14 +38,14 @@ public class RespawnObelisksForge {
             @SubscribeEvent
             public static void onClientSetup(FMLClientSetupEvent event) {
                 event.enqueueWork(() -> {
-                    ItemProperties.register(ModRegistries.BOUND_COMPASS.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
-                    ItemProperties.register(ModRegistries.DORMANT_OBELISK.get(), new ResourceLocation(MOD_ID, "dimension"), (stack, level, player, i) -> !stack.hasTag() || !stack.getTag().contains("Dimension") ? 0f : stack.getTag().getFloat("Dimension"));
+                    ItemProperties.register(ModRegistries.boundCompass.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
+                    ItemProperties.register(ModRegistries.dormantObelisk.get(), new ResourceLocation(MOD_ID, "dimension"), (stack, level, player, i) -> !stack.hasTag() || !stack.getTag().contains("Dimension") ? 0f : stack.getTag().getFloat("Dimension"));
                 });
             }
 
             @SubscribeEvent
             public static void onParticleProvidersRegistry(RegisterParticleProvidersEvent event) {
-                event.register(ModRegistries.RUNE_CIRCLE_PARTICLE.get(), RuneCircleParticle.Provider::new);
+                event.register(ModRegistries.runeCircleParticle.get(), RuneCircleParticle.Provider::new);
             }
         }
     }

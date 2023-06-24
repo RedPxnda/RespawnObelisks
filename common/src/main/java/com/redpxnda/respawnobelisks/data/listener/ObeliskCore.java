@@ -11,7 +11,7 @@ import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.QuadConsumer;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -19,12 +19,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 import org.luaj.vm2.LuaFunction;
 import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import org.luaj.vm2.lib.jse.CoerceLuaToJava;
 
 import java.util.*;
@@ -35,7 +33,7 @@ import static org.luaj.vm2.lib.jse.CoerceJavaToLua.coerce;
 @SuppressWarnings("unused")
 public class ObeliskCore {
     public static Map<ResourceLocation, ObeliskCore> CORES = new HashMap<>();
-    private static final ItemStack ANCIENT_CORE_STACK = ModRegistries.OBELISK_CORE.get().getDefaultInstance();
+    private static final ItemStack ANCIENT_CORE_STACK = ModRegistries.obeliskCore.get().getDefaultInstance();
     static {
         CompoundTag tag = new CompoundTag();
         CoreUtils.setMaxCharge(tag, 100);
@@ -51,6 +49,7 @@ public class ObeliskCore {
             (amnt, player, stack, blockEntity) -> CoreUtils.setCharge(stack.getOrCreateTag(), amnt), // set charge
             (amnt, player, stack, blockEntity) -> CoreUtils.setMaxCharge(stack.getOrCreateTag(), amnt), // set max charge
             List.of(DEFAULT_CHARGING, INFINITE_CHARGE, TELEPORT, REVIVE, PROTECT, SAVE_INV),
+            RespawnObeliskBlockEntity.defaultThemes,
             Component.literal("TEST"),
             Component.literal("give charge by TESTInG"),
             Component.literal("give max charge by TESTInG"),
@@ -66,31 +65,33 @@ public class ObeliskCore {
     public final @Nullable List<ItemStack> jeiChargeItems;
     public final boolean alwaysRequiresPlayer;
     private final Instance defaultInstance;
+    private final List<ResourceLocation> themes;
+    public List<ResourceLocation> themes() {
+        return themes;
+    }
     public Instance getDefaultInstance() {
         return new Instance(defaultInstance.stack().copy(), this);
     }
 
-    public ObeliskCore(ItemStack instance, ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, List<ResourceLocation> interactions, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
-        this.item = item;
-        this.chargeProvider = chargeHandler;
-        this.maxChargeProvider = maxChargeHandler;
-        this.chargeSetter = chargeSetter;
-        this.maxChargeSetter = maxChargeSetter;
-        this.interactions = interactions;
-        this.jeiGeneral = jeiGeneral;
-        this.jeiCharge = jeiCharge;
-        this.jeiMaxCharge = jeiMaxCharge;
-        this.jeiChargeItems = chargeItems;
+    public ObeliskCore(ItemStack instance, ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, List<ResourceLocation> interactions, List<ResourceLocation> themes, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
+        this.item                 = item;
+        this.chargeProvider       = chargeHandler;
+        this.maxChargeProvider    = maxChargeHandler;
+        this.chargeSetter         = chargeSetter;
+        this.maxChargeSetter      = maxChargeSetter;
+        this.interactions         = interactions;
+        this.themes               = themes;
+        this.jeiGeneral           = jeiGeneral;
+        this.jeiCharge            = jeiCharge;
+        this.jeiMaxCharge         = jeiMaxCharge;
+        this.jeiChargeItems       = chargeItems;
         this.alwaysRequiresPlayer = alwaysRequiresPlayer;
-        this.defaultInstance = new Instance(instance, this);
+        this.defaultInstance      = new Instance(instance, this);
         CORES.put(item, this);
     }
-    public ObeliskCore(ItemStack instance, ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, ObeliskInteraction interaction, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
-        this(instance, item, chargeHandler, maxChargeHandler, chargeSetter, maxChargeSetter, List.of(interaction.id), jeiGeneral, jeiCharge, jeiMaxCharge, chargeItems, alwaysRequiresPlayer);
-    }
 
-    public static ObeliskCore create(ItemStack instance, ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, List<ObeliskInteraction> interactions, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
-        return new ObeliskCore(instance, item, chargeHandler, maxChargeHandler, chargeSetter, maxChargeSetter, interactions.stream().map(i -> i.id).toList(), jeiGeneral, jeiCharge, jeiMaxCharge, chargeItems, alwaysRequiresPlayer);
+    public static ObeliskCore create(ItemStack instance, ResourceLocation item, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> chargeHandler, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Double> maxChargeHandler, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> chargeSetter, QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> maxChargeSetter, List<ObeliskInteraction> interactions, List<ResourceLocation> themes, @Nullable Component jeiGeneral, @Nullable Component jeiCharge, @Nullable Component jeiMaxCharge, @Nullable List<ItemStack> chargeItems, boolean alwaysRequiresPlayer) {
+        return new ObeliskCore(instance, item, chargeHandler, maxChargeHandler, chargeSetter, maxChargeSetter, interactions.stream().map(i -> i.id).toList(), themes, jeiGeneral, jeiCharge, jeiMaxCharge, chargeItems, alwaysRequiresPlayer);
     }
 
     public record Instance(ItemStack stack, ObeliskCore core) {
@@ -101,7 +102,7 @@ public class ObeliskCore {
         ).apply(inst, (stack, core) -> core.isEmpty() || stack.isEmpty() ? EMPTY : new Instance(stack.get(), CORES.get(core.get()))));
 
         public boolean isEmpty() {
-            return this == EMPTY || this.core == null || this.stack == null || this.stack == ItemStack.EMPTY;
+            return this == EMPTY || this.core == null || this.stack == null || this.stack.isEmpty();
         }
     }
 
@@ -114,6 +115,7 @@ public class ObeliskCore {
         public @Nullable List<ItemStack> jeiChargeItems = null;
         public boolean alwaysRequiresPlayer = false;
         public ItemStack stack = null;
+        public List<ResourceLocation> themes = List.of();
 
         public static Builder create() {
             return new Builder();
@@ -131,7 +133,7 @@ public class ObeliskCore {
             return this;
         }
         public Builder withItem(ItemReference<?> item) {
-            this.item = Registry.ITEM.getKey(item.instance);
+            this.item = BuiltInRegistries.ITEM.getKey(item.instance);
             return this;
         }
         public Builder chargeGetter(TriFunction<@Nullable Player, ItemStack, RespawnObeliskBlockEntity, Double> handler) {
@@ -252,15 +254,28 @@ public class ObeliskCore {
         }
         public Builder defaultInstanceHandler(LuaFunction function) {
             stack = (ItemStack) CoerceLuaToJava.coerce(function.call(
-                    coerce(new ItemStackReference(Registry.ITEM.getOptional(item).orElse(Items.AIR).getDefaultInstance()))
+                    coerce(new ItemStackReference(BuiltInRegistries.ITEM.getOptional(item).orElse(Items.AIR).getDefaultInstance()))
             ), ItemStack.class);
+            return this;
+        }
+        public Builder withTheme(String str) {
+            themes.add(new ResourceLocation(str));
+            return this;
+        }
+        public Builder withTheme(ResourceLocation loc) {
+            themes.add(loc);
+            return this;
+        }
+        public Builder withTheme(ResourceLocationReference loc) {
+            themes.add(loc.instance);
             return this;
         }
 
         public ObeliskCore build() {
             if (stack == null)
-                stack = Registry.ITEM.getOptional(item).orElse(Items.AIR).getDefaultInstance();
-            return new ObeliskCore(stack, item, chargeProvider, maxChargeProvider, chargeConsumer, maxChargeConsumer, interactions, jeiGeneral, jeiCharge, jeiMaxCharge, jeiChargeItems, alwaysRequiresPlayer);
+                stack = BuiltInRegistries.ITEM.getOptional(item).orElse(Items.AIR).getDefaultInstance();
+            if (themes.isEmpty()) themes = RespawnObeliskBlockEntity.defaultThemes;
+            return new ObeliskCore(stack, item, chargeProvider, maxChargeProvider, chargeConsumer, maxChargeConsumer, interactions, themes, jeiGeneral, jeiCharge, jeiMaxCharge, jeiChargeItems, alwaysRequiresPlayer);
         }
 
         private Builder() {

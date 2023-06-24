@@ -18,7 +18,7 @@ import dev.architectury.event.events.common.*;
 import dev.architectury.utils.value.IntValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -47,7 +47,7 @@ import java.util.UUID;
 public class CommonEvents {
     public static EventResult onBlockInteract(Player player, InteractionHand hand, BlockPos pos, Direction face) {
         if (!hand.equals(InteractionHand.MAIN_HAND) || !player.getMainHandItem().is(Items.RECOVERY_COMPASS) || !(player.getLevel().getBlockState(pos).is(Blocks.LODESTONE))) return EventResult.pass();
-        if (TeleportConfig.enableTeleportation) player.setItemInHand(hand, new ItemStack(ModRegistries.BOUND_COMPASS.get()));
+        if (TeleportConfig.enableTeleportation) player.setItemInHand(hand, new ItemStack(ModRegistries.boundCompass.get()));
         BlockHitResult hitResult = new BlockHitResult(new Vec3(pos.getX(), pos.getY(), pos.getZ()), face, pos, false);
         if (player.getItemInHand(hand).getItem() instanceof BoundCompassItem item) item.useOn(new UseOnContext(player, hand, hitResult));
         return EventResult.pass();
@@ -73,7 +73,7 @@ public class CommonEvents {
 
     public static EventResult onEntityInteract(Player player, Entity entity, InteractionHand hand) {
         ResourceLocation rl;
-        if (player.level.isClientSide || !hand.equals(InteractionHand.MAIN_HAND) || !ObeliskCore.CORES.containsKey(rl = Registry.ITEM.getKey(player.getMainHandItem().getItem())) || player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem())) return EventResult.pass();
+        if (player.level.isClientSide || !hand.equals(InteractionHand.MAIN_HAND) || !ObeliskCore.CORES.containsKey(rl = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem())) || player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem())) return EventResult.pass();
         ObeliskCore.Instance core = new ObeliskCore.Instance(player.getMainHandItem(), ObeliskCore.CORES.get(rl));
         ItemStack stack = core.stack();
         if (!stack.getOrCreateTag().contains("RespawnObeliskData"))
@@ -89,7 +89,7 @@ public class CommonEvents {
                     CompoundTag entityTag = new CompoundTag();
 
                     entityTag.putUUID("uuid", entity.getUUID());
-                    entityTag.putString("type", Registry.ENTITY_TYPE.getKey(entity.getType()).toString()); // putting the type in
+                    entityTag.putString("type", BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString()); // putting the type in
                     entityTag.put("data", new CompoundTag()); // data initialization
                     entityTag.getCompound("data").putString("DeathLootTable", "minecraft:empty");
                     entity.saveWithoutId(entityTag.getCompound("data")); // putting data in
@@ -140,7 +140,7 @@ public class CommonEvents {
 
     public static void onPlayerClone(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean wonGame) {
         if (wonGame) return;
-        if (oldPlayer.hasEffect(ModRegistries.IMMORTALITY_CURSE.get())) cloneAddCurse(newPlayer, oldPlayer);
+        if (oldPlayer.hasEffect(ModRegistries.immortalityCurse.get())) cloneAddCurse(newPlayer, oldPlayer);
         if (
             oldPlayer.getRespawnPosition() != null &&
             oldPlayer.level.getBlockEntity(oldPlayer.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be
@@ -150,7 +150,7 @@ public class CommonEvents {
     }
 
     private static void cloneAddCurse(ServerPlayer newPlayer, ServerPlayer oldPlayer) {
-        MobEffectInstance MEI = oldPlayer.getEffect(ModRegistries.IMMORTALITY_CURSE.get());
+        MobEffectInstance MEI = oldPlayer.getEffect(ModRegistries.immortalityCurse.get());
         if (MEI == null) return;
         int amplifier = MEI.getAmplifier();
         if (amplifier == CurseConfig.curseMaxLevel+1) amplifier = -1;
@@ -159,8 +159,8 @@ public class CommonEvents {
     }
 
     public static void onPlayerRespawn(ServerPlayer player, boolean conqueredEnd) {
-        if (player.hasEffect(ModRegistries.IMMORTALITY_CURSE.get())) {
-            MobEffectInstance MEI = player.getEffect(ModRegistries.IMMORTALITY_CURSE.get());
+        if (player.hasEffect(ModRegistries.immortalityCurse.get())) {
+            MobEffectInstance MEI = player.getEffect(ModRegistries.immortalityCurse.get());
             if (MEI == null) return;
             ModPackets.CHANNEL.sendToPlayer(player, new SyncEffectsPacket(MEI.getAmplifier(), MEI.getDuration()));
         }

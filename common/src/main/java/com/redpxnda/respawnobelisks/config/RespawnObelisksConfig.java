@@ -8,6 +8,8 @@ import com.teamresourceful.resourcefulconfig.common.config.EntryType;
 import com.teamresourceful.resourcefulconfig.web.annotations.WebInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -53,16 +55,16 @@ public final class RespawnObelisksConfig {
                     str = str.substring(1);
                     ResourceLocation loc = ResourceLocation.tryParse(str);
                     if (loc == null) continue;
-                    var tag = TagKey.create(Registry.BLOCK_REGISTRY, loc);
-                    if (Registry.BLOCK.getTag(tag).isPresent()) {
-                        for (Holder<Block> blockHolder : Registry.BLOCK.getTag(tag).get()) {
+                    TagKey<Block> tag = TagKey.create(Registries.BLOCK, loc);
+                    if (BuiltInRegistries.BLOCK.getTag(tag).isPresent()) {
+                        for (Holder<Block> blockHolder : BuiltInRegistries.BLOCK.getTag(tag).get()) {
                             bannedBlocks.add(blockHolder.value());
                         }
                     }
                 } else {
                     ResourceLocation loc = ResourceLocation.tryParse(str);
                     if (loc == null) continue;
-                    Registry.BLOCK.getOptional(loc).ifPresent(b -> bannedBlocks.add(b));
+                    BuiltInRegistries.BLOCK.getOptional(loc).ifPresent(b -> bannedBlocks.add(b));
                 }
             }
         }
