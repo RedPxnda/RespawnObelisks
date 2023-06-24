@@ -5,7 +5,6 @@ import com.teamresourceful.resourcefulconfig.common.annotations.Comment;
 import com.teamresourceful.resourcefulconfig.common.annotations.ConfigEntry;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
@@ -31,7 +30,7 @@ public final class ChargeConfig {
         chargeItems = new HashMap<>();
         for (String str : obeliskChargeItems) {
             String[] sections = str.split("\\|");
-            chargeItems.put(BuiltInRegistries.ITEM.get(new ResourceLocation(sections[0])), Double.parseDouble(sections[1]));
+            chargeItems.put(Registry.ITEM.get(new ResourceLocation(sections[0])), Double.parseDouble(sections[1]));
         }
         return chargeItems;
     }

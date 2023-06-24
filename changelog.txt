@@ -1,3 +1,5 @@
-# 2.2-a
-- 1.19.3 support
-- New obelisk RenderThemes
+# v2.1-b
+- Fixed multiplayer client side charge bugs with lua based (thanks outrightwings)
+- Set for addons to attach custom blocks to the respawn obelisk block entity
+- Disabled shulker shell core
+    * CAREFUL: Any obelisk that previously had a shulker shell core inside of it will be corrupted. Break it to get your shell back and fix the issue.

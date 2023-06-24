@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import com.redpxnda.respawnobelisks.mixin.STPAccessor;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -18,7 +17,7 @@ import java.util.List;
 
 public class VillageAddition {
     private static final ResourceKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = ResourceKey.create(
-            Registries.PROCESSOR_LIST, new ResourceLocation("minecraft", "empty"));
+            Registry.PROCESSOR_LIST_REGISTRY, new ResourceLocation("minecraft", "empty"));
 
     private static void addBuildingToPool(Registry<StructureTemplatePool> templatePoolRegistry,
                                           Registry<StructureProcessorList> processorListRegistry,
@@ -44,8 +43,8 @@ public class VillageAddition {
 
 
     public static void addNewVillageBuilding(MinecraftServer instance) {
-        Registry<StructureTemplatePool> templatePoolRegistry = instance.registryAccess().registry(Registries.TEMPLATE_POOL).orElseThrow();
-        Registry<StructureProcessorList> processorListRegistry = instance.registryAccess().registry(Registries.PROCESSOR_LIST).orElseThrow();
+        Registry<StructureTemplatePool> templatePoolRegistry = instance.registryAccess().registry(Registry.TEMPLATE_POOL_REGISTRY).orElseThrow();
+        Registry<StructureProcessorList> processorListRegistry = instance.registryAccess().registry(Registry.PROCESSOR_LIST_REGISTRY).orElseThrow();
         //Village additions
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/plains/town_centers"),

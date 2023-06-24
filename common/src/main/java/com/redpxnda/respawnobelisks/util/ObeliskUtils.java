@@ -49,7 +49,7 @@ public class ObeliskUtils {
     public static boolean shouldEnchantmentApply(ItemStack stack, Random random) {
         if (!RespawnPerkConfig.Enchantment.enableEnchantment) return false;
         Map<Enchantment, Integer> enchantments = EnchantmentHelper.getEnchantments(stack);
-        return enchantments.containsKey(ModRegistries.obeliskbound.get()) &&
-                random.nextInt(100) <= Math.round(enchantments.get(ModRegistries.obeliskbound.get())*RespawnPerkConfig.Enchantment.chancePerLevel)-1;
+        return enchantments.containsKey(ModRegistries.OBELISKBOUND.get()) &&
+                random.nextInt(100) <= Math.round(enchantments.get(ModRegistries.OBELISKBOUND.get())*RespawnPerkConfig.Enchantment.chancePerLevel)-1;
     }
 }

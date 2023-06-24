@@ -62,7 +62,7 @@ public class BoundCompassItem extends CompassItem {
             if (!player.getAbilities().instabuild && itemStack.getCount() == 1) {
                 this.addLodestoneTags(level.dimension(), blockPos, itemStack.getOrCreateTag());
             } else {
-                ItemStack itemStack2 = new ItemStack(ModRegistries.boundCompass.get(), 1);
+                ItemStack itemStack2 = new ItemStack(ModRegistries.BOUND_COMPASS.get(), 1);
                 CompoundTag compoundTag = itemStack.hasTag() ? itemStack.getTag().copy() : new CompoundTag();
                 itemStack2.setTag(compoundTag);
                 if (!player.getAbilities().instabuild) {
@@ -75,7 +75,7 @@ public class BoundCompassItem extends CompassItem {
             }
             return InteractionResult.sidedSuccess(level.isClientSide);
         } else if (useOnContext.getHand().equals(InteractionHand.MAIN_HAND) && player instanceof ServerPlayer serverPlayer && level instanceof ServerLevel serverLevel) {
-            if (!TeleportConfig.allowCursedTeleportation && player.hasEffect(ModRegistries.immortalityCurse.get())) {
+            if (!TeleportConfig.allowCursedTeleportation && player.hasEffect(ModRegistries.IMMORTALITY_CURSE.get())) {
                 serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_cursed"), true);
                 return InteractionResult.FAIL;
             }

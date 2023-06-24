@@ -9,7 +9,6 @@ import com.redpxnda.nucleus.datapack.references.storage.Vec3Reference;
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -38,7 +37,7 @@ public class ObeliskInteraction {
         double charge = ChargeConfig.getChargeItems().get(stack.getItem()); // getting charge value of item
         double currentCharge = be.getCharge(player); // getting obelisk's charge level
 
-        if (currentCharge + charge > be.getMaxCharge(player) || (currentCharge <= 0 && charge < 0)) return false; // don't allow when charge goes too high
+        if (currentCharge + charge > be.getMaxCharge(player)) return false; // don't allow when charge goes too high
 
         ChargeConfig.getChargeItems().keySet().forEach(i -> player.getCooldowns().addCooldown(i, 30)); // adding cooldown
 
@@ -49,7 +48,7 @@ public class ObeliskInteraction {
     });
     public static ObeliskInteraction INFINITE_CHARGE = ofRespawn(new ResourceLocation(MOD_ID, "infinite_charge"), Injection.START, ((player, be, manager) -> {
         if (!be.hasLevel()) return;
-        Block block = BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(ChargeConfig.infiniteChargeBlock)).orElse(Blocks.BEACON);
+        Block block = Registry.BLOCK.getOptional(new ResourceLocation(ChargeConfig.infiniteChargeBlock)).orElse(Blocks.BEACON);
         boolean isInfinite = block.getClass().isInstance(be.getLevel().getBlockState(be.getBlockPos().below()).getBlock());
         if (isInfinite)
             manager.cost = 0;
@@ -60,12 +59,12 @@ public class ObeliskInteraction {
     public static ObeliskInteraction SAVE_INV = new ObeliskInteraction(new ResourceLocation(MOD_ID, "item_keeping"));
 
     public final ResourceLocation id;
-    public final BiFunction<RespawnObeliskBlockEntity, GameEvent.ListenerInfo, Boolean> eventHandler;
+    public final BiFunction<RespawnObeliskBlockEntity, GameEvent.Message, Boolean> eventHandler;
     public final TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Boolean> clickHandler;
     public final TriConsumer<Player, RespawnObeliskBlockEntity, Manager> respawnHandler;
 
     // For GameEvents
-    private ObeliskInteraction(GameEvent event, ResourceLocation id, BiFunction<RespawnObeliskBlockEntity, GameEvent.ListenerInfo, Boolean> handler) {
+    private ObeliskInteraction(GameEvent event, ResourceLocation id, BiFunction<RespawnObeliskBlockEntity, GameEvent.Message, Boolean> handler) {
         this.id = id;
         this.eventHandler = handler;
         this.clickHandler = (p, i, b) -> false;
@@ -100,13 +99,13 @@ public class ObeliskInteraction {
         this.respawnHandler = (p, be, m) -> {};
     }
 
-    public static ObeliskInteraction ofEvent(ResourceLocation id, GameEvent event, BiFunction<RespawnObeliskBlockEntity, GameEvent.ListenerInfo, Boolean> handler) {
+    public static ObeliskInteraction ofEvent(ResourceLocation id, GameEvent event, BiFunction<RespawnObeliskBlockEntity, GameEvent.Message, Boolean> handler) {
         return new ObeliskInteraction(event, id, handler);
     }
     public static ObeliskInteraction ofEvent(String id, String event, LuaFunction handler) {
-        return new ObeliskInteraction(BuiltInRegistries.GAME_EVENT.get(new ResourceLocation(event)), new ResourceLocation(id), (be, message) -> handler.call(
+        return new ObeliskInteraction(Registry.GAME_EVENT.get(new ResourceLocation(event)), new ResourceLocation(id), (be, message) -> handler.call(
                 coerce(new ROBEReference(be)),
-                coerce(new GameEventReference.Info(message)))
+                coerce(new GameEventReference.Message(message)))
                 .toboolean()
         );
     }

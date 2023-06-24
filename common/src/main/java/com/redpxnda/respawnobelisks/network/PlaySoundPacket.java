@@ -2,7 +2,7 @@ package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
@@ -23,14 +23,14 @@ public class PlaySoundPacket {
     }
 
     public PlaySoundPacket(FriendlyByteBuf buffer) {
-        this.sound = BuiltInRegistries.SOUND_EVENT.getOptional(ResourceLocation.tryParse(buffer.readUtf())).orElse(SoundEvents.ARMOR_EQUIP_GENERIC);
+        this.sound = Registry.SOUND_EVENT.getOptional(ResourceLocation.tryParse(buffer.readUtf())).orElse(SoundEvents.ARMOR_EQUIP_GENERIC);
         this.pitch = buffer.readFloat();
         this.volume = buffer.readFloat();
     }
 
     public void toBytes(FriendlyByteBuf buffer) {
         ResourceLocation loc;
-        buffer.writeUtf((loc = BuiltInRegistries.SOUND_EVENT.getKey(sound)) != null ? loc.toString() : "");
+        buffer.writeUtf((loc = Registry.SOUND_EVENT.getKey(sound)) != null ? loc.toString() : "");
         buffer.writeFloat(pitch);
         buffer.writeFloat(volume);
     }

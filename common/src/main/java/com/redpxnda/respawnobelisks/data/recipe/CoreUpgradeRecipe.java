@@ -23,7 +23,7 @@ public class CoreUpgradeRecipe extends ShapedRecipe {
     private final double charge;
 
     public CoreUpgradeRecipe(ShapedRecipe compose, double charge) {
-        super(compose.getId(), compose.getGroup(), compose.category(), compose.getWidth(), compose.getHeight(), compose.getIngredients(), compose.getResultItem());
+        super(compose.getId(), compose.getGroup(), compose.getWidth(), compose.getHeight(), compose.getIngredients(), compose.getResultItem());
         this.compose = compose;
         this.charge = charge;
     }
@@ -61,7 +61,7 @@ public class CoreUpgradeRecipe extends ShapedRecipe {
 
     @Override
     public RecipeSerializer<?> getSerializer() {
-        return ModRegistries.coreUpgrade.get();
+        return ModRegistries.CORE_UPGRADE_SERIALIZER.get();
     }
 
     public static class Serializer extends ShapedRecipe.Serializer {

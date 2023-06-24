@@ -8,7 +8,6 @@
     "LivingEntityRendererMixin"
   ],
   "mixins": [
-    "CriteriasAccessor",
     "ExperienceOrbAccessor",
     "LivingEntityAccessor",
     "LivingEntityMixin",

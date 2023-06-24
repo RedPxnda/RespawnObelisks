@@ -18,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class ObeliskInteractionCategory implements IRecipeCategory<ObeliskIntera
                 .drawableBuilder(JEI_BACKGROUND, 0, 0, 116, 32)
                 .setTextureSize(128, 128)
                 .build();
-        this.icon = helper.createDrawableItemStack(ModRegistries.respawnObeliskItem.get().getDefaultInstance());
+        this.icon = helper.createDrawableItemStack(ModRegistries.RESPAWN_OBELISK_ITEM.get().getDefaultInstance());
 //        this.slotBackground = helper
 //                .drawableBuilder(new ResourceLocation("jei", "textures/gui/slot.png"), 0, 0, 18, 18)
 //                .setTextureSize(18, 18)

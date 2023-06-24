@@ -55,6 +55,25 @@ public class NetherLandStructures extends Structure {
         this.maxDistanceFromCenter = maxDistanceFromCenter;
     }
 
+    private static boolean extraSpawningChecks(GenerationContext context) {
+        ChunkPos chunkpos = context.chunkPos();
+
+        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos(); // mutable block pos, so its modify-able
+        mutable.set(chunkpos.getMiddleBlockX(), 25, chunkpos.getMiddleBlockZ()); // setting block pos loc
+        int maxHeight = 100; // max height for structure is y=100
+        NoiseColumn blockView = context.chunkGenerator().getBaseColumn(mutable.getX(), mutable.getZ(), context.heightAccessor(), context.randomState()); // chunk column, for detection
+
+        while (mutable.getY() < maxHeight) {
+            BlockState state = blockView.getBlock(mutable.getY());
+            BlockState upperState = blockView.getBlock(mutable.getY()+1);
+            BlockState upperUpperState = blockView.getBlock(mutable.getY()+1);
+            if (!state.isAir() && upperState.isAir() && upperUpperState.isAir()) return true;
+            mutable.move(Direction.UP);
+        }
+
+        return false;
+    }
+
     @Override
     public Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
         ChunkPos chunkPos = context.chunkPos();
@@ -100,6 +119,6 @@ public class NetherLandStructures extends Structure {
 
     @Override
     public StructureType<?> type() {
-        return ModRegistries.netherStructureType.get();
+        return ModRegistries.NETHER_STRUCTURES.get();
     }
 }

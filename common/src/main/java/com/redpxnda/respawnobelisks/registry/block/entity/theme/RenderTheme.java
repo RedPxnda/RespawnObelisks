@@ -1,209 +1,120 @@
 package com.redpxnda.respawnobelisks.registry.block.entity.theme;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.redpxnda.nucleus.util.ParticleShaper;
-import com.redpxnda.nucleus.util.RenderUtil;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Vector3f;
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.util.RenderUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
-import static com.redpxnda.nucleus.util.RenderUtil.lerpColors;
-import static com.redpxnda.respawnobelisks.registry.ModRegistries.rl;
 import static com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER.*;
-import static com.redpxnda.respawnobelisks.registry.block.entity.theme.ThemeLayout.ThemeData;
-import static com.redpxnda.respawnobelisks.util.RenderUtils.*;
+import static com.redpxnda.respawnobelisks.util.RenderUtils.renderRunes;
 
 @FunctionalInterface
 public interface RenderTheme {
-    Map<ResourceLocation, RenderTheme> themes = new HashMap<>();
     Random rdm = new Random();
 
-    ResourceLocation defCharge = rl("default_charge");
-    ResourceLocation defDep = rl("default_deplete");
-    ResourceLocation defRunes = rl("default_runes");
-    ResourceLocation sculk = rl("sculk");
-    ResourceLocation blazing = rl("blazing");
-
     static void init() {
-        register(defCharge, (be, pt, ps, bs, pl, po) -> {
+        register(NamedRenderTheme.of("defaultCharge", (be, pt, ps, bs, pl, po) -> {
             Level level = be.getLevel();
-            if (level == null) return;
-            Minecraft mc = Minecraft.getInstance();
-            ThemeData data = be.themeLayout.get(defCharge);
+            Minecraft mc;
+            if (level == null || (mc = Minecraft.getInstance()) == null) return;
             BlockPos pos = be.getBlockPos();
             if (mc.player != null) {
                 if (
-                        rdm.nextDouble() > 0.95 &&
+                        rdm.nextDouble() > 0.8 &&
                         mc.hitResult instanceof BlockHitResult bhr &&
                         (be.getBlockPos().equals(bhr.getBlockPos()) || be.getBlockPos().equals(bhr.getBlockPos().below())) &&
                         ChargeConfig.getChargeItems().containsKey(mc.player.getMainHandItem().getItem())
                 ) {
-                    tickLoopedExecution(be, data, "defaultCharge", blockEntity -> {
+                    tickLoopedExecution(be, "defaultCharge", blockEntity -> {
                         if (be.getLastCharge() < level.getGameTime() - 50) {
                             double rX = rdm.nextDouble(6) - 3;
-                            double rY = rdm.nextDouble(1.75);
                             double rZ = rdm.nextDouble(6) - 3;
-                            level.addParticle(ModRegistries.chargeIndicatorParticle.get(), pos.getX() + 0.5 + rX, pos.getY() + rY, pos.getZ() + 0.5 + rZ, pos.getX()+0.5, pos.getY() + rY, pos.getZ()+0.5);
+                            level.addParticle(ModRegistries.CHARGE_INDICATOR_PARTICLE.get(), pos.getX() + 0.5 + rX, pos.getY() + rdm.nextDouble(1.75), pos.getZ() + 0.5 + rZ, pos.getX(), pos.getY(), pos.getZ());
                         }
                     });
                 }
+                ps.pushPose();
+                VertexConsumer vc = bs.getBuffer(RenderType.lines());
+
+                RenderUtils.CHARGE_PARTICLES.get(pos).forEach(particle -> {
+                    vc.vertex(ps.last().pose(), 0.5f, (float) (particle.getY() - pos.getY()), 0.5f).color(1f, 1f, 1f, particle.alpha).normal(1, 0, 0).endVertex();
+                    vc.vertex(ps.last().pose(), (float) (particle.getX() - pos.getX()), (float) (particle.getY() - pos.getY()), (float) (particle.getZ() - pos.getZ())).color(1f, 1f, 1f, particle.alpha).normal(1, 0, 0).endVertex();
+                });
+
+                ps.popPose();
             }
-            timedExecution(be, data, be.getLastCharge(), "defaultCharge-main", x -> {
+            timedExecution(be, be.getLastCharge(), "defaultCharge-main", x -> {
                 level.addParticle(ParticleTypes.FLASH, pos.getX() + 0.5, pos.getY()+0.1, pos.getZ() + 0.5, 0, 0, 0);
                 level.playLocalSound(
                         pos.getX(), pos.getY(), pos.getZ(),
-                        BuiltInRegistries.SOUND_EVENT.getOptional(new ResourceLocation(ChargeConfig.obeliskChargeSound)).orElse(SoundEvents.UI_BUTTON_CLICK.value()), SoundSource.BLOCKS,
+                        Registry.SOUND_EVENT.getOptional(new ResourceLocation(ChargeConfig.obeliskChargeSound)).orElse(SoundEvents.UI_BUTTON_CLICK), SoundSource.BLOCKS,
                         1, 1, false
                 );
             });
-        });
-        register(defDep, new BasicDepleteAnimation(defDep, "time", be -> {
+        }));
+        register(new BasicDepleteAnimation("defaultDeplete", be -> {
             Level level = be.getLevel();
             BlockPos pos = be.getBlockPos();
             assert level != null : " Level is somehow null in BasicDepleteAnimation";
             level.playLocalSound(
                     pos.getX(), pos.getY(), pos.getZ(),
-                    BuiltInRegistries.SOUND_EVENT.getOptional(new ResourceLocation(ChargeConfig.obeliskDepleteSound)).orElse(SoundEvents.UI_BUTTON_CLICK.value()), SoundSource.BLOCKS,
+                    Registry.SOUND_EVENT.getOptional(new ResourceLocation(ChargeConfig.obeliskDepleteSound)).orElse(SoundEvents.UI_BUTTON_CLICK), SoundSource.BLOCKS,
                     1, 1, false
             );
-            level.addParticle(ModRegistries.depleteRingParticle.get(), pos.getX()+0.5, pos.getY()+1.05, pos.getZ()+0.5, 0, 0, 0);
+            level.addParticle(ModRegistries.DEPLETE_RING_PARTICLE.get(), pos.getX()+0.5, pos.getY()+1.05, pos.getZ()+0.5, 0, 0, 0);
         }));
-        register(defRunes, (be, pt, ps, bs, pl, po) -> {
+        register(NamedRenderTheme.of("defaultRunes", (be, pt, ps, bs, pl, po) -> {
             if (SPRITE == null) SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RUNES);
             renderRunes(SPRITE, be, pt, ps, bs, pl);
-        });
-        register(sculk, (be, pt, ps, bs, pl, po) -> {
-            Level level = be.getLevel();
-            if (level == null) return;
-            BlockPos pos = be.getBlockPos();
-            ThemeData data = be.themeLayout.get(sculk);
-
-            tickLoopedExecution(be, data, "tick", x -> {
-                double charge = data.getDouble("lastCharge", be.getClientCharge());
-                if (charge != be.clientCharge) {
-                    if (charge > be.clientCharge) {
-                        if (rdm.nextBoolean())
-                            level.playLocalSound(
-                                    pos.getX(), pos.getY(), pos.getZ(),
-                                    SoundEvents.SCULK_BLOCK_BREAK, SoundSource.BLOCKS,
-                                    0.5f, 1, false
-                            );
-                        charge = Math.max(charge - 0.5, be.clientCharge);
-                    } else {
-                        if (be.getLastCharge()+10 <= be.getGameTime() && rdm.nextBoolean()) {
-                            level.playLocalSound(
-                                    pos.getX(), pos.getY(), pos.getZ(),
-                                    SoundEvents.SCULK_BLOCK_SPREAD, SoundSource.BLOCKS,
-                                    1, 1, false
-                            );
-                            level.addParticle(
-                                    ParticleTypes.SCULK_CHARGE_POP,
-                                    pos.getX() + rdm.nextDouble(2) - 1,
-                                    pos.getY() + rdm.nextDouble(2),
-                                    pos.getZ() + rdm.nextDouble(2) - 1,
-                                    0, 0, 0
-                            );
-                        }
-                        charge = Math.min(charge + 0.5, be.clientCharge);
-                    }
-                    data.put("lastCharge", charge);
-                }
-            });
-            timedExecution(be, data, be.getLastCharge(), "charging", x -> level.playLocalSound(
-                    pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.SCULK_CATALYST_BLOOM, SoundSource.BLOCKS,
-                    25, 1, false
-            ));
-            renderSculkTendrils(be, ps, bs, pl);
-            renderSculkOverlay(RenderUtil.alphaAnimation, be, data.getDouble("lastCharge", be.getClientCharge()), pt, ps, bs, pl);
-        });
-        register(blazing, new MultipartAnimation(blazing, be -> {
-            Level level = be.getLevel();
-            assert level != null;
-            BlockPos pos = be.getBlockPos();
-
-            if (rdm.nextDouble() > 0.95) {
-                int count = randomInt(rdm, 3, 6);
-                double yStart = randomDouble(rdm, 0.1, 0.2);
-                double yInc = randomDouble(rdm, 0.7, 0.75);
-                ParticleShaper.square(ParticleTypes.FLAME, 2, count, 1).fromClient().loopBetween(level, pos.getX() + 0.5, pos.getZ() + 0.5, pos.getY() + yStart, pos.getY() + 2, yInc);
-            }
-        }, be -> {
-            Level level = be.getLevel();
-            assert level != null;
-            BlockPos pos = be.getBlockPos();
-
-            ParticleShaper.square(ParticleTypes.FLAME, 3).fromClient().loopBetween(level, pos.getX()+0.5, pos.getZ()+0.5, pos.getY()+0.15, pos.getY()+2, 0.1);
-            level.playLocalSound(
-                    pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLAZE_HURT, SoundSource.BLOCKS,
-                    1, 1, false
-            );
-        }, be -> {
-            Level level = be.getLevel();
-            assert level != null;
-            BlockPos pos = be.getBlockPos();
-
-            ParticleShaper.expandingSquare(ParticleTypes.FLAME, 3, 100, 1, -0.125).fromClient().loopBetween(level, pos.getX()+0.5, pos.getZ()+0.5, pos.getY()+0.15, pos.getY()+2, 0.1);
-            level.playLocalSound(
-                    pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLAZE_DEATH, SoundSource.BLOCKS,
-                    1, 1, false
-            );
-        }, (be, pt, ps, bs, pl, po) -> {
-            Level level = be.getLevel();
-            assert level != null;
-
-            renderBlaze(be, pt, ps, bs);
-            if (SPRITE == null) SPRITE = Minecraft.getInstance().getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(RUNES);
-            renderRunes(RenderType.translucent(), SPRITE, lerpColors(level.getGameTime(), 100, new float[][] {
-                    { 255, 50, 0 },
-                    { 255, 175, 0 }
-            }), be, pt, ps, bs, pl);
         }));
     }
 
-    static void register(ResourceLocation name, RenderTheme theme) {
-        themes.put(name, theme);
+    static void register(NamedRenderTheme theme) {
+        NamedRenderTheme.THEMES.put(theme.getName(), theme);
+    }
+    static void register(NamedRenderTheme theme, String name) {
+        NamedRenderTheme.THEMES.put(name, theme);
     }
 
-    static void timedExecution(RespawnObeliskBlockEntity blockEntity, ThemeData data, long checkAgainst, String name, BlockEntityOnly handler, BlockEntityOnly ifFailed) {
+    static void timedExecution(RespawnObeliskBlockEntity blockEntity, long checkAgainst, String name, BlockEntityOnly handler, BlockEntityOnly ifFailed) {
         long gameTime = blockEntity.getGameTime();
-        float renderProgress = data.getFloat(name, 0f);
+        float renderProgress = blockEntity.themeData.get(name);
         if (gameTime-3 <= checkAgainst && renderProgress < 1f) {
             handler.call(blockEntity);
-            data.put(name, 1f);
+            blockEntity.themeData.put(name, 1f);
         } else if (gameTime-3 > checkAgainst && renderProgress >= 1f) {
-            data.put(name, 0f);
+            blockEntity.themeData.put(name, 0f);
             ifFailed.call(blockEntity);
         }
     }
-    static void timedExecution(RespawnObeliskBlockEntity blockEntity, ThemeData data, long checkAgainst, String name, BlockEntityOnly handler) {
-        timedExecution(blockEntity, data, checkAgainst, name, handler, be -> {});
+    static void timedExecution(RespawnObeliskBlockEntity blockEntity, long checkAgainst, String name, BlockEntityOnly handler) {
+        timedExecution(blockEntity, checkAgainst, name, handler, be -> {});
     }
 
-    static void tickLoopedExecution(RespawnObeliskBlockEntity blockEntity, ThemeData data, String name, BlockEntityOnly handler) {
+    static void tickLoopedExecution(RespawnObeliskBlockEntity blockEntity, String name, BlockEntityOnly handler) {
         long gameTime = blockEntity.getGameTime();
-        long checkAgainst = data.getLong(name, 0L);
+        long checkAgainst = blockEntity.themeData.getLong(name);
         if (gameTime != checkAgainst) {
             handler.call(blockEntity);
-            data.put(name, gameTime);
+            blockEntity.themeData.putLong(name, gameTime);
         }
     }
 

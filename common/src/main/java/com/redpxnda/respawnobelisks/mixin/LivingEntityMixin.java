@@ -40,7 +40,7 @@ public abstract class LivingEntityMixin {
                 player.level.getBlockEntity(player.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be &&
                 CoreUtils.hasInteraction(be.getCoreInstance(), ObeliskInteraction.SAVE_INV) &&
                 be.getCharge(player) >= RespawnPerkConfig.minKeepItemCharge &&
-                (RespawnPerkConfig.allowCursedItemKeeping || !player.hasEffect(ModRegistries.immortalityCurse.get()))
+                (RespawnPerkConfig.allowCursedItemKeeping || !player.hasEffect(ModRegistries.IMMORTALITY_CURSE.get()))
         ) {
             ObeliskInventory inventory = be.storedItems.containsKey(player.getUUID()) ? be.storedItems.get(player.getUUID()) : new ObeliskInventory();
             if (!player.wasExperienceConsumed() && RespawnPerkConfig.Experience.keepExperience && inventory.xp <= 0) {

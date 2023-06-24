@@ -15,11 +15,9 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
@@ -76,7 +74,7 @@ public class AnchorExplosion {
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
         ModPackets.CHANNEL.sendToPlayers(players, new RespawnAnchorInteractionPacket(pos, true, charge));
-        level.explode(null, DamageSource.badRespawnPointExplosion(new Vec3(pos.getX(), pos.getY(), pos.getZ())), null, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 5 + 2*charge, true, Level.ExplosionInteraction.BLOCK);
+        level.explode(null, DamageSource.badRespawnPointExplosion(), null, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 5 + 2*charge, true, Explosion.BlockInteraction.DESTROY);
     }
 
     @Override
