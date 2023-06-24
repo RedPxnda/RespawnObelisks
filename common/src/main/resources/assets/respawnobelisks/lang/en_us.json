@@ -7,6 +7,7 @@
   "item.respawnobelisks.bound_compass": "Recovery Compass",
   "item.respawnobelisks.bound_bound_compass": "Bound Recovery Compass",
   "enchantment.respawnobelisks.obeliskbound": "Obeliskbound",
+  "enchantment.respawnobelisks.obeliskbound.desc": "Keeps this item through death when respawning at a respawn obelisk.",
 
   "text.respawnobelisks.cannot_set_spawn": "An ancient force seems to have once protected this seemingly mundane object. However, that force now lays dormant. §7[§9§nHover§r§7]",
   "text.respawnobelisks.cannot_set_spawn.hover": "You cannot set your spawn at beds. Instead, explore the world to find respawn obelisks.",
