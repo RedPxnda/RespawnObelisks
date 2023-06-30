@@ -6,6 +6,7 @@ import com.mojang.logging.LogUtils;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.item.CoreItem;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -23,7 +24,7 @@ public class CoreUpgradeRecipe extends ShapedRecipe {
     private final double charge;
 
     public CoreUpgradeRecipe(ShapedRecipe compose, double charge) {
-        super(compose.getId(), compose.getGroup(), compose.category(), compose.getWidth(), compose.getHeight(), compose.getIngredients(), compose.getResultItem());
+        super(compose.getId(), compose.getGroup(), compose.category(), compose.getWidth(), compose.getHeight(), compose.getIngredients(), compose.getResultItem(null));
         this.compose = compose;
         this.charge = charge;
     }
@@ -42,8 +43,8 @@ public class CoreUpgradeRecipe extends ShapedRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv) {
-        ItemStack result = getCore(inv).orElse(super.assemble(inv)).copy();
+    public ItemStack assemble(CraftingContainer inv, RegistryAccess access) {
+        ItemStack result = getCore(inv).orElse(super.assemble(inv, access)).copy();
         result.setCount(1);
         CoreUtils.incMaxCharge(result.getOrCreateTag(), charge);
         return result;

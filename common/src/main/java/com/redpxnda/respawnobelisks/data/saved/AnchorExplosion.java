@@ -76,7 +76,7 @@ public class AnchorExplosion {
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
         List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
         ModPackets.CHANNEL.sendToPlayers(players, new RespawnAnchorInteractionPacket(pos, true, charge));
-        level.explode(null, DamageSource.badRespawnPointExplosion(new Vec3(pos.getX(), pos.getY(), pos.getZ())), null, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 5 + 2*charge, true, Level.ExplosionInteraction.BLOCK);
+        level.explode(null, level.damageSources().badRespawnPointExplosion(new Vec3(pos.getX(), pos.getY(), pos.getZ())), null, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 5 + 2*charge, true, Level.ExplosionInteraction.BLOCK);
     }
 
     @Override

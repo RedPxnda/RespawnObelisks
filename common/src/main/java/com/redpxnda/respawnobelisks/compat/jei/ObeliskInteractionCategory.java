@@ -13,7 +13,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -70,13 +70,14 @@ public class ObeliskInteractionCategory implements IRecipeCategory<ObeliskIntera
         obeliskSlot.addItemStack(recipe.obelisk);
     }
 
+    //todo jei stuff with the core new system
     @Override
-    public void draw(InteractionRecipe recipe, IRecipeSlotsView slotsView, PoseStack stack, double mouseX, double mouseY) {
-        double charge = Mth.clamp(recipe.charge, 0, 100)/100f;
+    public void draw(InteractionRecipe recipe, IRecipeSlotsView slotsView, GuiGraphics graphics, double mouseX, double mouseY) {
+        /*double charge = Mth.clamp(recipe.charge, 0, 100)/100f;
 
         RenderSystem.setShaderTexture(0, JEI_BACKGROUND);
-        GuiComponent.blit(stack, 98, 4, 0, 0, 32, 16, 22, 128, 128);
-        GuiComponent.blit(stack, 103, 7+Mth.ceil(14*(1-(charge))), 0, 5, 57+Mth.ceil(14*(1-(charge))), 6, Mth.ceil(14*(charge)), 128, 128);
+        graphics.blit(stack, 98, 4, 0, 0, 32, 16, 22, 128, 128);
+        graphics.blit(stack, 103, 7+Mth.ceil(14*(1-(charge))), 0, 5, 57+Mth.ceil(14*(1-(charge))), 6, Mth.ceil(14*(charge)), 128, 128);*/
     }
 
     @Override

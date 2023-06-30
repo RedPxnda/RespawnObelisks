@@ -6,6 +6,7 @@ import com.mojang.logging.LogUtils;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.item.CoreItem;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -24,7 +25,7 @@ public class CoreMergeRecipe extends ShapelessRecipe {
     private final double multiplier;
 
     public CoreMergeRecipe(ShapelessRecipe compose, double multiplier) {
-        super(compose.getId(), compose.getGroup(), compose.category(), compose.getResultItem(), compose.getIngredients());
+        super(compose.getId(), compose.getGroup(), compose.category(), compose.getResultItem(null), compose.getIngredients());
         this.compose = compose;
         this.multiplier = multiplier;
     }
@@ -43,9 +44,9 @@ public class CoreMergeRecipe extends ShapelessRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingContainer inv) {
+    public ItemStack assemble(CraftingContainer inv, RegistryAccess access) {
         List<ItemStack> stacks = getCores(inv);
-        if (stacks.isEmpty()) return super.assemble(inv);
+        if (stacks.isEmpty()) return super.assemble(inv, access);
 
         double totalCharge = CoreUtils.getMaxCharge(stacks.get(0).getOrCreateTag());
         for (ItemStack stack : stacks.subList(1, stacks.size()))

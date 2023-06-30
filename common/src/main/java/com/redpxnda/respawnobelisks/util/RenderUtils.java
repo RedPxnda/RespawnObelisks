@@ -23,6 +23,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Blaze;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
@@ -171,16 +172,17 @@ public class RenderUtils {
         poseStack.pushPose();
         poseStack.translate(0.5, 2.5, 0.5);
         poseStack.scale(1.5f, 1.5f, 1.5f);
-        if (blockEntity.getLevel() != null) poseStack.mulPose(Axis.YP.rotationDegrees(blockEntity.getLevel().getGameTime() % 360));
+        if (blockEntity.getLevel() != null) poseStack.mulPose(Axis.YP.rotationDegrees(blockEntity.getGameTime() % 360));
         ItemRenderer itemRenderer = context.getItemRenderer();
         if (totemStack == null) totemStack = new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(ReviveConfig.revivalItem)));
         itemRenderer.renderStatic(
                 totemStack,
-                ItemTransforms.TransformType.GROUND,
+                ItemDisplayContext.GROUND,
                 packedLight,
                 packedOverlay,
                 poseStack,
                 bufferSource,
+                blockEntity.getLevel(),
                 1
         );
         poseStack.popPose();

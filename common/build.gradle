@@ -22,7 +22,7 @@ dependencies {
 
     modApi "com.github.RedPxnda.Nucleus:nucleus:${rootProject.nucleus_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
+    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-1.20:${rootProject.resourceful_config_version}"
 
     modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}") {
         transitive = false

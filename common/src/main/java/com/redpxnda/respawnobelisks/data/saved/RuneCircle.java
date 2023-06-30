@@ -156,7 +156,7 @@ public class RuneCircle {
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         }
         if (!player.getAbilities().instabuild && TeleportConfig.dropItemsOnTeleport) {
-            ((LivingEntityAccessor) player).dropEverything(DamageSource.OUT_OF_WORLD);
+            ((LivingEntityAccessor) player).dropEverything(level.damageSources().generic());
             player.setExperienceLevels(0);
             player.setExperiencePoints(0);
         }

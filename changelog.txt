@@ -1,3 +1,4 @@
-# 2.2-a
-- 1.19.3 support
-- New obelisk RenderThemes
+# 2.3-a
+- 1.20.1 support
+- New obelisk RenderThemes (unobtainable in survival)
+- Achievements

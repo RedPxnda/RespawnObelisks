@@ -8,7 +8,7 @@
   "item.respawnobelisks.bound_bound_compass": "Bound Recovery Compass",
   "enchantment.respawnobelisks.obeliskbound": "Obeliskbound",
   "enchantment.respawnobelisks.obeliskbound.desc": "Keeps this item through death when respawning at a respawn obelisk.",
-  "itemGroup.respawnobelisks.respawn_obelisks_tab": "Respawn Obelisks",
+  "itemGroup.respawnobelisks.tab": "Respawn Obelisks",
 
   "advancement.respawnobelisks.revive_villager": "Is This Heaven?",
   "advancement.respawnobelisks.revive_villager.description": "Revive a villager at an obelisk to lower its trades",

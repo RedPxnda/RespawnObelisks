@@ -45,7 +45,7 @@ public class RespawnObelisksForge {
 
             @SubscribeEvent
             public static void onParticleProvidersRegistry(RegisterParticleProvidersEvent event) {
-                event.register(ModRegistries.runeCircleParticle.get(), RuneCircleParticle.Provider::new);
+                event.registerSpriteSet(ModRegistries.runeCircleParticle.get(), RuneCircleParticle.Provider::new);
             }
         }
     }

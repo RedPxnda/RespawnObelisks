@@ -35,9 +35,9 @@ public abstract class LivingEntityMixin {
     private void RESPAWNOBELISKS_preventEquipmentDrop(DamageSource damageSource, CallbackInfo ci) {
         if (
                 (Object)this instanceof ServerPlayer player &&
-                !player.level.getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) &&
+                !player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) &&
                 player.getRespawnPosition() != null &&
-                player.level.getBlockEntity(player.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be &&
+                player.level().getBlockEntity(player.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be &&
                 CoreUtils.hasInteraction(be.getCoreInstance(), ObeliskInteraction.SAVE_INV) &&
                 be.getCharge(player) >= RespawnPerkConfig.minKeepItemCharge &&
                 (RespawnPerkConfig.allowCursedItemKeeping || !player.hasEffect(ModRegistries.immortalityCurse.get()))

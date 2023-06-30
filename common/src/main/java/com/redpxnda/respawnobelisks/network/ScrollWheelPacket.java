@@ -45,7 +45,7 @@ public class ScrollWheelPacket {
             BlockPos blockPos = hitResult.getBlockPos();
             if (isUpper) blockPos = blockPos.below();
             if (context.getPlayer() != null && context.getPlayer() instanceof ServerPlayer player) {
-                Level level = player.getLevel();
+                Level level = player.level();
                 BlockState state = level.getBlockState(blockPos);
                 if (state.getBlock() instanceof RespawnObeliskBlock && state.getValue(RespawnObeliskBlock.HALF) == DoubleBlockHalf.LOWER) {
                     Direction cardinal;

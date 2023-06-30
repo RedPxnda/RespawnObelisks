@@ -27,7 +27,7 @@ public abstract class PlayerListMixin {
     private void RESPAWNOBELISKS_moveToMixin(ServerPlayer instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original, ServerPlayer pPlayer) {
         BlockPos blockpos = pPlayer.getRespawnPosition();
         if (blockpos != null) {
-            BlockState blockstate = pPlayer.getLevel().getBlockState(blockpos);
+            BlockState blockstate = pPlayer.level().getBlockState(blockpos);
             if (blockstate.getBlock() instanceof RespawnObeliskBlock) {
                 if (blockstate.getValue(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.NORTH) yRot = 180;
                 else if (blockstate.getValue(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.EAST) yRot = -90;

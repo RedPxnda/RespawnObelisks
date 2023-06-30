@@ -232,7 +232,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
                         level.setBlock(pos.above(), Blocks.AIR.defaultBlockState(), 3);
                         level.setBlock(pos.below(), Blocks.AIR.defaultBlockState(), 3);
-                        level.explode(null, DamageSource.badRespawnPointExplosion(pos.getCenter()), null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 5.0F, true, Level.ExplosionInteraction.BLOCK);
+                        level.explode(null, level.damageSources().badRespawnPointExplosion(pos.getCenter()), null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 5.0F, true, Level.ExplosionInteraction.BLOCK);
                         ModRegistries.kaboomCriterion.trigger(player);
                         return InteractionResult.SUCCESS;
                     }
@@ -308,7 +308,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                                 compound.contains("type") &&
                                 compound.contains("data")
                 ) {
-                    if (player.level instanceof ServerLevel serverLevel) {
+                    if (player.level() instanceof ServerLevel serverLevel) {
                         Entity entity = serverLevel.getEntity(compound.getUUID("uuid"));
                         if ((entity == null || !entity.isAlive()) && blockEntity.getCharge(player) - ReviveConfig.revivalCost < 0) {
                             player.sendSystemMessage(Component.translatable("text.respawnobelisks.insufficient_charge"));
@@ -317,11 +317,11 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                         if (entity != null && entity.isAlive())
                             continue;
                     }
-                    Entity toSummon = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(compound.getString("type"))).create(player.level);
+                    Entity toSummon = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(compound.getString("type"))).create(player.level());
                     if (toSummon == null) continue;
                     toSummon.load(compound.getCompound("data"));
                     toSummon.setPos(pos.getX()+0.5, pos.getY()+2.5, pos.getZ()+0.5);
-                    player.level.addFreshEntity(toSummon);
+                    player.level().addFreshEntity(toSummon);
                     ModRegistries.reviveCriterion.trigger(player, toSummon);
                     if (toSummon instanceof Villager villager)
                         villager.getGossips().add(player.getUUID(), GossipType.MAJOR_POSITIVE, 40);

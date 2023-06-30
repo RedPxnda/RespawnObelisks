@@ -19,16 +19,13 @@ import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
-import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
-import net.minecraft.advancements.critereon.DeserializationContext;
-import net.minecraft.advancements.critereon.EntityPredicate;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
+import net.minecraft.advancements.critereon.*;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.*;
@@ -36,11 +33,13 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,16 +49,14 @@ import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
 
 public class ModRegistries {
     private static final List<Supplier<ItemStack>> tabItems = new ArrayList<>();
-    public static CreativeTabRegistry.TabSupplier TAB = CreativeTabRegistry.create(rl("respawn_obelisks_tab"), b -> {
-        b.icon(() -> ModRegistries.respawnObeliskItem.get().getDefaultInstance());
-        b.displayItems((flagSet, out, bl) -> tabItems.forEach(sup -> out.accept(sup.get())));
-    });
+
     public static ResourceLocation rl(String loc) {
         return new ResourceLocation(MOD_ID, loc);
     }
     public static final Supplier<RegistrarManager> regs = Suppliers.memoize(() -> RegistrarManager.get(MOD_ID));
 
     private static final Registrar<Block> blocks = regs.get().get(Registries.BLOCK);
+    private static final Registrar<CreativeModeTab> tabs = regs.get().get(Registries.CREATIVE_MODE_TAB);
     private static final Registrar<Item> items = regs.get().get(Registries.ITEM);
     private static final Registrar<ParticleType<?>> particles = regs.get().get(Registries.PARTICLE_TYPE);
     private static final Registrar<Enchantment> enchants = regs.get().get(Registries.ENCHANTMENT);
@@ -71,6 +68,12 @@ public class ModRegistries {
     public static RegistrySupplier<ParticleType<RuneCircleType.Options>> runeCircleParticle = particles.register(rl("rune_circle"), () -> new RuneCircleType(false));
     public static RegistrySupplier<SimpleParticleType> depleteRingParticle = particles.register(rl("deplete_ring"), () -> new SimpleParticleType(false));
     public static RegistrySupplier<SimpleParticleType> chargeIndicatorParticle = particles.register(rl("charge_indicator"), () -> new SimpleParticleType(false));
+
+    public static RegistrySupplier<CreativeModeTab> tab = tabs.register(rl("tab"), () -> CreativeTabRegistry.create(b -> {
+        b.title(Component.translatable("itemGroup.respawnobelisks.tab"));
+        b.icon(() -> ModRegistries.respawnObeliskItem.get().getDefaultInstance());
+        b.displayItems((flagSet, out) -> tabItems.forEach(sup -> out.accept(sup.get())));
+    }));
 
     public static RegistrySupplier<Enchantment> obeliskbound = enchants.register(rl("obeliskbound"), ObeliskboundEnchantment::new);
 
@@ -95,7 +98,10 @@ public class ModRegistries {
 //    ));
 
     public static RegistrySupplier<Block> respawnObelisk = blocks.register(rl("respawn_obelisk"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of(Material.STONE)
+            .of()
+            .sound(SoundType.STONE)
+            .pushReaction(PushReaction.IGNORE)
+            .mapColor(MapColor.COLOR_GRAY)
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
@@ -109,7 +115,10 @@ public class ModRegistries {
     ));
 
     public static RegistrySupplier<Block> netherRespawnObelisk = blocks.register(rl("respawn_obelisk_nether"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of(Material.STONE)
+            .of()
+            .sound(SoundType.STONE)
+            .pushReaction(PushReaction.IGNORE)
+            .mapColor(MapColor.COLOR_RED)
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
@@ -123,7 +132,10 @@ public class ModRegistries {
     ));
 
     public static RegistrySupplier<Block> endRespawnObelisk = blocks.register(rl("respawn_obelisk_end"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of(Material.STONE)
+            .of()
+            .sound(SoundType.STONE)
+            .pushReaction(PushReaction.IGNORE)
+            .mapColor(MapColor.COLOR_PURPLE)
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
@@ -142,8 +154,10 @@ public class ModRegistries {
 
 
     public static RegistrySupplier<Block> fakeRespawnAnchor = blocks.register(rl("fake_respawn_anchor"), () -> new FakeRespawnAnchorBlock(BlockBehaviour.Properties
-            .of(Material.STONE)
-            .strength(50.0f, 0.0f)
+            .of()
+            .sound(SoundType.STONE)
+            .pushReaction(PushReaction.IGNORE)
+            .strength(-1.0f, 3600000.0f)
             .noLootTable()
     ));
 
@@ -173,8 +187,8 @@ public class ModRegistries {
         }
 
         @Override
-        protected EntityTriggerInstance createInstance(JsonObject jsonObject, EntityPredicate.Composite composite, DeserializationContext deserializationContext) {
-            EntityPredicate.Composite entity = EntityPredicate.Composite.fromJson(jsonObject, "entity", deserializationContext);
+        protected EntityTriggerInstance createInstance(JsonObject jsonObject, ContextAwarePredicate composite, DeserializationContext deserializationContext) {
+            ContextAwarePredicate entity = EntityPredicate.fromJson(jsonObject, "entity", deserializationContext);
             return new EntityTriggerInstance(id, composite, entity);
         }
 
@@ -188,9 +202,9 @@ public class ModRegistries {
         }
     }
     public static class EntityTriggerInstance extends AbstractCriterionTriggerInstance {
-        private final EntityPredicate.Composite entity;
+        private final ContextAwarePredicate entity;
 
-        public EntityTriggerInstance(ResourceLocation resourceLocation, EntityPredicate.Composite composite, EntityPredicate.Composite entity) {
+        public EntityTriggerInstance(ResourceLocation resourceLocation, ContextAwarePredicate composite, ContextAwarePredicate entity) {
             super(resourceLocation, composite);
             this.entity = entity;
         }
@@ -207,7 +221,7 @@ public class ModRegistries {
         }
 
         @Override
-        protected ModRegistries.EmptyTriggerInstance createInstance(JsonObject jsonObject, EntityPredicate.Composite composite, DeserializationContext deserializationContext) {
+        protected ModRegistries.EmptyTriggerInstance createInstance(JsonObject jsonObject, ContextAwarePredicate composite, DeserializationContext deserializationContext) {
             return new ModRegistries.EmptyTriggerInstance(id, composite);
         }
 
@@ -221,7 +235,7 @@ public class ModRegistries {
         }
     }
     public static class EmptyTriggerInstance extends AbstractCriterionTriggerInstance {
-        public EmptyTriggerInstance(ResourceLocation id, EntityPredicate.Composite composite) {
+        public EmptyTriggerInstance(ResourceLocation id, ContextAwarePredicate composite) {
             super(id, composite);
         }
     }

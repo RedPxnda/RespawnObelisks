@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[43,)"
+loaderVersion = "[47,)"
 issueTrackerURL = "https://github.com/RedPxnda/RespawnObelisks/issues"
 license = "MIT"
 
@@ -16,27 +16,27 @@ A simple mod about overhauling the respawning system.
 [[dependencies.respawnobelisks]]
 modId = "forge"
 mandatory = true
-versionRange = "[43,)"
+versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.respawnobelisks]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.19.2,)"
+versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.respawnobelisks]]
 modId = "architectury"
 mandatory = true
-versionRange = "[6.2.43,)"
+versionRange = "[9.0.8,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.respawnobelisks]]
 modId = "resourcefulconfig"
 mandatory = true
-versionRange = "[1.0.20,)"
+versionRange = "[2.0.0,)"
 ordering = "NONE"
 side = "BOTH"

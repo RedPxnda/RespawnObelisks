@@ -39,7 +39,7 @@ public class Plugin implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new ObeliskInteractionCategory(registration.getJeiHelpers().getGuiHelper()));
+        //registration.addRecipeCategories(new ObeliskInteractionCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override

@@ -34,7 +34,7 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-${rootProject.minecraft_version}:${rootProject.resourceful_config_version}"
+    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-1.20:${rootProject.resourceful_config_version}"
 
     modApi(include("com.github.RedPxnda.Nucleus:nucleus-fabric:${rootProject.nucleus_version}"))
 

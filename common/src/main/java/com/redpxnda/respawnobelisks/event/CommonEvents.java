@@ -46,7 +46,7 @@ import java.util.UUID;
 
 public class CommonEvents {
     public static EventResult onBlockInteract(Player player, InteractionHand hand, BlockPos pos, Direction face) {
-        if (!hand.equals(InteractionHand.MAIN_HAND) || !player.getMainHandItem().is(Items.RECOVERY_COMPASS) || !(player.getLevel().getBlockState(pos).is(Blocks.LODESTONE))) return EventResult.pass();
+        if (!hand.equals(InteractionHand.MAIN_HAND) || !player.getMainHandItem().is(Items.RECOVERY_COMPASS) || !(player.level().getBlockState(pos).is(Blocks.LODESTONE))) return EventResult.pass();
         if (TeleportConfig.enableTeleportation) player.setItemInHand(hand, new ItemStack(ModRegistries.boundCompass.get()));
         BlockHitResult hitResult = new BlockHitResult(new Vec3(pos.getX(), pos.getY(), pos.getZ()), face, pos, false);
         if (player.getItemInHand(hand).getItem() instanceof BoundCompassItem item) item.useOn(new UseOnContext(player, hand, hitResult));
@@ -73,7 +73,7 @@ public class CommonEvents {
 
     public static EventResult onEntityInteract(Player player, Entity entity, InteractionHand hand) {
         ResourceLocation rl;
-        if (player.level.isClientSide || !hand.equals(InteractionHand.MAIN_HAND) || !ObeliskCore.CORES.containsKey(rl = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem())) || player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem())) return EventResult.pass();
+        if (player.level().isClientSide || !hand.equals(InteractionHand.MAIN_HAND) || !ObeliskCore.CORES.containsKey(rl = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem())) || player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem())) return EventResult.pass();
         ObeliskCore.Instance core = new ObeliskCore.Instance(player.getMainHandItem(), ObeliskCore.CORES.get(rl));
         ItemStack stack = core.stack();
         if (!stack.getOrCreateTag().contains("RespawnObeliskData"))
@@ -143,7 +143,7 @@ public class CommonEvents {
         if (oldPlayer.hasEffect(ModRegistries.immortalityCurse.get())) cloneAddCurse(newPlayer, oldPlayer);
         if (
             oldPlayer.getRespawnPosition() != null &&
-            oldPlayer.level.getBlockEntity(oldPlayer.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be
+            oldPlayer.level().getBlockEntity(oldPlayer.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be
         ) {
             be.restoreSavedItems(newPlayer);
         }

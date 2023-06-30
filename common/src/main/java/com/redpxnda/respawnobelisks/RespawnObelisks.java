@@ -16,7 +16,7 @@ import net.minecraft.server.packs.PackType;
 
 public class RespawnObelisks {
     public static final String MOD_ID = "respawnobelisks";
-    public static final Configurator CONFIGURATOR = new Configurator(true);
+    public static final Configurator CONFIGURATOR = new Configurator();
     
     public static void init() {
         CONFIGURATOR.registerConfig(RespawnObelisksConfig.class);

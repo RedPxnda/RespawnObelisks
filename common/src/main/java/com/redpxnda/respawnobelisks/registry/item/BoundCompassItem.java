@@ -98,7 +98,7 @@ public class BoundCompassItem extends CompassItem {
                 Optional<Vec3> obeliskLoc = block.getRespawnLocation(true, false, false, state, pos.pos().above(), serverLevel, serverPlayer);
                 obeliskLoc.ifPresent(vec3 -> {
                     player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 130, 0, true, false));
-                    RuneCircles.getCache(serverLevel).create(serverPlayer, serverPlayer.getMainHandItem(), pos.pos().above(), new BlockPos(vec3), serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ());
+                    RuneCircles.getCache(serverLevel).create(serverPlayer, serverPlayer.getMainHandItem(), pos.pos().above(), new BlockPos((int) vec3.x, (int) vec3.y, (int) vec3.z), serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ());
                 });
                 return InteractionResult.SUCCESS;
             }

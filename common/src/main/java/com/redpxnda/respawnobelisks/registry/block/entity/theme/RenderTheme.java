@@ -1,7 +1,7 @@
 package com.redpxnda.respawnobelisks.registry.block.entity.theme;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.redpxnda.nucleus.util.ParticleShaper;
+import com.redpxnda.nucleus.math.ParticleShaper;
 import com.redpxnda.nucleus.util.RenderUtil;
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
@@ -142,14 +142,14 @@ public interface RenderTheme {
                 int count = randomInt(rdm, 3, 6);
                 double yStart = randomDouble(rdm, 0.1, 0.2);
                 double yInc = randomDouble(rdm, 0.7, 0.75);
-                ParticleShaper.square(ParticleTypes.FLAME, 2, count, 1).fromClient().loopBetween(level, pos.getX() + 0.5, pos.getZ() + 0.5, pos.getY() + yStart, pos.getY() + 2, yInc);
+                ParticleShaper.square(ParticleTypes.FLAME, 2, count, 1).fromClient().runAt(level, pos.getX()+0.5, pos.getY()+1.5, pos.getZ()+0.5);
             }
         }, be -> {
             Level level = be.getLevel();
             assert level != null;
             BlockPos pos = be.getBlockPos();
 
-            ParticleShaper.square(ParticleTypes.FLAME, 3).fromClient().loopBetween(level, pos.getX()+0.5, pos.getZ()+0.5, pos.getY()+0.15, pos.getY()+2, 0.1);
+            ParticleShaper.square(ParticleTypes.FLAME, 3, 100, 1).fromClient().runAt(level, pos.getX()+0.5, pos.getY()+1.5, pos.getZ()+0.5);
             level.playLocalSound(
                     pos.getX(), pos.getY(), pos.getZ(),
                     SoundEvents.BLAZE_HURT, SoundSource.BLOCKS,
@@ -160,7 +160,7 @@ public interface RenderTheme {
             assert level != null;
             BlockPos pos = be.getBlockPos();
 
-            ParticleShaper.expandingSquare(ParticleTypes.FLAME, 3, 100, 1, -0.125).fromClient().loopBetween(level, pos.getX()+0.5, pos.getZ()+0.5, pos.getY()+0.15, pos.getY()+2, 0.1);
+            //ParticleShaper.expandingSquare(ParticleTypes.FLAME, 3, 100, 1, -0.125).fromClient().runAt(level, pos.getX()+1.5, pos.getY()+1.5, pos.getZ()+0.5);
             level.playLocalSound(
                     pos.getX(), pos.getY(), pos.getZ(),
                     SoundEvents.BLAZE_DEATH, SoundSource.BLOCKS,
