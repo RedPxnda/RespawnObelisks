@@ -50,7 +50,7 @@ public class ObeliskInteraction {
     public static ObeliskInteraction INFINITE_CHARGE = ofRespawn(new ResourceLocation(MOD_ID, "infinite_charge"), Injection.START, ((player, be, manager) -> {
         if (!be.hasLevel()) return;
         Block block = BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(ChargeConfig.infiniteChargeBlock)).orElse(Blocks.BEACON);
-        boolean isInfinite = block.getClass().isInstance(be.getLevel().getBlockState(be.getBlockPos().below()).getBlock());
+        boolean isInfinite = be.getLevel().getBlockState(be.getBlockPos().below()).is(block);
         if (isInfinite)
             manager.cost = 0;
     }));
