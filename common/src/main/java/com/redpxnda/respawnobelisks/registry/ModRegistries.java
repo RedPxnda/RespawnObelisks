@@ -3,6 +3,7 @@ package com.redpxnda.respawnobelisks.registry;
 import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
+import com.redpxnda.respawnobelisks.config.ObeliskDimensionsConfig;
 import com.redpxnda.respawnobelisks.data.recipe.CoreMergeRecipe;
 import com.redpxnda.respawnobelisks.data.recipe.CoreUpgradeRecipe;
 import com.redpxnda.respawnobelisks.mixin.CriteriasAccessor;
@@ -31,7 +32,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -105,7 +105,7 @@ public class ModRegistries {
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Level.OVERWORLD
+            (level, state, pos, blockEntity, player) -> ObeliskDimensionsConfig.isValidOverworld(level)
     ));
 
     public static RegistrySupplier<Item> respawnObeliskItem = regItem("respawn_obelisk", () -> new BlockItem(respawnObelisk.get(), new Item.Properties()
@@ -122,7 +122,7 @@ public class ModRegistries {
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Level.NETHER
+            (level, state, pos, blockEntity, player) -> ObeliskDimensionsConfig.isValidNether(level)
     ));
 
     public static RegistrySupplier<Item> netherRespawnObeliskItem = regItem("respawn_obelisk_nether", () -> new BlockItem(netherRespawnObelisk.get(), new Item.Properties()
@@ -139,7 +139,7 @@ public class ModRegistries {
             .noOcclusion()
             .strength(10, 3600.0F)
             .requiresCorrectToolForDrops(),
-            Level.END
+            (level, state, pos, blockEntity, player) -> ObeliskDimensionsConfig.isValidEnd(level)
     ));
 
     public static RegistrySupplier<Item> endRespawnObeliskItem = regItem("respawn_obelisk_end", () -> new BlockItem(endRespawnObelisk.get(), new Item.Properties()

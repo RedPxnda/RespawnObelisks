@@ -22,6 +22,7 @@ configurations {
 repositories {
     maven { url = "https://jitpack.io" }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
+    maven { url = "https://api.modrinth.com/maven" }
     maven { url = 'https://maven.blamejared.com' }
     maven { url = "https://maven.shedaniel.me/" }
     maven { url = "https://maven.terraformersmc.com/" }
@@ -30,13 +31,16 @@ repositories {
 
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}+${rootProject.minecraft_version}"
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-1.20:${rootProject.resourceful_config_version}"
 
     modApi(include("com.github.RedPxnda.Nucleus:nucleus-fabric:${rootProject.nucleus_version}"))
+
+    /*modImplementation("maven.modrinth:moonlight:1.20-2.8.27")
+    modImplementation("maven.modrinth:spelunkery:1.20.1-0.3.4")*/
 
     if ("${rootProject.use_trinkets}" == "true")
         modApi("dev.emi:trinkets:${rootProject.trinkets_version}")

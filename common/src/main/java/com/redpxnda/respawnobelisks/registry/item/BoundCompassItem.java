@@ -1,7 +1,7 @@
 package com.redpxnda.respawnobelisks.registry.item;
 
-import com.mojang.logging.LogUtils;
 import com.redpxnda.nucleus.util.PlayerUtil;
+import com.redpxnda.respawnobelisks.RespawnObelisks;
 import com.redpxnda.respawnobelisks.config.TeleportConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class BoundCompassItem extends CompassItem {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = RespawnObelisks.getLogger();
 
     public BoundCompassItem(Properties properties) {
         super(properties);

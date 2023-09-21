@@ -3,10 +3,14 @@ package com.redpxnda.respawnobelisks.registry.block;
 import com.redpxnda.respawnobelisks.config.*;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
-import com.redpxnda.respawnobelisks.network.*;
+import com.redpxnda.respawnobelisks.network.ModPackets;
+import com.redpxnda.respawnobelisks.network.ParticleAnimationPacket;
+import com.redpxnda.respawnobelisks.network.PlaySoundPacket;
+import com.redpxnda.respawnobelisks.network.PlayTotemAnimationPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
+import com.redpxnda.respawnobelisks.util.DimensionValidator;
 import com.redpxnda.respawnobelisks.util.ObeliskUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,7 +19,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,7 +26,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,7 +36,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.*;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
@@ -52,7 +56,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 import static com.redpxnda.respawnobelisks.registry.ModRegistries.immortalityCurse;
 import static com.redpxnda.respawnobelisks.util.ObeliskUtils.getAABB;
@@ -67,11 +72,11 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
     private static final VoxelShape HITBOX_TOP_BASE = Block.box(1.5D, -15.0D, 1.5D, 14.5D, 16.0D, 14.5D);
     private static final VoxelShape HITBOX_TOP_TRIM = Block.box(0D, -16D, 0D, 16D, -13D, 16D);
     private static final VoxelShape AABB_TOP = Shapes.or(HITBOX_TOP_BASE, HITBOX_TOP_TRIM);
-    public final @Nullable ResourceKey<Level> obeliskHomeDimension;
+    public final @Nullable DimensionValidator dimension;
 
-    public RespawnObeliskBlock(Properties pProperties, @Nullable ResourceKey<Level> obeliskDimension) {
+    public RespawnObeliskBlock(Properties pProperties, @Nullable DimensionValidator obeliskDimension) {
         super(pProperties);
-        this.obeliskHomeDimension = obeliskDimension;
+        this.dimension = obeliskDimension;
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(HALF, DoubleBlockHalf.LOWER)
                 .setValue(RESPAWN_SIDE, Direction.NORTH)
@@ -227,15 +232,13 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
 
                 double charge = blockEntity.getCharge(player);
                 // exploding if wrong dimension
-                if (obeliskHomeDimension != null) {
-                    if (level.dimension() != obeliskHomeDimension) {
-                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-                        level.setBlock(pos.above(), Blocks.AIR.defaultBlockState(), 3);
-                        level.setBlock(pos.below(), Blocks.AIR.defaultBlockState(), 3);
-                        level.explode(null, level.damageSources().badRespawnPointExplosion(pos.getCenter()), null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 5.0F, true, Level.ExplosionInteraction.BLOCK);
-                        ModRegistries.kaboomCriterion.trigger(player);
-                        return InteractionResult.SUCCESS;
-                    }
+                if (dimension != null && !dimension.isValid(level, state, pos, blockEntity, player)) {
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                    level.setBlock(pos.above(), Blocks.AIR.defaultBlockState(), 3);
+                    level.setBlock(pos.below(), Blocks.AIR.defaultBlockState(), 3);
+                    level.explode(null, level.damageSources().badRespawnPointExplosion(pos.getCenter()), null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 5.0F, true, Level.ExplosionInteraction.BLOCK);
+                    ModRegistries.kaboomCriterion.trigger(player);
+                    return InteractionResult.SUCCESS;
                 }
 
                 if (player.isShiftKeyDown() && player.getMainHandItem().isEmpty() && !blockEntity.getItemStack().isEmpty())

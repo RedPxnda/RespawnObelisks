@@ -42,11 +42,11 @@ public abstract class PlayerListMixin {
             method = "respawn",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;findRespawnPositionAndUseSpawnBlock(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;FZZ)Ljava/util/Optional;")
     )
-    private Optional<Vec3> findRespawnPositionAndUseSpawnBlock(ServerLevel pServerLevel, BlockPos pSpawnBlockPos, float pPlayerOrientation, boolean pIsRespawnForced, boolean pRespawnAfterWinningTheGame, Operation<Optional<Vec3>> original, ServerPlayer pPlayer) {
+    private Optional<Vec3> RESPAWNOBELISKS_findRespawnPositionAndUseSpawnBlock(ServerLevel pServerLevel, BlockPos pSpawnBlockPos, float pPlayerOrientation, boolean pIsRespawnForced, boolean pRespawnAfterWinningTheGame, Operation<Optional<Vec3>> original, ServerPlayer pPlayer) {
         BlockState blockState = pServerLevel.getBlockState(pSpawnBlockPos);
         if (RespawnObelisksConfig.isBlockBanned(blockState)) return Optional.empty();
         return blockState.getBlock() instanceof RespawnObeliskBlock block ?
                 block.getRespawnLocation(blockState, pSpawnBlockPos, pServerLevel, pPlayer) :
-                Player.findRespawnPositionAndUseSpawnBlock(pServerLevel, pSpawnBlockPos, pPlayerOrientation, pIsRespawnForced, pRespawnAfterWinningTheGame);
+                original.call(pServerLevel, pSpawnBlockPos, pPlayerOrientation, pIsRespawnForced, pRespawnAfterWinningTheGame);
     }
 }

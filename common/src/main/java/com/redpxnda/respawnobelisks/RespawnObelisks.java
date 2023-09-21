@@ -13,10 +13,13 @@ import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
 import net.minecraft.server.packs.PackType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RespawnObelisks {
     public static final String MOD_ID = "respawnobelisks";
     public static final Configurator CONFIGURATOR = new Configurator();
+    private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
     
     public static void init() {
         CONFIGURATOR.registerConfig(RespawnObelisksConfig.class);
@@ -34,5 +37,12 @@ public class RespawnObelisks {
 
         ReloadListenerRegistry.register(PackType.SERVER_DATA, new ObeliskInteractionListener());
         ReloadListenerRegistry.register(PackType.SERVER_DATA, new ObeliskCoreListener());
+    }
+
+    public static Logger getLogger() {
+        return LoggerFactory.getLogger("Respawn Obelisks: " + STACK_WALKER.getCallerClass().getSimpleName());
+    }
+    public static Logger getLogger(String name) {
+        return LoggerFactory.getLogger("Respawn Obelisks: " + name);
     }
 }

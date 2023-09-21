@@ -2,7 +2,7 @@ package com.redpxnda.respawnobelisks.data.recipe;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.mojang.logging.LogUtils;
+import com.redpxnda.respawnobelisks.RespawnObelisks;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.item.CoreItem;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import java.util.Optional;
 
 public class CoreUpgradeRecipe extends ShapedRecipe {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = RespawnObelisks.getLogger("Core Upgrading Recipe");
 
     private final ShapedRecipe compose;
     private final double charge;

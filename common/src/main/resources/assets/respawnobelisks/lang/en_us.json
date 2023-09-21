@@ -6,7 +6,7 @@
   "item.respawnobelisks.dormant_obelisk": "Dormant Obelisk",
   "item.respawnobelisks.bound_compass": "Recovery Compass",
   "item.respawnobelisks.bound_bound_compass": "Bound Recovery Compass",
-  "enchantment.respawnobelisks.obeliskbound": "Obeliskbound",
+  "enchantment.respawnobelisks.obeliskbound": "Tethered",
   "enchantment.respawnobelisks.obeliskbound.desc": "Keeps this item through death when respawning at a respawn obelisk.",
   "itemGroup.respawnobelisks.tab": "Respawn Obelisks",
 

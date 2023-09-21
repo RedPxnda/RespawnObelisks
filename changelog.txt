@@ -1,4 +1,4 @@
-# 2.3-a
-- 1.20.1 support
-- New obelisk RenderThemes (unobtainable in survival)
-- Achievements
+# 2.4-a
+- Obelisk bound renamed to tethered (#2)
+- Fix with infinite charge (#5)
+- Added config options for valid obelisk dimensions (#4)

@@ -7,7 +7,6 @@ import com.teamresourceful.resourcefulconfig.common.annotations.InlineCategory;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
 import com.teamresourceful.resourcefulconfig.web.annotations.WebInfo;
 import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -91,4 +90,7 @@ public final class RespawnObelisksConfig {
 
     @InlineCategory
     public static RespawnPerkConfig respawnPerkConfig;
+
+    @InlineCategory
+    public static ObeliskDimensionsConfig obeliskDimensionsConfig;
 }

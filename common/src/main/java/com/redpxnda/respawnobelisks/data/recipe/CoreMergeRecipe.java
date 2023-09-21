@@ -2,7 +2,7 @@ package com.redpxnda.respawnobelisks.data.recipe;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.mojang.logging.LogUtils;
+import com.redpxnda.respawnobelisks.RespawnObelisks;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.item.CoreItem;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CoreMergeRecipe extends ShapelessRecipe {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = RespawnObelisks.getLogger("Core Merging Recipe");
 
     private final ShapelessRecipe compose;
     private final double multiplier;
@@ -81,7 +81,7 @@ public class CoreMergeRecipe extends ShapelessRecipe {
             if (jsonObject.has("multiplier"))
                 if (jsonObject.get("multiplier") instanceof JsonPrimitive prim && prim.isNumber())
                     multiplier = prim.getAsDouble();
-                else LOGGER.warn("(Respawn Obelisks) Recipe Json at '" + resourceLocation + "' has invalid 'multiplier' section.");
+                else LOGGER.warn("Recipe Json at '" + resourceLocation + "' has invalid 'multiplier' section.");
             return new CoreMergeRecipe(super.fromJson(resourceLocation, jsonObject), multiplier);
         }
 

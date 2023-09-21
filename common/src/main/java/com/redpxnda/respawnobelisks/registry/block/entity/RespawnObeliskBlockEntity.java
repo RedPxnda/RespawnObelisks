@@ -1,10 +1,10 @@
 package com.redpxnda.respawnobelisks.registry.block.entity;
 
-import com.mojang.logging.LogUtils;
+import com.redpxnda.respawnobelisks.RespawnObelisks;
 import com.redpxnda.respawnobelisks.config.ObeliskCoreConfig;
 import com.redpxnda.respawnobelisks.config.TrustedPlayersConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
-import com.redpxnda.respawnobelisks.data.listener.ObeliskCore.*;
+import com.redpxnda.respawnobelisks.data.listener.ObeliskCore.Instance;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.theme.ThemeLayout;
@@ -44,7 +44,7 @@ import static com.redpxnda.respawnobelisks.registry.block.entity.theme.RenderThe
 public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventListener {
     protected final List<Consumer<CompoundTag>> loadConsumers = new ArrayList<>();
     public static final List<ResourceLocation> defaultThemes = List.of(defCharge, defDep, defRunes);
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = RespawnObelisks.getLogger();
     private static final Random random = new Random();
 
     private Instance coreItem;
