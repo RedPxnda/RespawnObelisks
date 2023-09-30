@@ -2,7 +2,7 @@ package com.redpxnda.respawnobelisks.registry.block.entity.theme;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.redpxnda.nucleus.math.ParticleShaper;
-import com.redpxnda.nucleus.util.RenderUtil;
+import com.redpxnda.nucleus.client.Rendering;
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
-import static com.redpxnda.nucleus.util.RenderUtil.lerpColors;
+import static com.redpxnda.nucleus.client.Rendering.lerpColors;
 import static com.redpxnda.respawnobelisks.registry.ModRegistries.rl;
 import static com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER.*;
 import static com.redpxnda.respawnobelisks.registry.block.entity.theme.ThemeLayout.ThemeData;
@@ -131,7 +131,7 @@ public interface RenderTheme {
                     25, 1, false
             ));
             renderSculkTendrils(be, ps, bs, pl);
-            renderSculkOverlay(RenderUtil.alphaAnimation, be, data.getDouble("lastCharge", be.getClientCharge()), pt, ps, bs, pl);
+            renderSculkOverlay(Rendering.alphaAnimation, be, data.getDouble("lastCharge", be.getClientCharge()), pt, ps, bs, pl);
         });
         register(blazing, new MultipartAnimation(blazing, be -> {
             Level level = be.getLevel();

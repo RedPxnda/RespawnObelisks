@@ -2,11 +2,6 @@ package com.redpxnda.respawnobelisks.data.listener;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.redpxnda.nucleus.datapack.references.entity.PlayerReference;
-import com.redpxnda.nucleus.datapack.references.item.ItemReference;
-import com.redpxnda.nucleus.datapack.references.item.ItemStackReference;
-import com.redpxnda.nucleus.datapack.references.storage.ComponentReference;
-import com.redpxnda.nucleus.datapack.references.storage.ResourceLocationReference;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
@@ -21,14 +16,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
-import org.luaj.vm2.LuaFunction;
-import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.lib.jse.CoerceLuaToJava;
 
 import java.util.*;
 
 import static com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction.*;
-import static org.luaj.vm2.lib.jse.CoerceJavaToLua.coerce;
 
 @SuppressWarnings("unused")
 public class ObeliskCore {
@@ -128,44 +119,20 @@ public class ObeliskCore {
             item = new ResourceLocation(str);
             return this;
         }
-        public Builder withItem(ResourceLocationReference ref) {
-            item = ref.instance;
-            return this;
-        }
-        public Builder withItem(ItemReference<?> item) {
-            this.item = BuiltInRegistries.ITEM.getKey(item.instance);
-            return this;
-        }
         public Builder chargeGetter(TriFunction<@Nullable Player, ItemStack, RespawnObeliskBlockEntity, Double> handler) {
             this.chargeProvider = handler;
-            return this;
-        }
-        public Builder chargeGetter(LuaFunction handler) {
-            this.chargeProvider = (player, stack, be) -> handler.call(coerce(new PlayerReference(player)), coerce(new ItemStackReference(stack)), coerce(new ROBEReference(be))).todouble();
             return this;
         }
         public Builder maxChargeGetter(TriFunction<@Nullable Player, ItemStack, RespawnObeliskBlockEntity, Double> handler) {
             this.maxChargeProvider = handler;
             return this;
         }
-        public Builder maxChargeGetter(LuaFunction handler) {
-            this.maxChargeProvider = (player, stack, be) -> handler.call(coerce(new PlayerReference(player)), coerce(new ItemStackReference(stack)), coerce(new ROBEReference(be))).todouble();
-            return this;
-        }
         public Builder chargeSetter(QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> handler) {
             this.chargeConsumer = handler;
             return this;
         }
-        public Builder chargeSetter(LuaFunction handler) {
-            this.chargeConsumer = (amnt, player, stack, be) -> handler.invoke(new LuaValue[]{ LuaValue.valueOf(amnt), coerce(new PlayerReference(player)), coerce(new ItemStackReference(stack)), coerce(new ROBEReference(be)) });
-            return this;
-        }
         public Builder maxChargeSetter(QuadConsumer<Double, @Nullable Player, ItemStack, RespawnObeliskBlockEntity> handler) {
             this.maxChargeConsumer = handler;
-            return this;
-        }
-        public Builder maxChargeSetter(LuaFunction handler) {
-            this.maxChargeConsumer = (amnt, player, stack, be) -> handler.invoke(new LuaValue[]{ LuaValue.valueOf(amnt), coerce(new PlayerReference(player)), coerce(new ItemStackReference(stack)), coerce(new ROBEReference(be)) });
             return this;
         }
         public Builder clearInteractions() {
@@ -176,20 +143,12 @@ public class ObeliskCore {
             interactions.add(interaction.id);
             return this;
         }
-        public Builder withInteraction(ResourceLocationReference interaction) {
-            interactions.add(interaction.instance);
-            return this;
-        }
         public Builder withInteraction(String interaction) {
             interactions.add(new ResourceLocation(interaction));
             return this;
         }
         public Builder jeiGeneralText(Component component) {
             jeiGeneral = component;
-            return this;
-        }
-        public Builder jeiGeneralText(ComponentReference<?> component) {
-            jeiGeneral = component.instance;
             return this;
         }
         public Builder jeiGeneralText(String str) {
@@ -200,20 +159,12 @@ public class ObeliskCore {
             jeiCharge = component;
             return this;
         }
-        public Builder jeiChargeText(ComponentReference<?> component) {
-            jeiCharge = component.instance;
-            return this;
-        }
         public Builder jeiChargeText(String str) {
             jeiCharge = Component.literal(str);
             return this;
         }
         public Builder jeiMaxChargeText(Component component) {
             jeiMaxCharge = component;
-            return this;
-        }
-        public Builder jeiMaxChargeText(ComponentReference<?> component) {
-            jeiMaxCharge = component.instance;
             return this;
         }
         public Builder jeiMaxChargeText(String str) {
@@ -226,22 +177,10 @@ public class ObeliskCore {
             jeiChargeItems.add(item.getDefaultInstance());
             return this;
         }
-        public Builder withChargeItem(ItemReference<?> item) {
-            if (jeiChargeItems == null)
-                jeiChargeItems = new ArrayList<>();
-            jeiChargeItems.add(item.instance.getDefaultInstance());
-            return this;
-        }
         public Builder withChargeItem(ItemStack item) {
             if (jeiChargeItems == null)
                 jeiChargeItems = new ArrayList<>();
             jeiChargeItems.add(item);
-            return this;
-        }
-        public Builder withChargeItem(ItemStackReference item) {
-            if (jeiChargeItems == null)
-                jeiChargeItems = new ArrayList<>();
-            jeiChargeItems.add(item.instance);
             return this;
         }
         public Builder alwaysRequiresPlayer(boolean bl) {
@@ -252,10 +191,8 @@ public class ObeliskCore {
             item = new ResourceLocation(str);
             return this;
         }
-        public Builder defaultInstanceHandler(LuaFunction function) {
-            stack = (ItemStack) CoerceLuaToJava.coerce(function.call(
-                    coerce(new ItemStackReference(BuiltInRegistries.ITEM.getOptional(item).orElse(Items.AIR).getDefaultInstance()))
-            ), ItemStack.class);
+        public Builder defaultInstance(ItemStack item) {
+            stack = item;
             return this;
         }
         public Builder withTheme(String str) {
@@ -264,10 +201,6 @@ public class ObeliskCore {
         }
         public Builder withTheme(ResourceLocation loc) {
             themes.add(loc);
-            return this;
-        }
-        public Builder withTheme(ResourceLocationReference loc) {
-            themes.add(loc.instance);
             return this;
         }
 

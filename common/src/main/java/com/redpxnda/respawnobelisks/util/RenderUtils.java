@@ -1,7 +1,9 @@
 package com.redpxnda.respawnobelisks.util;
 
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import com.redpxnda.respawnobelisks.config.ReviveConfig;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
@@ -10,7 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.BlazeRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -20,20 +21,26 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
-import java.util.List;
 import java.util.Random;
 
-import static com.redpxnda.nucleus.util.RenderUtil.*;
+import static com.redpxnda.nucleus.client.Rendering.*;
 import static com.redpxnda.respawnobelisks.registry.ModRegistries.rl;
+import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderUtils {
+    public static RenderType particleTranslucent = RenderType.create(
+            "respawn_obelisks_particle_translucent", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS,
+            0x200000, true, true,
+            RenderType.CompositeState.builder()
+                    .setLightmapState(LIGHTMAP).setShaderState(RENDERTYPE_TRANSLUCENT_SHADER)
+                    .setTextureState(new TextureStateShard(TextureAtlas.LOCATION_PARTICLES, false, true)).setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setOutputState(TRANSLUCENT_TARGET).createCompositeState(true));
     private static ItemStack totemStack = null;
     private static Blaze blaze = null;
     private static TextureAtlasSprite sculkSprite;
@@ -91,7 +98,7 @@ public class RenderUtils {
 
         poseStack.translate(0.5, 18/16f, 0.5);
         for (int i = 0; i < 4; i++) {
-            addQuad(false, poseStack.last().pose(), vc, colors[0], colors[1], colors[2], (float) (blockEntity.getClientCharge()/blockEntity.getClientMaxCharge()), 9/32f, 24/32f, -5.505f/16f, 0, sprite.getU(3), sprite.getU(12), sprite.getV(2), sprite.getV(14), packedLight);
+            addQuad(false, poseStack, vc, colors[0], colors[1], colors[2], (float) (blockEntity.getClientCharge()/blockEntity.getClientMaxCharge()), 9/32f, 24/32f, -5.505f/16f, 0, sprite.getU(3), sprite.getU(12), sprite.getV(2), sprite.getV(14), packedLight);
             poseStack.mulPose(Axis.YP.rotationDegrees(90));
         }
         poseStack.popPose();
@@ -104,7 +111,7 @@ public class RenderUtils {
 
         poseStack.translate(0.5, 18/16f, 0.5);
         for (int i = 0; i < 4; i++) {
-            addQuad(false, poseStack.last().pose(), vc, 1f, 1f, 1f, (float) (charge/blockEntity.getClientMaxCharge()), 9/32f, 24/32f, -5.505f/16f, 0, sculkSprite.getU0(), sculkSprite.getU(4.5), sculkSprite.getV0(), sculkSprite.getV(12), packedLight);
+            addQuad(false, poseStack, vc, 1f, 1f, 1f, (float) (charge/blockEntity.getClientMaxCharge()), 9/32f, 24/32f, -5.505f/16f, 0, sculkSprite.getU0(), sculkSprite.getU(4.5), sculkSprite.getV0(), sculkSprite.getV(12), packedLight);
             poseStack.mulPose(Axis.YP.rotationDegrees(90));
         }
         poseStack.popPose();
@@ -144,8 +151,8 @@ public class RenderUtils {
         }
         float size = 4;
         poseStack.mulPose(Axis.YP.rotationDegrees(90*direction));
-        addQuad((f, bl) -> (bl ? f : 0f)-size/2, (f, bl) -> (bl ? 0f : f)-size/2, poseStack.last().pose(), vc, 1f, 1f, 1f, alpha, size*progress, size, 0, sprite.getU0(), sprite.getU(progress*16f), sprite.getV0(), sprite.getV1(), light);
-        addQuad((f, bl) -> 0f-size/2, (f, bl) -> f-size/2, poseStack.last().pose(), vc, 1f, 1f, 1f, alpha, size*progress, size, 0, sprite.getU0(), sprite.getU(progress*16f), sprite.getV1(), sprite.getV0(), light);
+        addQuad((f, bl) -> (bl ? f : 0f)-size/2, (f, bl) -> (bl ? 0f : f)-size/2, poseStack, vc, 1f, 1f, 1f, alpha, size*progress, size, 0, sprite.getU0(), sprite.getU(progress*16f), sprite.getV0(), sprite.getV1(), light);
+        addQuad((f, bl) -> 0f-size/2, (f, bl) -> f-size/2, poseStack, vc, 1f, 1f, 1f, alpha, size*progress, size, 0, sprite.getU0(), sprite.getU(progress*16f), sprite.getV1(), sprite.getV0(), light);
 
         poseStack.popPose();
     }

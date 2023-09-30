@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
 import static com.redpxnda.respawnobelisks.util.RenderUtils.*;
-import static com.redpxnda.nucleus.util.RenderUtil.*;
+import static com.redpxnda.nucleus.client.Rendering.*;
 
 public class RespawnObeliskBER implements BlockEntityRenderer<RespawnObeliskBlockEntity> {
 

@@ -1,16 +1,15 @@
 package com.redpxnda.respawnobelisks.event;
 
-import com.mojang.math.Axis;
-import com.redpxnda.nucleus.registry.particles.DynamicParticle;
-import com.redpxnda.nucleus.util.RenderUtil;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.ScrollWheelPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBER;
 import com.redpxnda.respawnobelisks.registry.particle.ChargeIndicatorParticle;
+import com.redpxnda.respawnobelisks.registry.particle.DepleteRingParticle;
 import dev.architectury.event.EventResult;
-import dev.architectury.event.events.client.*;
+import dev.architectury.event.events.client.ClientLifecycleEvent;
+import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.registry.client.particle.ParticleProviderRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import net.minecraft.client.Minecraft;
@@ -50,15 +49,7 @@ public class ClientEvents {
     }
 
     public static void registerParticleProviders() {
-        ParticleProviderRegistry.register(ModRegistries.depleteRingParticle, set -> new DynamicParticle.Provider(set,
-                setup -> setup.setLifetime(50),
-                tick -> {
-                    tick.scale+=0.25/(tick.getAge()/4f + 1);
-                    if (tick.getAge() > 38)
-                        tick.alpha-=0.05;
-                },
-                (render, vecs) -> RenderUtil.rotateVectors(vecs, Axis.XP.rotationDegrees(90f))
-        ));
-        ParticleProviderRegistry.register(ModRegistries.chargeIndicatorParticle, new ChargeIndicatorParticle.Provider());
+        ParticleProviderRegistry.register(ModRegistries.depleteRingParticle, DepleteRingParticle.Provider::new);
+        ParticleProviderRegistry.register(ModRegistries.chargeIndicatorParticle, ChargeIndicatorParticle.Provider::new);
     }
 }

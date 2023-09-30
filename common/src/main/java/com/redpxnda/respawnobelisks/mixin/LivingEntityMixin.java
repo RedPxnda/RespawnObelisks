@@ -1,5 +1,6 @@
 package com.redpxnda.respawnobelisks.mixin;
 
+import com.redpxnda.nucleus.math.MathUtil;
 import com.redpxnda.nucleus.util.PlayerUtil;
 import com.redpxnda.respawnobelisks.config.RespawnPerkConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
@@ -22,12 +23,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
-    private static Random random = new Random();
-
     @Inject(
             method = "dropAllDeathLoot",
             at = @At("HEAD")
@@ -54,8 +52,8 @@ public abstract class LivingEntityMixin {
                 List<ItemStack> stacks = new ArrayList<>(
                         player.getInventory().armor.stream().map(i -> {
                             if (
-                                    (RespawnPerkConfig.Armor.keepArmor && random.nextInt(100) <= RespawnPerkConfig.Armor.keepArmorChance-1) ||
-                                    (ObeliskUtils.shouldEnchantmentApply(i, random))
+                                    (RespawnPerkConfig.Armor.keepArmor && MathUtil.random.nextInt(100) <= RespawnPerkConfig.Armor.keepArmorChance-1) ||
+                                    (ObeliskUtils.shouldEnchantmentApply(i, MathUtil.random))
                             ) {
                                 int index = player.getInventory().armor.indexOf(i);
                                 player.getInventory().armor.set(index, ItemStack.EMPTY);
@@ -70,8 +68,8 @@ public abstract class LivingEntityMixin {
             if (!player.getOffhandItem().isEmpty() && inventory.isOffhandEmpty()) {
                 inventory.offhand.clear();
                 if (
-                        (RespawnPerkConfig.Offhand.keepOffhand && random.nextInt(100) <= RespawnPerkConfig.Offhand.keepOffhandChance-1) ||
-                        (ObeliskUtils.shouldEnchantmentApply(player.getOffhandItem(), random))
+                        (RespawnPerkConfig.Offhand.keepOffhand && MathUtil.random.nextInt(100) <= RespawnPerkConfig.Offhand.keepOffhandChance-1) ||
+                        (ObeliskUtils.shouldEnchantmentApply(player.getOffhandItem(), MathUtil.random))
                 ) {
                     inventory.offhand.add(player.getOffhandItem());
                     player.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
@@ -84,8 +82,8 @@ public abstract class LivingEntityMixin {
                 double chance = onlyHotbar ? RespawnPerkConfig.Hotbar.keepHotbarChance : RespawnPerkConfig.Inventory.keepInventoryChance;
                 List<ItemStack> stacks = new ArrayList<>(rawStacks.stream().map(i -> {
                     if (
-                            ((RespawnPerkConfig.Inventory.keepInventory || RespawnPerkConfig.Hotbar.keepHotbar) && random.nextInt(100) <= chance) ||
-                            (ObeliskUtils.shouldEnchantmentApply(i, random))
+                            ((RespawnPerkConfig.Inventory.keepInventory || RespawnPerkConfig.Hotbar.keepHotbar) && MathUtil.random.nextInt(100) <= chance) ||
+                            (ObeliskUtils.shouldEnchantmentApply(i, MathUtil.random))
                     ) {
                         int index = player.getInventory().items.indexOf(i);
                         player.getInventory().items.set(index, ItemStack.EMPTY);

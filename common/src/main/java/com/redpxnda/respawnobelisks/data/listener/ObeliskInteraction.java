@@ -2,13 +2,8 @@ package com.redpxnda.respawnobelisks.data.listener;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.redpxnda.nucleus.datapack.references.GameEventReference;
-import com.redpxnda.nucleus.datapack.references.entity.PlayerReference;
-import com.redpxnda.nucleus.datapack.references.item.ItemStackReference;
-import com.redpxnda.nucleus.datapack.references.storage.Vec3Reference;
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -19,13 +14,14 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.function.TriFunction;
 import org.apache.logging.log4j.util.TriConsumer;
-import org.luaj.vm2.LuaFunction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
-import static org.luaj.vm2.lib.jse.CoerceJavaToLua.coerce;
 
 public class ObeliskInteraction {
     public static Map<GameEvent, Map<ResourceLocation, ObeliskInteraction>> EVENT_INTERACTIONS = new HashMap<>();
@@ -103,33 +99,11 @@ public class ObeliskInteraction {
     public static ObeliskInteraction ofEvent(ResourceLocation id, GameEvent event, BiFunction<RespawnObeliskBlockEntity, GameEvent.ListenerInfo, Boolean> handler) {
         return new ObeliskInteraction(event, id, handler);
     }
-    public static ObeliskInteraction ofEvent(String id, String event, LuaFunction handler) {
-        return new ObeliskInteraction(BuiltInRegistries.GAME_EVENT.get(new ResourceLocation(event)), new ResourceLocation(id), (be, message) -> handler.call(
-                coerce(new ROBEReference(be)),
-                coerce(new GameEventReference.Info(message)))
-                .toboolean()
-        );
-    }
     public static ObeliskInteraction ofClick(ResourceLocation id, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Boolean> handler) {
         return new ObeliskInteraction(id, handler);
     }
-    public static ObeliskInteraction ofClick(String id, LuaFunction handler) {
-        return new ObeliskInteraction(new ResourceLocation(id), (player, item, be) -> handler.call(
-                coerce(new PlayerReference(player)),
-                coerce(new ItemStackReference(item)),
-                coerce(new ROBEReference(be)))
-                .toboolean()
-        );
-    }
     public static ObeliskInteraction ofRespawn(ResourceLocation id, Injection injection, TriConsumer<Player, RespawnObeliskBlockEntity, Manager> handler) {
         return new ObeliskInteraction(id, injection, handler);
-    }
-    public static ObeliskInteraction ofRespawn(String id, Injection injection, LuaFunction handler) {
-        return new ObeliskInteraction(new ResourceLocation(id), injection, (player, be, manager) -> handler.call(
-                coerce(new PlayerReference(player)),
-                coerce(new ROBEReference(be)),
-                coerce(manager)
-        ));
     }
 
     /**
@@ -161,20 +135,12 @@ public class ObeliskInteraction {
             this.cost = cost;
         }
 
-        public Vec3 getSpawnLocActual() {
+        public Vec3 getSpawnLoc() {
             return spawnLoc;
-        }
-
-        public Vec3Reference getSpawnLoc() {
-            return new Vec3Reference(spawnLoc);
         }
 
         public void setSpawnLoc(Vec3 spawnLoc) {
             this.spawnLoc = spawnLoc;
-        }
-
-        public void setSpawnLoc(Vec3Reference ref) {
-            this.spawnLoc = ref.instance;
         }
     }
 }

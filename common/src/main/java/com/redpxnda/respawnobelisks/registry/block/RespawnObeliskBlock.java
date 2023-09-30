@@ -204,7 +204,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
             for (ObeliskInteraction i : ObeliskInteraction.RESPAWN_INTERACTIONS.get(ObeliskInteraction.Injection.END)) { // Obelisk Respawn Interactions, for the end injection point
                 ObeliskInteraction.Manager manager = new ObeliskInteraction.Manager(cost, vec);
                 i.respawnHandler.accept(player, blockEntity, manager);
-                vec = manager.getSpawnLocActual();
+                vec = manager.getSpawnLoc();
             }
 
             ModRegistries.respawnCriterion.trigger(player); // achievement bs
