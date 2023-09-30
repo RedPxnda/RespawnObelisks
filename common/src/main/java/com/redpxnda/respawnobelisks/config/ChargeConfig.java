@@ -4,13 +4,12 @@ import com.teamresourceful.resourcefulconfig.common.annotations.Category;
 import com.teamresourceful.resourcefulconfig.common.annotations.Comment;
 import com.teamresourceful.resourcefulconfig.common.annotations.ConfigEntry;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.HashMap;
+import java.util.Map;
 
 @Category(id = "charge", translation = "text.respawnobelisks.config.charge_config")
 public final class ChargeConfig {
@@ -83,6 +82,18 @@ public final class ChargeConfig {
     )
     @Comment("Whether players can set their spawn at obelisks without charge.")
     public static boolean allowEmptySpawnSetting = false;
+
+    /*@ConfigEntry(
+            id = "forgivingRespawn",
+            type = EntryType.BOOLEAN,
+            translation = "text.respawnobelisks.config.forgiving_respawn" //todo implement? issue was with saving items....
+    )
+    @Comment("""
+            If the curse is enabled, this does nothing.
+            This determines whether the player can respawn at an obelisk that has less charge than the cost to respawn.
+            For example, if this is true, a player can still respawn at an obelisk with 1 charge, even though the cost of respawning is 20(by default)."""
+    )*/
+    public static boolean forgivingRespawn = true;
 
 /*    @ConfigEntry(
             id = "enablePerPlayerCharge",

@@ -170,8 +170,8 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
             if (charge-cost >= 0 && shouldCost && !forceCurse) player.removeEffect(immortalityCurse.get()); // remove curse if charge
 
             MobEffectInstance mei = null;
-            if (player.hasEffect(immortalityCurse.get()) && (mei = player.getEffect(immortalityCurse.get())).getAmplifier() >= CurseConfig.curseMaxLevel-1)
-                return Optional.empty(); // if curse level is over the max, send to spawn
+            if ((!CurseConfig.enableCurse && charge - (ChargeConfig.forgivingRespawn ? 0 : cost) <= 0) || (player.hasEffect(immortalityCurse.get()) && (mei = player.getEffect(immortalityCurse.get())).getAmplifier() >= CurseConfig.curseMaxLevel-1))
+                return Optional.empty(); // if curse level is over the max, or no charge and curse is disabled, send to spawn
 
             boolean hasPlayedCurseAnim = false;
             if (CurseConfig.enableCurse && (charge-cost < 0 || forceCurse) && shouldCost) { // if cost brings charge below 0, curse

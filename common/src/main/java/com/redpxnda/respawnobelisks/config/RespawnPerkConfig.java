@@ -1,16 +1,10 @@
 package com.redpxnda.respawnobelisks.config;
 
-import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.teamresourceful.resourcefulconfig.common.annotations.Category;
 import com.teamresourceful.resourcefulconfig.common.annotations.Comment;
 import com.teamresourceful.resourcefulconfig.common.annotations.ConfigEntry;
 import com.teamresourceful.resourcefulconfig.common.annotations.InlineCategory;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-
-import java.util.function.Supplier;
 
 @Category(id = "perks", translation = "text.respawnobelisks.config.perks_config")
 public final class RespawnPerkConfig {
@@ -19,7 +13,7 @@ public final class RespawnPerkConfig {
             type = EntryType.DOUBLE,
             translation = "text.respawnobelisks.config.min_keep_item_charge"
     )
-    @Comment("Minimum charge required to keep items on death when respawning at obelisks. Negative (or 0) amounts will disable this requirement.")
+    @Comment("Minimum charge required to keep items on death when respawning at obelisks. Negative amounts (or 0) will disable this requirement.")
     public static double minKeepItemCharge = 1;
 
     @ConfigEntry(
