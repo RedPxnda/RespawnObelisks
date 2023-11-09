@@ -1,0 +1,13 @@
+{
+  "entities": "$chested_horses",
+  "adjusters": [
+    {
+      "type": "remove",
+      "target": "Items"
+    },
+    {
+      "type": "remove",
+      "target": "ChestedHorse"
+    }
+  ]
+}

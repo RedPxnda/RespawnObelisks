@@ -3,6 +3,7 @@ package com.redpxnda.respawnobelisks.event;
 import com.redpxnda.respawnobelisks.config.*;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
+import com.redpxnda.respawnobelisks.data.listener.RevivedNbtEditing;
 import com.redpxnda.respawnobelisks.data.saved.AnchorExplosions;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
 import com.redpxnda.respawnobelisks.network.ModPackets;
@@ -23,6 +24,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -89,19 +93,24 @@ public class CommonEvents {
                     CompoundTag entityTag = new CompoundTag();
 
                     entityTag.putUUID("uuid", entity.getUUID());
-                    entityTag.putString("type", BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString()); // putting the type in
-                    entityTag.put("data", new CompoundTag()); // data initialization
-                    entityTag.getCompound("data").putString("DeathLootTable", "minecraft:empty");
-                    entity.saveWithoutId(entityTag.getCompound("data")); // putting data in
+                    entityTag.putString("type", BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString());
+                    CompoundTag dataTag = new CompoundTag();
+                    entity.saveWithoutId(dataTag); // filling data info
+                    RevivedNbtEditing.modify(dataTag, entity);
+                    entityTag.put("data", dataTag);
 
                     if (!listTag.contains(entityTag)) {
                         listTag.add(entityTag); // add entity to item nbt
-                        player.getCooldowns().addCooldown(stack.getItem(), 100); // add item cooldown
+                        player.getCooldowns().addCooldown(stack.getItem(), 50); // add item cooldown
+                        player.sendSystemMessage(
+                                Component.translatable("text.respawnobelisks.revive_mob_warning")
+                                .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                        Component.translatable("text.respawnobelisks.revive_mob_warning.hover")))));
                         return EventResult.interruptFalse();
                     }
                 } else {
                     removeUUID(listTag, entity.getUUID());
-                    player.getCooldowns().addCooldown(stack.getItem(), 100);
+                    player.getCooldowns().addCooldown(stack.getItem(), 50);
                 }
             }
         }

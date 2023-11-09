@@ -324,6 +324,7 @@ public class RespawnObeliskBlock extends Block implements EntityBlock {
                     if (toSummon == null) continue;
                     toSummon.load(compound.getCompound("data"));
                     toSummon.setPos(pos.getX()+0.5, pos.getY()+2.5, pos.getZ()+0.5);
+                    toSummon.addTag("respawnobelisks:no_drops_entity");
                     player.level().addFreshEntity(toSummon);
                     ModRegistries.reviveCriterion.trigger(player, toSummon);
                     if (toSummon instanceof Villager villager)

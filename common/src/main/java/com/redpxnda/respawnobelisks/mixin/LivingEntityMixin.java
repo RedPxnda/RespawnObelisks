@@ -24,15 +24,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("ConstantValue")
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
     @Inject(
             method = "dropAllDeathLoot",
-            at = @At("HEAD")
-    )
+            at = @At("HEAD"),
+            cancellable = true)
     private void RESPAWNOBELISKS_preventEquipmentDrop(DamageSource damageSource, CallbackInfo ci) {
+        if (((LivingEntity) ((Object) this)).getTags().contains("respawnobelisks:no_drops_entity"))
+            ci.cancel();
         if (
-                (Object)this instanceof ServerPlayer player &&
+                (Object) this instanceof ServerPlayer player &&
                 !player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) &&
                 player.getRespawnPosition() != null &&
                 player.level().getBlockEntity(player.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be &&

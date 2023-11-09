@@ -1,0 +1,7 @@
+{
+  "entities": "$horse_likes",
+  "adjusters": {
+    "type": "remove",
+    "target": "SaddleItem"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "entities": "$mobs",
+  "adjusters": [
+    {
+      "type": "remove",
+      "target": "ArmorItems"
+    },
+    {
+      "type": "remove",
+      "target": "HandItems"
+    }
+  ]
+}

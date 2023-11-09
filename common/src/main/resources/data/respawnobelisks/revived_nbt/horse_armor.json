@@ -1,0 +1,7 @@
+{
+  "entities": "minecraft:horse",
+  "adjusters": {
+    "type": "remove",
+    "target": "ArmorItem"
+  }
+}

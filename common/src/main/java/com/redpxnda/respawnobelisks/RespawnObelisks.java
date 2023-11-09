@@ -1,14 +1,18 @@
 package com.redpxnda.respawnobelisks;
 
+import com.google.gson.Gson;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
+import com.redpxnda.respawnobelisks.data.listener.RevivedNbtEditing;
 import com.redpxnda.respawnobelisks.event.ClientEvents;
 import com.redpxnda.respawnobelisks.event.CommonEvents;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.theme.RenderTheme;
 import com.teamresourceful.resourcefulconfig.common.config.Configurator;
+import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
+import net.minecraft.server.packs.PackType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +20,7 @@ public class RespawnObelisks {
     public static final String MOD_ID = "respawnobelisks";
     public static final Configurator CONFIGURATOR = new Configurator();
     private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
+    public static final Gson GSON = new Gson();
     
     public static void init() {
         CONFIGURATOR.registerConfig(RespawnObelisksConfig.class);
@@ -30,6 +35,8 @@ public class RespawnObelisks {
             RenderTheme.init();
             ClientEvents.registerParticleProviders();
         });
+
+        ReloadListenerRegistry.register(PackType.SERVER_DATA, new RevivedNbtEditing());
     }
 
     public static Logger getLogger() {
