@@ -105,6 +105,7 @@ subprojects {
             projectId = env.MODRINTH_PROJECT
             uploadFile = tasks.remapJar
             versionNumber = "${rootProject.mod_version}"
+            versionName = "(${modLoader}) ${rootProject.mod_version}"
             gameVersions = [minecraft_version]
             loaders = [modLoader]
             changelog = changelogText
@@ -137,7 +138,9 @@ subprojects {
                 addGameVersion minecraft_version
                 addGameVersion modLoader.capitalize()
 
-                mainArtifact(tasks.remapJar)
+                mainArtifact(tasks.remapJar) {
+                    displayName = "(${modLoader}) ${rootProject.mod_version}"
+                }
 
                 if (modLoader == "fabric") {
                     relations {
