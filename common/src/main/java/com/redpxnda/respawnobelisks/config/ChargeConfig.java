@@ -1,18 +1,24 @@
 package com.redpxnda.respawnobelisks.config;
 
+import com.mojang.datafixers.util.Either;
 import com.teamresourceful.resourcefulconfig.common.annotations.Category;
 import com.teamresourceful.resourcefulconfig.common.annotations.Comment;
 import com.teamresourceful.resourcefulconfig.common.annotations.ConfigEntry;
 import com.teamresourceful.resourcefulconfig.common.config.EntryType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Category(id = "charge", translation = "text.respawnobelisks.config.charge_config")
 public final class ChargeConfig {
+    private static Either<TagKey<Block>, Block> infiniteCharger = null;
     private static Map<Item, Double> chargeItems = null;
     @ConfigEntry(
             id = "obeliskChargeItems",
@@ -72,8 +78,21 @@ public final class ChargeConfig {
             type = EntryType.STRING,
             translation = "text.respawnobelisks.config.infinite_charge_block"
     )
-    @Comment("Block placed under an obelisk to allow for infinite charge.")
+    @Comment("Block placed under an obelisk to allow for infinite charge. (Prefix with # for tags)")
     public static String infiniteChargeBlock = "minecraft:beacon";
+    public static boolean isInfiniteCharger(BlockState block) {
+        if (infiniteCharger == null) {
+            if (infiniteChargeBlock.startsWith("#"))
+                infiniteCharger = Either.left(TagKey.create(Registries.BLOCK, new ResourceLocation(infiniteChargeBlock.substring(1))));
+            else
+                infiniteCharger = Either.right(BuiltInRegistries.BLOCK.get(new ResourceLocation(infiniteChargeBlock)));
+        }
+
+        if (infiniteCharger.left().isPresent())
+            return block.is(infiniteCharger.left().get());
+        else
+            return block.is(infiniteCharger.right().get());
+    }
 
     @ConfigEntry(
             id = "allowEmptySpawnSetting",

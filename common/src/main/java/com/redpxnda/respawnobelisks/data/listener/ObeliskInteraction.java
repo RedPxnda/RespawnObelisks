@@ -4,12 +4,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.redpxnda.respawnobelisks.config.ChargeConfig;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.function.TriFunction;
@@ -45,9 +42,7 @@ public class ObeliskInteraction {
     });
     public static ObeliskInteraction INFINITE_CHARGE = ofRespawn(new ResourceLocation(MOD_ID, "infinite_charge"), Injection.START, ((player, be, manager) -> {
         if (!be.hasLevel()) return;
-        Block block = BuiltInRegistries.BLOCK.getOptional(new ResourceLocation(ChargeConfig.infiniteChargeBlock)).orElse(Blocks.BEACON);
-        boolean isInfinite = be.getLevel().getBlockState(be.getBlockPos().below()).is(block);
-        if (isInfinite)
+        if (ChargeConfig.isInfiniteCharger(be.getLevel().getBlockState(be.getBlockPos().below())))
             manager.cost = 0;
     }));
     public static ObeliskInteraction TELEPORT = new ObeliskInteraction(new ResourceLocation(MOD_ID, "teleportation"));
