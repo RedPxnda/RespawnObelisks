@@ -1,3 +1,3 @@
-# 2.4-b
-- Fixed respawning at an empty obelisk core
-- Fixed duplication glitch with donkeys, and created a system for clearing special data from other entities (#7)
+# 2.4-c
+- Updated nucleus dependency (should fix miapi incompat & supporter data failure)
+- Added support for tags in the infinite charge block config
