@@ -20,6 +20,10 @@ configurations {
 }
 
 repositories {
+    maven {
+        url 'http://trulymodular.duckdns.org/maven'
+        allowInsecureProtocol = true
+    }
     maven { url = "https://jitpack.io" }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
     maven { url = "https://api.modrinth.com/maven" }
@@ -37,7 +41,7 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-1.20:${rootProject.resourceful_config_version}"
 
-    modApi(include("com.github.RedPxnda.Nucleus:nucleus-fabric:${rootProject.nucleus_version}"))
+    modApi(include("com.RedPxnda.Nucleus:nucleus-fabric:${rootProject.minecraft_version}-${rootProject.nucleus_version}"))
 
     /*modImplementation("maven.modrinth:moonlight:1.20-2.8.27")
     modImplementation("maven.modrinth:spelunkery:1.20.1-0.3.4")*/

@@ -28,6 +28,10 @@ configurations {
 }
 
 repositories {
+    maven {
+        url 'http://trulymodular.duckdns.org/maven'
+        allowInsecureProtocol = true
+    }
     maven { url = "https://jitpack.io" }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
     maven { url = 'https://maven.blamejared.com' }
@@ -42,7 +46,7 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-1.20:${rootProject.resourceful_config_version}"
 
-    modApi(include("com.github.RedPxnda.Nucleus:nucleus-forge:${rootProject.nucleus_version}"))
+    modApi(include("com.RedPxnda.Nucleus:nucleus-forge:${rootProject.minecraft_version}-${rootProject.nucleus_version}"))
 
     if ("${rootProject.use_curios}" == "true")
         modRuntimeOnly("top.theillusivec4.curios:curios-forge:${rootProject.curios_version}+${rootProject.minecraft_version}")
