@@ -20,10 +20,7 @@ configurations {
 }
 
 repositories {
-    maven {
-        url 'http://trulymodular.duckdns.org/maven'
-        allowInsecureProtocol = true
-    }
+    maven { url = "https://maven.uuid.gg/releases" }
     maven { url = "https://jitpack.io" }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
     maven { url = "https://api.modrinth.com/maven" }
@@ -41,7 +38,8 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-1.20:${rootProject.resourceful_config_version}"
 
-    modApi(include("com.RedPxnda.Nucleus:nucleus-fabric:${rootProject.minecraft_version}-${rootProject.nucleus_version}"))
+    modApi(include("com.redpxnda.nucleus:core-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_version}"))
+    //modApi(include("com.redpxnda.nucleus:codec-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_version}"))
 
     /*modImplementation("maven.modrinth:moonlight:1.20-2.8.27")
     modImplementation("maven.modrinth:spelunkery:1.20.1-0.3.4")*/
@@ -64,8 +62,7 @@ dependencies {
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-api-fabric:${rootProject.rei_version}")
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${rootProject.rei_version}")
 
-    annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
-    implementation(include(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}"))
+    include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${rootProject.mixin_extras_version}")))
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }

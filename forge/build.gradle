@@ -28,10 +28,7 @@ configurations {
 }
 
 repositories {
-    maven {
-        url 'http://trulymodular.duckdns.org/maven'
-        allowInsecureProtocol = true
-    }
+    maven { url = "https://maven.uuid.gg/releases" }
     maven { url = "https://jitpack.io" }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
     maven { url = 'https://maven.blamejared.com' }
@@ -46,7 +43,8 @@ dependencies {
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-1.20:${rootProject.resourceful_config_version}"
 
-    modApi(include("com.RedPxnda.Nucleus:nucleus-forge:${rootProject.minecraft_version}-${rootProject.nucleus_version}"))
+    modApi(include("com.redpxnda.nucleus:core-forge:${rootProject.minecraft_version}+${rootProject.nucleus_version}"))
+    //modApi(include("com.redpxnda.nucleus:codec-forge:${rootProject.minecraft_version}+${rootProject.nucleus_version}"))
 
     if ("${rootProject.use_curios}" == "true")
         modRuntimeOnly("top.theillusivec4.curios:curios-forge:${rootProject.curios_version}+${rootProject.minecraft_version}")
@@ -60,15 +58,13 @@ dependencies {
         transitive = false
     }
 
-    forgeRuntimeLibrary('com.github.ezylang:EvalEx:3.0.4')
-
     if ("${rootProject.use_rei}" == "true")
         modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-forge:${rootProject.rei_version}")
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-api-forge:${rootProject.rei_version}")
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-default-plugin-forge:${rootProject.rei_version}")
 
-    annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
-    forgeRuntimeLibrary(include(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}"))
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${rootProject.mixin_extras_version}"))
+    implementation(include("io.github.llamalad7:mixinextras-forge:${rootProject.mixin_extras_version}"))
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }

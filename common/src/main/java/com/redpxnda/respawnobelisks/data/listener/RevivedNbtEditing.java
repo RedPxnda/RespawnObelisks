@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
-import com.redpxnda.nucleus.codec.InterfaceDispatcher;
+import com.redpxnda.nucleus.util.InterfaceDispatcher;
 import com.redpxnda.nucleus.util.MiscUtil;
 import com.redpxnda.respawnobelisks.RespawnObelisks;
 import net.minecraft.core.registries.BuiltInRegistries;

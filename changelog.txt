@@ -1,3 +1,2 @@
-# 2.4-c
-- Updated nucleus dependency (should fix miapi incompat & supporter data failure)
-- Added support for tags in the infinite charge block config
+# 2.4-d
+- Updated nucleus dependency (should fix #11)

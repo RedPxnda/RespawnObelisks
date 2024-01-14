@@ -7,10 +7,7 @@ loom {
 }
 
 repositories {
-    maven {
-        url 'http://trulymodular.duckdns.org/maven'
-        allowInsecureProtocol = true
-    }
+    maven { url = "https://maven.uuid.gg/releases" }
     maven { url = "https://jitpack.io" }
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
     maven { url = 'https://maven.blamejared.com' }
@@ -24,7 +21,8 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 
-    modApi "com.RedPxnda.Nucleus:nucleus-common:${rootProject.minecraft_version}-${rootProject.nucleus_version}"
+    modApi "com.redpxnda.nucleus:core-common:${rootProject.minecraft_version}+${rootProject.nucleus_version}"
+    //modApi "com.redpxnda.nucleus:codec-common:${rootProject.minecraft_version}+${rootProject.nucleus_version}"
 
     modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-1.20:${rootProject.resourceful_config_version}"
 
@@ -35,8 +33,7 @@ dependencies {
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-api:${rootProject.rei_version}")
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-default-plugin:${rootProject.rei_version}")
 
-    annotationProcessor(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
-    implementation(group: 'com.github.LlamaLad7', name: 'MixinExtras', version: "${rootProject.mixin_extras_version}")
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${rootProject.mixin_extras_version}"))
 }
 
 publishing {
