@@ -33,11 +33,11 @@ public class ObeliskInteraction {
 
         if (currentCharge + charge > be.getMaxCharge(player) || (currentCharge <= 0 && charge < 0)) return false; // don't allow when charge goes too high
 
-        RespawnObelisksConfig.INSTANCE.radiance.chargingItems.keySet().forEach(i -> player.getItemCooldownManager().set(i, 30)); // adding cooldown
+        if (player != null) RespawnObelisksConfig.INSTANCE.radiance.chargingItems.keySet().forEach(i -> player.getItemCooldownManager().set(i, 30)); // adding cooldown
 
         be.chargeAndAnimate(player, charge); // method name says it all
 
-        if (!player.getAbilities().creativeMode) player.getMainHandStack().decrement(1); // if not in creative, remove the item
+        if (player == null || !player.getAbilities().creativeMode) stack.decrement(1); // if not in creative, remove the item
         return true;
     });
     public static ObeliskInteraction INFINITE_CHARGE = ofRespawn(new Identifier(MOD_ID, "infinite_charge"), Injection.START, ((player, be, manager) -> {

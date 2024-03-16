@@ -13,6 +13,7 @@ import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.DimensionValidator;
 import com.redpxnda.respawnobelisks.util.ObeliskUtils;
 import net.minecraft.block.*;
+import net.minecraft.block.dispenser.DispenserBehavior;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
@@ -58,11 +59,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static com.redpxnda.respawnobelisks.registry.ModRegistries.immortalityCurse;
 import static com.redpxnda.respawnobelisks.util.ObeliskUtils.getAABB;
 
 public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
+    public static final Function<RespawnObeliskBlockEntity, DispenserBehavior> DISPENSER_BEHAVIOR = (robe) -> (pointer, stack) -> {
+        clickInteractions(null, robe, stack);
+        return stack;
+    };
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final BooleanProperty WILD = BooleanProperty.of("wild");
     public static final DirectionProperty RESPAWN_SIDE = DirectionProperty.of("respawn_side");
@@ -72,6 +78,7 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
     private static final VoxelShape HITBOX_TOP_BASE = Block.createCuboidShape(1.5D, -15.0D, 1.5D, 14.5D, 16.0D, 14.5D);
     private static final VoxelShape HITBOX_TOP_TRIM = Block.createCuboidShape(0D, -16D, 0D, 16D, -13D, 16D);
     private static final VoxelShape AABB_TOP = VoxelShapes.union(HITBOX_TOP_BASE, HITBOX_TOP_TRIM);
+
     public final @Nullable DimensionValidator dimension;
 
     public RespawnObeliskBlock(Settings pProperties, @Nullable DimensionValidator obeliskDimension) {
@@ -247,7 +254,7 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
                     return placeCore(player, blockEntity, rl);
 
                 // right click interactions
-                if (clickInteractions(player, blockEntity)) return ActionResult.SUCCESS;
+                if (clickInteractions(player, blockEntity, player.getMainHandStack())) return ActionResult.SUCCESS;
 
                 Item revivalItem = RespawnObelisksConfig.INSTANCE.revival.revivalItem; // to-do: make into interaction
                 if (
@@ -280,13 +287,13 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
         return ActionResult.FAIL;
     }
 
-    public boolean clickInteractions(PlayerEntity player, RespawnObeliskBlockEntity blockEntity) {
-        if (player.getItemCooldownManager().isCoolingDown(player.getMainHandStack().getItem())) return false;
+    public static boolean clickInteractions(@Nullable PlayerEntity player, RespawnObeliskBlockEntity blockEntity, ItemStack stack) {
+        if (player != null && player.getItemCooldownManager().isCoolingDown(player.getMainHandStack().getItem())) return false;
         ObeliskCore.Instance core = blockEntity.getCoreInstance();
         boolean returnValue = false;
         for (ObeliskInteraction interaction : ObeliskInteraction.RIGHT_CLICK_INTERACTIONS) {
             if (CoreUtils.hasInteraction(core, interaction.id)) {
-                boolean bl = interaction.clickHandler.apply(player, player.getMainHandStack(), blockEntity);
+                boolean bl = interaction.clickHandler.apply(player, stack, blockEntity);
                 returnValue = !returnValue ? bl : returnValue;
             }
         }

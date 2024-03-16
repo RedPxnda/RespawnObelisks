@@ -24,6 +24,9 @@ public class RadianceConfig {
             Ex:     {"minecraft:stick":35}""")
     public Map<Item, Double> chargingItems = new HashMap<>(Map.of(Items.ENDER_EYE, 25d, Items.ENDER_PEARL, 10d));
 
+    @Comment("Whether dispensers can be used to charge obelisks.")
+    public boolean allowDispenserCharging = false;
+
     @Comment("Sound to play when charging an obelisk.")
     public String chargingSound = "minecraft:block.respawn_anchor.charge";
 
