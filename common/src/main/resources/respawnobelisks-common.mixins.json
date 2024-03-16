@@ -8,6 +8,7 @@
     "LivingEntityRendererMixin"
   ],
   "mixins": [
+    "BeaconBlockEntityAccessor",
     "CriteriasAccessor",
     "ExperienceOrbAccessor",
     "LivingEntityAccessor",

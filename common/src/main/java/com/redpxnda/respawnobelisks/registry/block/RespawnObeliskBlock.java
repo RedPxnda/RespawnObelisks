@@ -208,7 +208,7 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
                 vec = manager.getSpawnLoc();
             }
 
-            ModRegistries.respawnCriterion.trigger(player); // achievement bs
+            if (shouldCost) ModRegistries.respawnCriterion.trigger(player); // achievement bs
             return Optional.of(vec);
         }
         return Optional.empty();

@@ -4,10 +4,14 @@ import com.redpxnda.nucleus.codec.auto.AutoCodec;
 import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
 import com.redpxnda.nucleus.codec.tag.BlockList;
 import com.redpxnda.nucleus.util.Comment;
+import com.redpxnda.respawnobelisks.mixin.BeaconBlockEntityAccessor;
+import net.minecraft.block.BeaconBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,9 +38,16 @@ public class RadianceConfig {
     
     @Comment("A list of blocks that can be used to provide an obelisk with infinite radiance.")
     public BlockList infiniteRadianceBlocks = BlockList.of(Blocks.BEACON);
-    public boolean providesInfiniteRadiance(BlockState block) {
-        return infiniteRadianceBlocks.contains(block);
+    public boolean obeliskGetsInfiniteRadiance(World world, BlockPos pos) {
+        pos = pos.down();
+        BlockState block = world.getBlockState(pos);
+        boolean result = infiniteRadianceBlocks.contains(block);
+        if (requiredBeaconLevel <= 0 || !result || !(block.getBlock() instanceof BeaconBlock)) return result;
+        return world.getBlockEntity(pos) instanceof BeaconBlockEntityAccessor bbe && bbe.getBeaconPowerLevel() >= requiredBeaconLevel;
     }
+
+    @Comment("The beacon level required for it to provide infinite radiance.")
+    public int requiredBeaconLevel = 3;
 
     @Comment("Whether players can set their spawn at obelisks with no radiance.")
     public boolean allowEmptySpawnSetting = false;

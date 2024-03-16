@@ -42,7 +42,7 @@ public class ObeliskInteraction {
     });
     public static ObeliskInteraction INFINITE_CHARGE = ofRespawn(new Identifier(MOD_ID, "infinite_charge"), Injection.START, ((player, be, manager) -> {
         if (!be.hasWorld()) return;
-        if (RespawnObelisksConfig.INSTANCE.radiance.providesInfiniteRadiance(be.getWorld().getBlockState(be.getPos().down())))
+        if (RespawnObelisksConfig.INSTANCE.radiance.obeliskGetsInfiniteRadiance(be.getWorld(), be.getPos()))
             manager.cost = 0;
     }));
     public static ObeliskInteraction TELEPORT = new ObeliskInteraction(new Identifier(MOD_ID, "teleportation"));
