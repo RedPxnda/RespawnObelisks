@@ -1,20 +1,19 @@
 package com.redpxnda.respawnobelisks.registry.block.entity.theme;
 
-import net.minecraft.resources.ResourceLocation;
-
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.util.Identifier;
 
 public class ThemeLayout {
-    private final Map<ResourceLocation, ThemeData> data = new HashMap<>();
+    private final Map<Identifier, ThemeData> data = new HashMap<>();
 
     public ThemeLayout() {
     }
 
     public ThemeData get(String str) {
-        return get(new ResourceLocation(str));
+        return get(new Identifier(str));
     }
-    public ThemeData get(ResourceLocation loc) {
+    public ThemeData get(Identifier loc) {
         ThemeData dat = data.get(loc);
         if (dat == null) {
             dat = new ThemeData();
@@ -22,7 +21,7 @@ public class ThemeLayout {
         }
         return dat;
     }
-    public ThemeData getOrCreate(ResourceLocation loc) {
+    public ThemeData getOrCreate(Identifier loc) {
         ThemeData dat = data.get(loc);
         if (dat == null) {
             dat = new ThemeData();

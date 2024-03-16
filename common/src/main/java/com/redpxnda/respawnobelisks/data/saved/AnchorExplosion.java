@@ -7,21 +7,16 @@ import com.redpxnda.respawnobelisks.network.RespawnAnchorInteractionPacket;
 import com.redpxnda.respawnobelisks.network.RuneCirclePacket;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.PlayerList;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.level.Explosion;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
-
 import java.util.List;
+import net.minecraft.block.Blocks;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockBox;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
 public class AnchorExplosion {
     private final int delay;
@@ -37,14 +32,14 @@ public class AnchorExplosion {
         this.charge = charge;
     }
 
-    public AABB getAABB() {
-        return AABB.of(new BoundingBox(
+    public Box getAABB() {
+        return Box.from(new BlockBox(
                 pos.getX() - 10, pos.getY() - 10, pos.getZ() - 10,
                 pos.getX() + 10, pos.getY() + 10, pos.getZ() + 10
         ));
     }
 
-    public CompoundTag save(CompoundTag tag) {
+    public NbtCompound save(NbtCompound tag) {
         tag.putInt("Tick", tick);
         tag.putInt("Delay", delay);
         tag.putInt("Charge", charge);
@@ -53,30 +48,30 @@ public class AnchorExplosion {
         return tag;
     }
 
-    public static AnchorExplosion fromNbt(CompoundTag tag) {
+    public static AnchorExplosion fromNbt(NbtCompound tag) {
         int[] intArray = tag.getIntArray("Pos");
         BlockPos blockPos = new BlockPos(intArray[0], intArray[1], intArray[2]);
 
         return new AnchorExplosion(tag.getInt("Tick"), tag.getInt("Delay"), tag.getInt("Charge"), blockPos);
     }
 
-    public void tick(ServerLevel level) {
+    public void tick(ServerWorld level) {
         if (tick++ >= delay) {
             stopped = true;
             execute(level);
         } else {
             if (this.tick % 10 == 0) {
-                List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
+                List<ServerPlayerEntity> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
                 ModPackets.CHANNEL.sendToPlayers(players, new RespawnAnchorInteractionPacket(pos, false, charge));
             }
         }
     }
 
-    public void execute(ServerLevel level) {
-        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-        List<ServerPlayer> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
+    public void execute(ServerWorld level) {
+        level.setBlockState(pos, Blocks.AIR.getDefaultState(), 3);
+        List<ServerPlayerEntity> players = level.getPlayers(p -> getAABB().contains(p.getX(), p.getY(), p.getZ()));
         ModPackets.CHANNEL.sendToPlayers(players, new RespawnAnchorInteractionPacket(pos, true, charge));
-        level.explode(null, level.damageSources().badRespawnPointExplosion(new Vec3(pos.getX(), pos.getY(), pos.getZ())), null, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 5 + 2*charge, true, Level.ExplosionInteraction.BLOCK);
+        level.createExplosion(null, level.getDamageSources().badRespawnPoint(new Vec3d(pos.getX(), pos.getY(), pos.getZ())), null, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 5 + 2*charge, true, World.ExplosionSourceType.BLOCK);
     }
 
     @Override

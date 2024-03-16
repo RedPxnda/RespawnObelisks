@@ -1,14 +1,14 @@
 package com.redpxnda.respawnobelisks.mixin;
 
-import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.advancements.CriterionTrigger;
+import net.minecraft.advancement.criterion.Criteria;
+import net.minecraft.advancement.criterion.Criterion;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(CriteriaTriggers.class)
+@Mixin(Criteria.class)
 public interface CriteriasAccessor {
     @Invoker
-    static <T extends CriterionTrigger<?>> T callRegister(T object) {
+    static <T extends Criterion<?>> T callRegister(T object) {
         throw new AssertionError("Mixin dummy");
     }
 }

@@ -21,12 +21,12 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 
-    modApi "com.redpxnda.nucleus:core-common:${rootProject.minecraft_version}+${rootProject.nucleus_version}"
-    //modApi "com.redpxnda.nucleus:codec-common:${rootProject.minecraft_version}+${rootProject.nucleus_version}"
+    modApi "com.redpxnda.nucleus:nucleus-core-common:${rootProject.minecraft_version}+${rootProject.nucleus_core_version}"
+    modApi "com.redpxnda.nucleus:nucleus-codec-common:${rootProject.minecraft_version}+${rootProject.nucleus_codec_version}"
+    modApi "com.redpxnda.nucleus:nucleus-config-common:${rootProject.minecraft_version}+${rootProject.nucleus_config_version}"
+    modApi "com.redpxnda.nucleus:nucleus-facet-common:${rootProject.minecraft_version}+${rootProject.nucleus_facet_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-common-1.20:${rootProject.resourceful_config_version}"
-
-    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}") {
+    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}") {
         transitive = false
     }
 

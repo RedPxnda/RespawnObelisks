@@ -36,25 +36,27 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-fabric-1.20:${rootProject.resourceful_config_version}"
+    modApi(include("com.redpxnda.nucleus:nucleus-core-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_core_version}"))
+    modApi(include("com.redpxnda.nucleus:nucleus-codec-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_codec_version}"))
+    modApi(include("com.redpxnda.nucleus:nucleus-config-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_config_version}"))
+    modApi(include("com.redpxnda.nucleus:nucleus-facet-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_facet_version}"))
 
-    modApi(include("com.redpxnda.nucleus:core-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_version}"))
-    //modApi(include("com.redpxnda.nucleus:codec-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_version}"))
-
-    /*modImplementation("maven.modrinth:moonlight:1.20-2.8.27")
-    modImplementation("maven.modrinth:spelunkery:1.20.1-0.3.4")*/
+    modImplementation("maven.modrinth:moonlight:1.20-2.8.27")
+    modImplementation("maven.modrinth:spelunkery:1.20.1-0.3.4")
 
     if ("${rootProject.use_trinkets}" == "true")
         modApi("dev.emi:trinkets:${rootProject.trinkets_version}")
     else
         modCompileOnlyApi("dev.emi:trinkets:${rootProject.trinkets_version}")
 
-    if ("${rootProject.use_jei}" == "true")
+    if ("${rootProject.use_jei}" == "true") {
         modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}") {
             transitive = false
         }
-    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-fabric-api:${rootProject.jei_version}") {
-        transitive = false
+    } else {
+        modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}") {
+            transitive = false
+        }
     }
 
     if ("${rootProject.use_rei}" == "true")

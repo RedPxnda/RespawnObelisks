@@ -1,35 +1,35 @@
 package com.redpxnda.respawnobelisks.registry.enchantment;
 
-import com.redpxnda.respawnobelisks.config.RespawnPerkConfig;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentTarget;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.ItemStack;
 
 public class ObeliskboundEnchantment extends Enchantment {
     public ObeliskboundEnchantment() {
-        super(Rarity.RARE, EnchantmentCategory.BREAKABLE, EquipmentSlot.values());
+        super(Rarity.RARE, EnchantmentTarget.BREAKABLE, EquipmentSlot.values());
     }
 
     @Override
-    public boolean canEnchant(ItemStack itemStack) {
-        return itemStack.getItem().getMaxStackSize() <= 1 || super.canEnchant(itemStack);
+    public boolean isAcceptableItem(ItemStack itemStack) {
+        return itemStack.getItem().getMaxCount() <= 1 || super.isAcceptableItem(itemStack);
     }
 
     @Override
     public int getMaxLevel() {
-        return RespawnPerkConfig.Enchantment.maxLevel;
+        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantmentConfig.maxLevel;
     }
     @Override
-    public boolean isTreasureOnly() {
-        return RespawnPerkConfig.Enchantment.treasureOnly;
+    public boolean isTreasure() {
+        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantmentConfig.treasureOnly;
     }
     @Override
-    public boolean isTradeable() {
-        return RespawnPerkConfig.Enchantment.tradeable;
+    public boolean isAvailableForEnchantedBookOffer() {
+        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantmentConfig.tradeable;
     }
     @Override
-    public boolean isDiscoverable() {
-        return RespawnPerkConfig.Enchantment.discoverable;
+    public boolean isAvailableForRandomSelection() {
+        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantmentConfig.discoverable;
     }
 }

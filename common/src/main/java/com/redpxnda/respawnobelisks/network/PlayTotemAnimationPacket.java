@@ -2,13 +2,12 @@ package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
-
 import java.util.function.Supplier;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
 
 public class PlayTotemAnimationPacket {
     private final Item item;
@@ -17,12 +16,12 @@ public class PlayTotemAnimationPacket {
         this.item = item;
     }
 
-    public PlayTotemAnimationPacket(FriendlyByteBuf buffer) {
-        this.item = BuiltInRegistries.ITEM.getOptional(ResourceLocation.tryParse(buffer.readUtf())).orElse(Items.TOTEM_OF_UNDYING);
+    public PlayTotemAnimationPacket(PacketByteBuf buffer) {
+        this.item = Registries.ITEM.getOrEmpty(Identifier.tryParse(buffer.readString())).orElse(Items.TOTEM_OF_UNDYING);
     }
 
-    public void toBytes(FriendlyByteBuf buffer) {
-        buffer.writeUtf(BuiltInRegistries.ITEM.getKey(item).toString());
+    public void toBytes(PacketByteBuf buffer) {
+        buffer.writeString(Registries.ITEM.getId(item).toString());
     }
 
     public void handle(Supplier<NetworkManager.PacketContext> supplier) {

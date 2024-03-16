@@ -33,10 +33,3 @@ mandatory = true
 versionRange = "[9.0.8,)"
 ordering = "AFTER"
 side = "BOTH"
-
-[[dependencies.respawnobelisks]]
-modId = "resourcefulconfig"
-mandatory = true
-versionRange = "[2.0.0,)"
-ordering = "NONE"
-side = "BOTH"

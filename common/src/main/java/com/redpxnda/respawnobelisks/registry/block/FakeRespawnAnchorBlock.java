@@ -1,20 +1,20 @@
 package com.redpxnda.respawnobelisks.registry.block;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.RespawnAnchorBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.RespawnAnchorBlock;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 public class FakeRespawnAnchorBlock extends RespawnAnchorBlock {
-    public FakeRespawnAnchorBlock(Properties pProperties) {
+    public FakeRespawnAnchorBlock(Settings pProperties) {
         super(pProperties);
     }
 
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
-        return InteractionResult.FAIL;
+    public ActionResult onUse(BlockState pState, World pLevel, BlockPos pPos, PlayerEntity pPlayer, Hand pHand, BlockHitResult pHit) {
+        return ActionResult.FAIL;
     }
 }

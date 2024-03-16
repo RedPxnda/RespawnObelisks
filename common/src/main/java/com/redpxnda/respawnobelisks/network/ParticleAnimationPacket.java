@@ -2,10 +2,9 @@ package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-
 import java.util.function.Supplier;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.math.BlockPos;
 
 public class ParticleAnimationPacket {
     private final String method;
@@ -18,14 +17,14 @@ public class ParticleAnimationPacket {
         this.pos = pos;
     }
 
-    public ParticleAnimationPacket(FriendlyByteBuf buffer) {
-        this.method = buffer.readUtf();
+    public ParticleAnimationPacket(PacketByteBuf buffer) {
+        this.method = buffer.readString();
         this.player = buffer.readInt();
         this.pos = buffer.readBlockPos();
     }
 
-    public void toBytes(FriendlyByteBuf buffer) {
-        buffer.writeUtf(method);
+    public void toBytes(PacketByteBuf buffer) {
+        buffer.writeString(method);
         buffer.writeInt(player);
         buffer.writeBlockPos(pos);
     }

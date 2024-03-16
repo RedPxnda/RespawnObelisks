@@ -2,20 +2,20 @@ package com.redpxnda.respawnobelisks.mixin;
 
 import com.redpxnda.nucleus.math.MathUtil;
 import com.redpxnda.nucleus.util.PlayerUtil;
-import com.redpxnda.respawnobelisks.config.RespawnPerkConfig;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.ObeliskInventory;
 import com.redpxnda.respawnobelisks.util.ObeliskUtils;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.item.ItemStack;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.GameRules;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -28,34 +28,34 @@ import java.util.List;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
     @Inject(
-            method = "dropAllDeathLoot",
+            method = "drop",
             at = @At("HEAD"),
             cancellable = true)
     private void RESPAWNOBELISKS_preventEquipmentDrop(DamageSource damageSource, CallbackInfo ci) {
-        if (((LivingEntity) ((Object) this)).getTags().contains("respawnobelisks:no_drops_entity"))
+        if (((LivingEntity) ((Object) this)).getCommandTags().contains("respawnobelisks:no_drops_entity"))
             ci.cancel();
         if (
-                (Object) this instanceof ServerPlayer player &&
-                !player.level().getGameRules().getBoolean(GameRules.RULE_KEEPINVENTORY) &&
-                player.getRespawnPosition() != null &&
-                player.level().getBlockEntity(player.getRespawnPosition()) instanceof RespawnObeliskBlockEntity be &&
+                (Object) this instanceof ServerPlayerEntity player &&
+                !player.getWorld().getGameRules().getBoolean(GameRules.KEEP_INVENTORY) &&
+                player.getSpawnPointPosition() != null &&
+                player.getWorld().getBlockEntity(player.getSpawnPointPosition()) instanceof RespawnObeliskBlockEntity be &&
                 CoreUtils.hasInteraction(be.getCoreInstance(), ObeliskInteraction.SAVE_INV) &&
-                be.getCharge(player) >= RespawnPerkConfig.minKeepItemCharge &&
-                (RespawnPerkConfig.allowCursedItemKeeping || !player.hasEffect(ModRegistries.immortalityCurse.get()))
+                be.getCharge(player) >= RespawnObelisksConfig.INSTANCE.respawnPerks.minKeepItemRadiance &&
+                (RespawnObelisksConfig.INSTANCE.respawnPerks.allowCursedItemKeeping || !player.hasStatusEffect(ModRegistries.immortalityCurse.get()))
         ) {
-            ObeliskInventory inventory = be.storedItems.containsKey(player.getUUID()) ? be.storedItems.get(player.getUUID()) : new ObeliskInventory();
-            if (!player.wasExperienceConsumed() && RespawnPerkConfig.Experience.keepExperience && inventory.xp <= 0) {
+            ObeliskInventory inventory = be.storedItems.containsKey(player.getUuid()) ? be.storedItems.get(player.getUuid()) : new ObeliskInventory();
+            if (!player.isExperienceDroppingDisabled() && RespawnObelisksConfig.INSTANCE.respawnPerks.experienceConfig.keepExperience && inventory.xp <= 0) {
                 int rawXp = PlayerUtil.getTotalXp(player);
-                inventory.xp = Mth.floor(rawXp*(RespawnPerkConfig.Experience.keepExperiencePercent/100f));
-                if (RespawnPerkConfig.Experience.keepExperiencePercent >= 100) player.skipDropExperience();
-                else player.giveExperiencePoints(-inventory.xp);
+                inventory.xp = MathHelper.floor(rawXp*(RespawnObelisksConfig.INSTANCE.respawnPerks.experienceConfig.keepExperiencePercent/100f));
+                if (RespawnObelisksConfig.INSTANCE.respawnPerks.experienceConfig.keepExperiencePercent >= 100) player.disableExperienceDropping();
+                else player.addExperience(-inventory.xp);
             }
             if (inventory.isArmorEmpty()) {
                 inventory.armor.clear();
                 List<ItemStack> stacks = new ArrayList<>(
                         player.getInventory().armor.stream().map(i -> {
                             if (
-                                    (RespawnPerkConfig.Armor.keepArmor && MathUtil.random.nextInt(100) <= RespawnPerkConfig.Armor.keepArmorChance-1) ||
+                                    (RespawnObelisksConfig.INSTANCE.respawnPerks.armorConfig.keepArmor && MathUtil.random.nextInt(100) <= RespawnObelisksConfig.INSTANCE.respawnPerks.armorConfig.keepArmorChance-1) ||
                                     (ObeliskUtils.shouldEnchantmentApply(i, MathUtil.random))
                             ) {
                                 int index = player.getInventory().armor.indexOf(i);
@@ -68,28 +68,28 @@ public abstract class LivingEntityMixin {
                 );
                 inventory.armor.addAll(stacks);
             }
-            if (!player.getOffhandItem().isEmpty() && inventory.isOffhandEmpty()) {
+            if (!player.getOffHandStack().isEmpty() && inventory.isOffhandEmpty()) {
                 inventory.offhand.clear();
                 if (
-                        (RespawnPerkConfig.Offhand.keepOffhand && MathUtil.random.nextInt(100) <= RespawnPerkConfig.Offhand.keepOffhandChance-1) ||
-                        (ObeliskUtils.shouldEnchantmentApply(player.getOffhandItem(), MathUtil.random))
+                        (RespawnObelisksConfig.INSTANCE.respawnPerks.offhandConfig.keepOffhand && MathUtil.random.nextInt(100) <= RespawnObelisksConfig.INSTANCE.respawnPerks.offhandConfig.keepOffhandChance-1) ||
+                        (ObeliskUtils.shouldEnchantmentApply(player.getOffHandStack(), MathUtil.random))
                 ) {
-                    inventory.offhand.add(player.getOffhandItem());
-                    player.setItemSlot(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
+                    inventory.offhand.add(player.getOffHandStack());
+                    player.equipStack(EquipmentSlot.OFFHAND, ItemStack.EMPTY);
                 }
             }
             if (inventory.isItemsEmpty()) {
                 inventory.items.clear();
-                boolean onlyHotbar = RespawnPerkConfig.Hotbar.keepHotbar && !RespawnPerkConfig.Inventory.keepInventory;
-                List<ItemStack> rawStacks = onlyHotbar ? player.getInventory().items.subList(0, 9) : player.getInventory().items;
-                double chance = onlyHotbar ? RespawnPerkConfig.Hotbar.keepHotbarChance : RespawnPerkConfig.Inventory.keepInventoryChance;
+                boolean onlyHotbar = RespawnObelisksConfig.INSTANCE.respawnPerks.hotbarConfig.keepHotbar && !RespawnObelisksConfig.INSTANCE.respawnPerks.inventoryConfig.keepInventory;
+                List<ItemStack> rawStacks = onlyHotbar ? player.getInventory().main.subList(0, 9) : player.getInventory().main;
+                double chance = onlyHotbar ? RespawnObelisksConfig.INSTANCE.respawnPerks.hotbarConfig.keepHotbarChance : RespawnObelisksConfig.INSTANCE.respawnPerks.inventoryConfig.keepInventoryChance;
                 List<ItemStack> stacks = new ArrayList<>(rawStacks.stream().map(i -> {
                     if (
-                            ((RespawnPerkConfig.Inventory.keepInventory || RespawnPerkConfig.Hotbar.keepHotbar) && MathUtil.random.nextInt(100) <= chance) ||
+                            ((RespawnObelisksConfig.INSTANCE.respawnPerks.inventoryConfig.keepInventory || RespawnObelisksConfig.INSTANCE.respawnPerks.hotbarConfig.keepHotbar) && MathUtil.random.nextInt(100) <= chance) ||
                             (ObeliskUtils.shouldEnchantmentApply(i, MathUtil.random))
                     ) {
-                        int index = player.getInventory().items.indexOf(i);
-                        player.getInventory().items.set(index, ItemStack.EMPTY);
+                        int index = player.getInventory().main.indexOf(i);
+                        player.getInventory().main.set(index, ItemStack.EMPTY);
                         return i;
                     } else {
                         return ItemStack.EMPTY;
@@ -97,7 +97,7 @@ public abstract class LivingEntityMixin {
                 }).toList());
                 inventory.items.addAll(stacks);
             }
-            be.storedItems.put(player.getUUID(), inventory);
+            be.storedItems.put(player.getUuid(), inventory);
             be.syncWithClient();
         }
     }

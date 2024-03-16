@@ -1,16 +1,16 @@
 package com.redpxnda.respawnobelisks.registry.block.entity.theme;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 
 public class BasicDepleteAnimation implements RenderTheme {
     private final String storageName;
-    private final ResourceLocation dataName;
-    private final RenderTheme.BlockEntityOnly handler;
+    private final Identifier dataName;
+    private final BlockEntityOnly handler;
 
-    public BasicDepleteAnimation(ResourceLocation dataName, String name, RenderTheme.BlockEntityOnly handler) {
+    public BasicDepleteAnimation(Identifier dataName, String name, BlockEntityOnly handler) {
         super();
         this.dataName = dataName;
         this.storageName = name;
@@ -18,7 +18,7 @@ public class BasicDepleteAnimation implements RenderTheme {
     }
 
     @Override
-    public void render(RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(RespawnObeliskBlockEntity blockEntity, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight, int packedOverlay) {
         RenderTheme.timedExecution(blockEntity, blockEntity.themeLayout.get(dataName), blockEntity.getLastRespawn(), storageName, handler);
     }
 }

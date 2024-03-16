@@ -7,9 +7,9 @@ import com.redpxnda.respawnobelisks.registry.particle.RuneCircleParticle;
 import dev.architectury.platform.Platform;
 import dev.architectury.platform.forge.EventBuses;
 import com.redpxnda.respawnobelisks.RespawnObelisks;
-import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.item.CompassAnglePredicateProvider;
+import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.minecraft.util.Identifier;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -38,8 +38,8 @@ public class RespawnObelisksForge {
             @SubscribeEvent
             public static void onClientSetup(FMLClientSetupEvent event) {
                 event.enqueueWork(() -> {
-                    ItemProperties.register(ModRegistries.boundCompass.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
-                    ItemProperties.register(ModRegistries.dormantObelisk.get(), new ResourceLocation(MOD_ID, "dimension"), (stack, level, player, i) -> !stack.hasTag() || !stack.getTag().contains("Dimension") ? 0f : stack.getTag().getFloat("Dimension"));
+                    ModelPredicateProviderRegistry.register(ModRegistries.boundCompass.get(), new Identifier("angle"), new CompassAnglePredicateProvider((level, stack, player) -> BoundCompassItem.hasLodestone(stack) ? BoundCompassItem.createLodestonePos(stack.getOrCreateNbt()) : null));
+                    ModelPredicateProviderRegistry.register(ModRegistries.dormantObelisk.get(), new Identifier(MOD_ID, "dimension"), (stack, level, player, i) -> !stack.hasNbt() || !stack.getNbt().contains("Dimension") ? 0f : stack.getNbt().getFloat("Dimension"));
                 });
             }
 

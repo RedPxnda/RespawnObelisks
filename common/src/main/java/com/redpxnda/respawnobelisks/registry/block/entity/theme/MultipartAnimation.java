@@ -1,18 +1,18 @@
 package com.redpxnda.respawnobelisks.registry.block.entity.theme;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 
 public class MultipartAnimation implements RenderTheme {
-    private final ResourceLocation dataName;
+    private final Identifier dataName;
     private final BlockEntityOnly onTick;
     private final BlockEntityOnly onCharge;
     private final BlockEntityOnly onDeplete;
     private final RenderTheme onRender;
 
-    public MultipartAnimation(ResourceLocation dataName, BlockEntityOnly onTick, BlockEntityOnly onCharge, BlockEntityOnly onDeplete, RenderTheme onRender) {
+    public MultipartAnimation(Identifier dataName, BlockEntityOnly onTick, BlockEntityOnly onCharge, BlockEntityOnly onDeplete, RenderTheme onRender) {
         super();
         this.dataName = dataName;
         this.onTick = onTick;
@@ -22,8 +22,8 @@ public class MultipartAnimation implements RenderTheme {
     }
 
     @Override
-    public void render(RespawnObeliskBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        if (!blockEntity.hasLevel()) return;
+    public void render(RespawnObeliskBlockEntity blockEntity, float partialTick, MatrixStack poseStack, VertexConsumerProvider bufferSource, int packedLight, int packedOverlay) {
+        if (!blockEntity.hasWorld()) return;
         RenderTheme.timedExecution(blockEntity, blockEntity.themeLayout.get(dataName), blockEntity.getLastCharge(), "charging", onCharge);
         RenderTheme.timedExecution(blockEntity, blockEntity.themeLayout.get(dataName), blockEntity.getLastRespawn(), "depletion", onDeplete);
         RenderTheme.tickLoopedExecution(blockEntity, blockEntity.themeLayout.get(dataName), "tick", onTick);

@@ -2,13 +2,12 @@ package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-
 import java.util.function.Supplier;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.Identifier;
 
 public class PlaySoundPacket {
     private final SoundEvent sound;
@@ -22,15 +21,15 @@ public class PlaySoundPacket {
         this.volume = volume;
     }
 
-    public PlaySoundPacket(FriendlyByteBuf buffer) {
-        this.sound = BuiltInRegistries.SOUND_EVENT.getOptional(ResourceLocation.tryParse(buffer.readUtf())).orElse(SoundEvents.ARMOR_EQUIP_GENERIC);
+    public PlaySoundPacket(PacketByteBuf buffer) {
+        this.sound = Registries.SOUND_EVENT.getOrEmpty(Identifier.tryParse(buffer.readString())).orElse(SoundEvents.ITEM_ARMOR_EQUIP_GENERIC);
         this.pitch = buffer.readFloat();
         this.volume = buffer.readFloat();
     }
 
-    public void toBytes(FriendlyByteBuf buffer) {
-        ResourceLocation loc;
-        buffer.writeUtf((loc = BuiltInRegistries.SOUND_EVENT.getKey(sound)) != null ? loc.toString() : "");
+    public void toBytes(PacketByteBuf buffer) {
+        Identifier loc;
+        buffer.writeString((loc = Registries.SOUND_EVENT.getId(sound)) != null ? loc.toString() : "");
         buffer.writeFloat(pitch);
         buffer.writeFloat(volume);
     }

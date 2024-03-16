@@ -1,19 +1,19 @@
 package com.redpxnda.respawnobelisks.mixin;
 
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.data.saved.AnchorExplosions;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
-import com.redpxnda.respawnobelisks.registry.block.FakeRespawnAnchorBlock;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.RespawnAnchorBlock;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.RespawnAnchorBlock;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,18 +22,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(RespawnAnchorBlock.class)
 public abstract class RespawnAnchorBlockMixin {
     @Inject(
-            method = "use",
+            method = "onUse",
             at = @At(value = "HEAD"),
             cancellable = true
     )
-    private void RESPAWNOBELISKS_useRespawnAnchor(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit, CallbackInfoReturnable<InteractionResult> cir) {
-        if (!((pPlayer.getMainHandItem().getItem().equals(Items.GLOWSTONE) || pPlayer.getOffhandItem().getItem().equals(Items.GLOWSTONE)) && pState.getValue(RespawnAnchorBlock.CHARGE) < 4)) {
-            if (pLevel instanceof ServerLevel level) {
-                int charge = pState.getValue(RespawnAnchorBlock.CHARGE);
-                pLevel.setBlock(pPos, ModRegistries.fakeRespawnAnchor.get().defaultBlockState().setValue(RespawnAnchorBlock.CHARGE, charge), 3);
+    private void RESPAWNOBELISKS_useRespawnAnchor(BlockState pState, World pLevel, BlockPos pPos, PlayerEntity pPlayer, Hand pHand, BlockHitResult pHit, CallbackInfoReturnable<ActionResult> cir) {
+        if (RespawnObelisksConfig.INSTANCE.behaviorOverrides.destructionCatalysts && !((pPlayer.getMainHandStack().getItem().equals(Items.GLOWSTONE) || pPlayer.getOffHandStack().getItem().equals(Items.GLOWSTONE)) && pState.get(RespawnAnchorBlock.CHARGES) < 4)) {
+            if (pLevel instanceof ServerWorld level) {
+                int charge = pState.get(RespawnAnchorBlock.CHARGES);
+                pLevel.setBlockState(pPos, ModRegistries.fakeRespawnAnchor.get().getDefaultState().with(RespawnAnchorBlock.CHARGES, charge), 3);
                 AnchorExplosions.getCache(level).create(0, 60, charge, pPos);
-                if (pPlayer instanceof ServerPlayer sp) ModRegistries.catalystCriterion.trigger(sp);
-                cir.setReturnValue(InteractionResult.SUCCESS);
+                if (pPlayer instanceof ServerPlayerEntity sp) ModRegistries.catalystCriterion.trigger(sp);
+                cir.setReturnValue(ActionResult.SUCCESS);
             }
         }
     }

@@ -1,14 +1,14 @@
 package com.redpxnda.respawnobelisks.mixin;
 
-import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.entity.ExperienceOrbEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(ExperienceOrb.class)
+@Mixin(ExperienceOrbEntity.class)
 public interface ExperienceOrbAccessor {
     @Accessor
-    int getAge();
+    int getOrbAge();
 
     @Accessor
-    void setAge(int age);
+    void setOrbAge(int age);
 }

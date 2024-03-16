@@ -9,10 +9,10 @@ import mezz.jei.api.gui.ingredient.ICraftingGridHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
-import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.item.ItemStack;
+import net.minecraft.recipe.Ingredient;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -28,17 +28,17 @@ public class CoreMergeCategoryExtension implements ICraftingCategoryExtension {
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ICraftingGridHelper craftingGridHelper, IFocusGroup focuses) {
-        NonNullList<Ingredient> ingredients = recipe.getIngredients();
+        DefaultedList<Ingredient> ingredients = recipe.getIngredients();
         List<String> characters = new ArrayList<>(List.of(new String[]{"a", "b", "c", "d", "e", "f", "g", "h", "i"}));
         List<String> usedCharacters = new ArrayList<>();
-        List<List<ItemStack>> inputs = new ArrayList<>(ingredients.stream().map(i -> Arrays.asList(i.getItems())).toList());
+        List<List<ItemStack>> inputs = new ArrayList<>(ingredients.stream().map(i -> Arrays.asList(i.getMatchingStacks())).toList());
         List<ItemStack> outputs = new ArrayList<>();
         int target = -1;
         for (List<ItemStack> list : inputs) {
             boolean ran = false;
             for (ItemStack stack : list) {
                 if (!(stack.getItem() instanceof CoreItem)) continue;
-                CoreUtils.setMaxCharge(stack.getOrCreateTag(), characters.get(0));
+                CoreUtils.setMaxCharge(stack.getOrCreateNbt(), characters.get(0));
                 ran = true;
                 if (target == -1) {
                     ItemStack copy = stack.copy();
@@ -68,7 +68,7 @@ public class CoreMergeCategoryExtension implements ICraftingCategoryExtension {
 
         IRecipeSlotBuilder slotBuilder = builder.addSlot(RecipeIngredientRole.OUTPUT, 95, 19);
         if (target != -1) {
-            outputs.forEach(stack -> CoreUtils.setMaxCharge(stack.getOrCreateTag(), output.toString()));
+            outputs.forEach(stack -> CoreUtils.setMaxCharge(stack.getOrCreateNbt(), output.toString()));
             slotBuilder.addItemStacks(outputs);
         }
 
@@ -76,7 +76,7 @@ public class CoreMergeCategoryExtension implements ICraftingCategoryExtension {
     }
 
     @Override
-    public @Nullable ResourceLocation getRegistryName() {
+    public @Nullable Identifier getRegistryName() {
         return recipe.getId();
     }
 }

@@ -1,15 +1,14 @@
 package com.redpxnda.respawnobelisks.util;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.Containers;
-import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.entity.ExperienceOrbEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.util.ItemScatterer;
+import net.minecraft.world.World;
 
 public class ObeliskInventory {
     public final List<ItemStack> items = new ArrayList<>();
@@ -21,18 +20,18 @@ public class ObeliskInventory {
         return isItemsEmpty() && isArmorEmpty() && isOffhandEmpty();
     }
 
-    public void dropAll(Level level, double x, double y, double z) {
+    public void dropAll(World level, double x, double y, double z) {
         for (ItemStack stack : items) {
-            Containers.dropItemStack(level, x, y, z, stack);
+            ItemScatterer.spawn(level, x, y, z, stack);
         }
         for (ItemStack stack : armor) {
-            Containers.dropItemStack(level, x, y, z, stack);
+            ItemScatterer.spawn(level, x, y, z, stack);
         }
         for (ItemStack stack : offhand) {
-            Containers.dropItemStack(level, x, y, z, stack);
+            ItemScatterer.spawn(level, x, y, z, stack);
         }
         if (xp > 0) {
-            level.addFreshEntity(new ExperienceOrb(level, x, y, z, xp));
+            level.spawnEntity(new ExperienceOrbEntity(level, x, y, z, xp));
         }
     }
 
@@ -73,14 +72,14 @@ public class ObeliskInventory {
         return xp > 0;
     }
 
-    public CompoundTag saveToNbt() {
-        ListTag armor = new ListTag();
-        ListTag items = new ListTag();
-        CompoundTag offhand = new CompoundTag();
-        this.armor.forEach(stack -> armor.add(stack.save(new CompoundTag())));
-        if (!this.offhand.isEmpty()) this.offhand.get(0).save(offhand);
-        this.items.forEach(stack -> items.add(stack.save(new CompoundTag())));
-        CompoundTag allItems = new CompoundTag();
+    public NbtCompound saveToNbt() {
+        NbtList armor = new NbtList();
+        NbtList items = new NbtList();
+        NbtCompound offhand = new NbtCompound();
+        this.armor.forEach(stack -> armor.add(stack.writeNbt(new NbtCompound())));
+        if (!this.offhand.isEmpty()) this.offhand.get(0).writeNbt(offhand);
+        this.items.forEach(stack -> items.add(stack.writeNbt(new NbtCompound())));
+        NbtCompound allItems = new NbtCompound();
         allItems.put("Armor", armor);
         allItems.put("Items", items);
         allItems.put("Offhand", offhand);
@@ -88,24 +87,24 @@ public class ObeliskInventory {
         return allItems;
     }
 
-    public static ObeliskInventory readFromNbt(CompoundTag tag) {
+    public static ObeliskInventory readFromNbt(NbtCompound tag) {
         ObeliskInventory inventory = new ObeliskInventory();
         if (tag.contains("Armor", 9)) {
-            for (Tag itemTag : tag.getList("Armor", 10)) {
-                if (itemTag instanceof CompoundTag compound) {
-                    inventory.armor.add(ItemStack.of(compound));
+            for (NbtElement itemTag : tag.getList("Armor", 10)) {
+                if (itemTag instanceof NbtCompound compound) {
+                    inventory.armor.add(ItemStack.fromNbt(compound));
                 }
             }
         }
         if (tag.contains("Items", 9)) {
-            for (Tag itemTag : tag.getList("Items", 10)) {
-                if (itemTag instanceof CompoundTag compound) {
-                    inventory.items.add(ItemStack.of(compound));
+            for (NbtElement itemTag : tag.getList("Items", 10)) {
+                if (itemTag instanceof NbtCompound compound) {
+                    inventory.items.add(ItemStack.fromNbt(compound));
                 }
             }
         }
         if (tag.contains("Offhand", 10)) {
-            inventory.offhand.add(ItemStack.of(tag.getCompound("Offhand")));
+            inventory.offhand.add(ItemStack.fromNbt(tag.getCompound("Offhand")));
         }
         if (tag.contains("Xp", 3)) inventory.xp = tag.getInt("Xp");
         return inventory;

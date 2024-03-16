@@ -1,48 +1,47 @@
 package com.redpxnda.respawnobelisks.data.saved;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.saveddata.SavedData;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.PersistentState;
 
-public class AnchorExplosions extends SavedData {
-    public final ServerLevel level;
+public class AnchorExplosions extends PersistentState {
+    public final ServerWorld level;
     private final List<AnchorExplosion> anchorExplosions = new ArrayList<>();
 
     public void create(int tick, int delay, int charge, BlockPos pos) {
         anchorExplosions.add(new AnchorExplosion(tick, delay, charge, pos));
-        this.setDirty();
+        this.markDirty();
     }
 
-    public AnchorExplosions(ServerLevel level) {
+    public AnchorExplosions(ServerWorld level) {
         this.level = level;
-        this.setDirty();
+        this.markDirty();
     }
 
-    public static AnchorExplosions getCache(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(tag -> AnchorExplosions.load(level, tag), () -> new AnchorExplosions(level), "anchor_explosions");
+    public static AnchorExplosions getCache(ServerWorld level) {
+        return level.getPersistentStateManager().getOrCreate(tag -> AnchorExplosions.load(level, tag), () -> new AnchorExplosions(level), "anchor_explosions");
     }
 
-    public static AnchorExplosions load(ServerLevel level, CompoundTag tag) {
+    public static AnchorExplosions load(ServerWorld level, NbtCompound tag) {
         AnchorExplosions explosions = new AnchorExplosions(level);
         tag.getList("Explosions", 10).forEach(t -> {
-            if (t instanceof CompoundTag compoundTag)
+            if (t instanceof NbtCompound compoundTag)
                 explosions.anchorExplosions.add(AnchorExplosion.fromNbt(compoundTag));
         });
 
-        explosions.setDirty();
+        explosions.markDirty();
         return explosions;
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag) {
-        ListTag list = new ListTag();
-        anchorExplosions.forEach(explosion -> list.add(explosion.save(new CompoundTag())));
+    public NbtCompound writeNbt(NbtCompound tag) {
+        NbtList list = new NbtList();
+        anchorExplosions.forEach(explosion -> list.add(explosion.save(new NbtCompound())));
         tag.put("Explosions", list);
 
         return tag;
@@ -55,7 +54,7 @@ public class AnchorExplosions extends SavedData {
             explosion.tick(level);
             if (explosion.stopped) {
                 iterator.remove();
-                this.setDirty();
+                this.markDirty();
             }
         }
     }

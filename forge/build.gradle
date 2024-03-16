@@ -41,21 +41,23 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 
-    modApi "com.teamresourceful.resourcefulconfig:resourcefulconfig-forge-1.20:${rootProject.resourceful_config_version}"
-
-    modApi(include("com.redpxnda.nucleus:core-forge:${rootProject.minecraft_version}+${rootProject.nucleus_version}"))
-    //modApi(include("com.redpxnda.nucleus:codec-forge:${rootProject.minecraft_version}+${rootProject.nucleus_version}"))
+    modApi(include("com.redpxnda.nucleus:nucleus-core-forge:${rootProject.minecraft_version}+${rootProject.nucleus_core_version}"))
+    modApi(include("com.redpxnda.nucleus:nucleus-codec-forge:${rootProject.minecraft_version}+${rootProject.nucleus_codec_version}"))
+    modApi(include("com.redpxnda.nucleus:nucleus-config-forge:${rootProject.minecraft_version}+${rootProject.nucleus_config_version}"))
+    modApi(include("com.redpxnda.nucleus:nucleus-facet-forge:${rootProject.minecraft_version}+${rootProject.nucleus_facet_version}"))
 
     if ("${rootProject.use_curios}" == "true")
         modRuntimeOnly("top.theillusivec4.curios:curios-forge:${rootProject.curios_version}+${rootProject.minecraft_version}")
     modCompileOnlyApi("top.theillusivec4.curios:curios-forge:${rootProject.curios_version}+${rootProject.minecraft_version}:api")
 
-    if ("${rootProject.use_jei}" == "true")
+    if ("${rootProject.use_jei}" == "true") {
         modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-forge:${rootProject.jei_version}") {
             transitive = false
         }
-    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-forge-api:${rootProject.jei_version}") {
-        transitive = false
+    } else {
+        modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-forge:${rootProject.jei_version}") {
+            transitive = false
+        }
     }
 
     if ("${rootProject.use_rei}" == "true")

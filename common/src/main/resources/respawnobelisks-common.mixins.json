@@ -14,9 +14,10 @@
     "LivingEntityMixin",
     "PlayerAccessor",
     "PlayerListMixin",
+    "PlayerMixin",
     "RespawnAnchorBlockMixin",
     "ServerPlayerMixin",
-    "STPAccessor"
+    "StructurePoolAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

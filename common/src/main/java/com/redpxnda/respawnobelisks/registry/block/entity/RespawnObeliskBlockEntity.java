@@ -1,8 +1,9 @@
 package com.redpxnda.respawnobelisks.registry.block.entity;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.redpxnda.respawnobelisks.RespawnObelisks;
-import com.redpxnda.respawnobelisks.config.ObeliskCoreConfig;
-import com.redpxnda.respawnobelisks.config.TrustedPlayersConfig;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore.Instance;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
@@ -10,45 +11,47 @@ import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.theme.ThemeLayout;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import com.redpxnda.respawnobelisks.util.ObeliskInventory;
-import net.minecraft.core.BlockPos;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.gameevent.BlockPositionSource;
-import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.gameevent.GameEventListener;
-import net.minecraft.world.level.gameevent.PositionSource;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.listener.ClientPlayPacketListener;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.GlobalPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import net.minecraft.world.event.BlockPositionSource;
+import net.minecraft.world.event.GameEvent;
+import net.minecraft.world.event.PositionSource;
+import net.minecraft.world.event.listener.GameEventListener;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import static com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock.WILD;
 import static com.redpxnda.respawnobelisks.registry.block.entity.theme.RenderTheme.*;
 
 public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventListener {
-    protected final List<Consumer<CompoundTag>> loadConsumers = new ArrayList<>();
-    public static final List<ResourceLocation> defaultThemes = List.of(defCharge, defDep, defRunes);
+    protected final List<Consumer<NbtCompound>> loadConsumers = new ArrayList<>();
+    public static final List<Identifier> defaultThemes = List.of(defCharge, defDep, defRunes);
     private static final Logger LOGGER = RespawnObelisks.getLogger();
     private static final Random random = new Random();
 
     private Instance coreItem;
-    private BlockPositionSource source;
+    private final BlockPositionSource source;
     private boolean hasLimboEntity;
     public ThemeLayout themeLayout = null;
     private long lastRespawn;
@@ -57,27 +60,28 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     public double clientMaxCharge;
     public boolean hasRandomCharge = true;
     private String obeliskName = "";
-    private Component obeliskNameComponent = null;
+    private Text obeliskNameComponent = null;
     public final Map<UUID, ObeliskInventory> storedItems = new HashMap<>();
     public boolean hasStoredItems = false;
     public boolean hasTeleportingEntity = false;
-    private final List<ResourceLocation> themes = new ArrayList<>();
+    private final List<Identifier> themes = new ArrayList<>();
+    public final Multimap<GlobalPos, ServerPlayerEntity> respawningPlayers = Multimaps.newMultimap(new ConcurrentHashMap<>(), HashSet::new);
 
     public RespawnObeliskBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModRegistries.ROBE.get(), pos, blockState);
         coreItem = Instance.EMPTY;
         setupRandomCharge();
-        source = new BlockPositionSource(this.getBlockPos());
+        source = new BlockPositionSource(this.getPos());
         lastRespawn = -100;
         lastCharge = -100;
         hasLimboEntity = false;
     }
 
     public void setupRandomCharge() {
-        if (hasRandomCharge && getBlockState().getValue(WILD) && random.nextInt(100) < ObeliskCoreConfig.wildCoreChance) {
-            this.coreItem = ObeliskCoreConfig.getDefaultCore().getDefaultInstance();
-            double charge = (random.nextInt(ObeliskCoreConfig.wildMaxCharge-ObeliskCoreConfig.wildMinCharge)+ObeliskCoreConfig.wildMinCharge) / 100f;
-            int maxCharge = random.nextInt(ObeliskCoreConfig.wildMaxMaxCharge-ObeliskCoreConfig.wildMinMaxCharge)+ObeliskCoreConfig.wildMinMaxCharge;
+        if (hasRandomCharge && getCachedState().get(WILD) && random.nextInt(100) < RespawnObelisksConfig.INSTANCE.cores.wildCoreChance) {
+            this.coreItem = RespawnObelisksConfig.INSTANCE.cores.getDefaultCore().getDefaultInstance();
+            double charge = (random.nextInt(RespawnObelisksConfig.INSTANCE.cores.wildMaxRadiance -RespawnObelisksConfig.INSTANCE.cores.wildMinRadiance)+RespawnObelisksConfig.INSTANCE.cores.wildMinRadiance) / 100f;
+            int maxCharge = random.nextInt(RespawnObelisksConfig.INSTANCE.cores.wildMaxMaxRadiancee -RespawnObelisksConfig.INSTANCE.cores.wildMinMaxRadiance)+RespawnObelisksConfig.INSTANCE.cores.wildMinMaxRadiance;
             setCharge(null, Math.round(charge*maxCharge));
             setMaxCharge(null, maxCharge);
         }
@@ -86,21 +90,21 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
 
     public boolean isPlayerTrusted(String username) {
         if (!CoreUtils.hasInteraction(coreItem, ObeliskInteraction.PROTECT)) return true;
-        if (TrustedPlayersConfig.enablePlayerTrust && this.coreItem.stack().getOrCreateTag().contains("RespawnObeliskData")) {
-            CompoundTag obeliskData = this.coreItem.stack().getTag().getCompound("RespawnObeliskData");
+        if (RespawnObelisksConfig.INSTANCE.playerTrusting.enablePlayerTrust && this.coreItem.stack().getOrCreateNbt().contains("RespawnObeliskData")) {
+            NbtCompound obeliskData = this.coreItem.stack().getNbt().getCompound("RespawnObeliskData");
             if (obeliskData.contains("TrustedPlayers")) {
-                ListTag list = obeliskData.getList("TrustedPlayers", 8);
-                return list.contains(StringTag.valueOf(username));
+                NbtList list = obeliskData.getList("TrustedPlayers", 8);
+                return list.contains(NbtString.of(username));
             }
         }
         return true;
     }
-    public List<ResourceLocation> getThemes() {
+    public List<Identifier> getThemes() {
         if (coreItem.isEmpty()) return List.of();
         if (themes.isEmpty()) return coreItem.core().themes();
         return themes;
     }
-    public Component getObeliskNameComponent() {
+    public Text getObeliskNameComponent() {
         return obeliskNameComponent;
     }
     public String getObeliskName() {
@@ -119,9 +123,9 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
         return lastCharge;
     }
     public long getGameTime() {
-        if (level == null)
+        if (world == null)
             return -100;
-        return level.getGameTime();
+        return world.getTime();
     }
     public void setLastCharge(long lastCharge) {
         this.lastCharge = lastCharge;
@@ -132,30 +136,30 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     public double getClientMaxCharge() {
         return clientMaxCharge;
     }
-    public double getCharge(@Nullable Player player) {
-        if (level == null || level.isClientSide) return clientCharge;
+    public double getCharge(@Nullable PlayerEntity player) {
+        if (world == null || world.isClient) return clientCharge;
         if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return 0;
         return coreItem.core().chargeProvider.apply(player, coreItem.stack(), this);
     }
-    public double getMaxCharge(@Nullable Player player) {
-        if (level == null || level.isClientSide) return clientMaxCharge;
+    public double getMaxCharge(@Nullable PlayerEntity player) {
+        if (world == null || world.isClient) return clientMaxCharge;
         if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return 0;
         return coreItem.core().maxChargeProvider.apply(player, coreItem.stack(), this);
     }
-    public void setMaxCharge(@Nullable Player player, double amnt) {
+    public void setMaxCharge(@Nullable PlayerEntity player, double amnt) {
         if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return;
         coreItem.core().maxChargeSetter.call(amnt, player, coreItem.stack(), this);
     }
-    public CompoundTag getItemNbt() {
-        return coreItem.stack().save(new CompoundTag());
+    public NbtCompound getItemNbt() {
+        return coreItem.stack().writeNbt(new NbtCompound());
     }
-    public CompoundTag getItemTag() {
-        return coreItem.stack().getOrCreateTag();
+    public NbtCompound getItemTag() {
+        return coreItem.stack().getOrCreateNbt();
     }
-    public void setItemFromNbt(CompoundTag tag, ObeliskCore core) {
-        coreItem = new Instance(ItemStack.of(tag), core);
+    public void setItemFromNbt(NbtCompound tag, ObeliskCore core) {
+        coreItem = new Instance(ItemStack.fromNbt(tag), core);
     }
-    public void setCharge(Player player, double charge) {
+    public void setCharge(PlayerEntity player, double charge) {
         if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return;
         coreItem.core().chargeSetter.call(charge, player, coreItem.stack(), this);
     }
@@ -172,35 +176,35 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
         return coreItem;
     }
 
-    public void chargeAndAnimate(Player player, double amnt) {
+    public void chargeAndAnimate(PlayerEntity player, double amnt) {
         boolean isNegative = amnt < 0;
-        if (hasLevel()) {
-            if (isNegative) setLastRespawn(level.getGameTime());
+        if (hasWorld()) {
+            if (isNegative) setLastRespawn(world.getTime());
             else {
-                setLastCharge(level.getGameTime());
-                if (player instanceof ServerPlayer sp) ModRegistries.chargeCriterion.trigger(sp);
+                setLastCharge(world.getTime());
+                if (player instanceof ServerPlayerEntity sp) ModRegistries.chargeCriterion.trigger(sp);
             }
         }
         increaseCharge(player, amnt);
     }
-    public void decreaseCharge(Player player, double amnt) {
-        this.setCharge(player, Mth.clamp(this.getCharge(player) - amnt, 0, this.getMaxCharge(player)));
+    public void decreaseCharge(PlayerEntity player, double amnt) {
+        this.setCharge(player, MathHelper.clamp(this.getCharge(player) - amnt, 0, this.getMaxCharge(player)));
         this.syncWithClient();
     }
 
-    public void increaseCharge(Player player, double amnt) {
-        this.setCharge(player, Mth.clamp(this.getCharge(player) + amnt, 0, this.getMaxCharge(player)));
+    public void increaseCharge(PlayerEntity player, double amnt) {
+        this.setCharge(player, MathHelper.clamp(this.getCharge(player) + amnt, 0, this.getMaxCharge(player)));
         this.syncWithClient();
     }
 
-    public void restoreSavedItems(Player player) {
-        ObeliskInventory inv = storedItems.get(player.getUUID());
+    public void restoreSavedItems(PlayerEntity player) {
+        ObeliskInventory inv = storedItems.get(player.getUuid());
         if (inv == null) return;
         boolean has = false;
         if (!inv.isItemsEmpty()) {
             has = true;
             inv.items.forEach(i -> {
-                if (!i.isEmpty()) player.getInventory().placeItemBackInInventory(i);
+                if (!i.isEmpty()) player.getInventory().offerOrDrop(i);
             });
             inv.items.clear();
         }
@@ -208,36 +212,36 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
             has = true;
             for (EquipmentSlot slot : EquipmentSlot.values()) {
                 if (slot.getType().equals(EquipmentSlot.Type.ARMOR)) {
-                    if (inv.armor.size() <= slot.getIndex())
+                    if (inv.armor.size() <= slot.getEntitySlotId())
                         continue;
-                    if (player.getItemBySlot(slot).isEmpty())
-                        player.setItemSlot(slot, inv.armor.get(slot.getIndex()));
+                    if (player.getEquippedStack(slot).isEmpty())
+                        player.equipStack(slot, inv.armor.get(slot.getEntitySlotId()));
                     else
-                        player.getInventory().placeItemBackInInventory(inv.armor.get(slot.getIndex()));
+                        player.getInventory().offerOrDrop(inv.armor.get(slot.getEntitySlotId()));
                 }
             }
             inv.armor.clear();
         }
         if (!inv.isOffhandEmpty()) {
             has = true;
-            if (player.getItemBySlot(EquipmentSlot.OFFHAND).isEmpty())
-                player.setItemSlot(EquipmentSlot.OFFHAND, inv.offhand.get(0));
+            if (player.getEquippedStack(EquipmentSlot.OFFHAND).isEmpty())
+                player.equipStack(EquipmentSlot.OFFHAND, inv.offhand.get(0));
             else
-                player.getInventory().placeItemBackInInventory(inv.offhand.get(0));
+                player.getInventory().offerOrDrop(inv.offhand.get(0));
             inv.offhand.clear();
         }
         if (inv.isXpEmpty()) {
-            player.giveExperiencePoints(inv.xp);
+            player.addExperience(inv.xp);
             inv.xp = 0;
         }
-        if (has && player instanceof ServerPlayer sp) ModRegistries.keepItemsCriterion.trigger(sp);
+        if (has && player instanceof ServerPlayerEntity sp) ModRegistries.keepItemsCriterion.trigger(sp);
         syncWithClient();
     }
 
     public void syncWithClient() {
-        if (level == null || level.isClientSide) return;
+        if (world == null || world.isClient) return;
         updateHasSavedItems();
-        setChanged(this.level, this.getBlockPos(), this.getBlockState());
+        markDirty(this.world, this.getPos(), this.getCachedState());
     }
 
     public void updateHasSavedItems() {
@@ -252,8 +256,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     }
 
     @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
+    public void readNbt(NbtCompound tag) {
+        super.readNbt(tag);
         this.hasRandomCharge = tag.contains("RandomCharge") && tag.getBoolean("RandomCharge");
         if (!hasRandomCharge) {
             if (tag.getCompound("Item").contains("id")) {
@@ -261,8 +265,8 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
                 if (str.equals("respawnobelisks:obelisk_core_nether") || str.equals("respawnobelisks:obelisk_core_end"))
                     tag.getCompound("Item").putString("id", "respawnobelisks:obelisk_core");
 
-                LOGGER.warn("Respawn Obelisk at \"{}\" had an old core. Updating!", this.getBlockPos());
-                ItemStack stack = ItemStack.of(tag.getCompound("Item"));
+                LOGGER.warn("Respawn Obelisk at \"{}\" had an old core. Updating!", this.getPos());
+                ItemStack stack = ItemStack.fromNbt(tag.getCompound("Item"));
                 this.coreItem = stack == ItemStack.EMPTY ? Instance.EMPTY : new Instance(stack, ObeliskCore.ANCIENT_CORE);
             } else
                 this.coreItem = Instance.CODEC.parse(NbtOps.INSTANCE, tag.getCompound("Item")).getOrThrow(false, s -> LOGGER.error("Failed to parse Obelisk's 'Item'. " + s));
@@ -276,32 +280,32 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
         if (tag.contains("ClientCharge")) this.clientCharge = tag.getDouble("ClientCharge");
         if (tag.contains("ClientMaxCharge")) this.clientMaxCharge = tag.getDouble("ClientMaxCharge");
         if (tag.contains("StoredItems", 10)) {
-            CompoundTag stored = tag.getCompound("StoredItems");
-            for (String key : stored.getAllKeys()) {
+            NbtCompound stored = tag.getCompound("StoredItems");
+            for (String key : stored.getKeys()) {
                 this.storedItems.put(UUID.fromString(key), ObeliskInventory.readFromNbt(stored.getCompound(key)));
             }
         }
-        this.obeliskNameComponent = Component.Serializer.fromJson(tag.getString("Name"));
+        this.obeliskNameComponent = Text.Serializer.fromJson(tag.getString("Name"));
         this.hasTeleportingEntity = tag.getBoolean("HasTeleportingEntity");
         this.themes.clear();
-        tag.getList("RenderThemes", 8).forEach(t -> this.themes.add(new ResourceLocation(t.getAsString())));
+        tag.getList("RenderThemes", 8).forEach(t -> this.themes.add(new Identifier(t.asString())));
         loadConsumers.forEach(c -> c.accept(tag));
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
         this.saveData(tag, true, true);
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        CompoundTag tag = new CompoundTag();
+    public NbtCompound toInitialChunkDataNbt() {
+        NbtCompound tag = new NbtCompound();
         this.saveData(tag, false, true);
         return tag;
     }
 
-    private void saveData(CompoundTag tag, boolean saveItems, boolean sendCharge) {
+    private void saveData(NbtCompound tag, boolean saveItems, boolean sendCharge) {
         tag.putBoolean("RandomCharge", hasRandomCharge);
         tag.put("Item", Instance.CODEC.encodeStart(NbtOps.INSTANCE, coreItem).getOrThrow(true, s -> LOGGER.error("Failed to save Obelisk's 'Item'. " + s)));
         tag.putLong("LastRespawn", lastRespawn);
@@ -310,7 +314,7 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
         tag.putBoolean("HasStoredItems", hasStoredItems);
         tag.putString("Name", obeliskName);
         if (saveItems) {
-            CompoundTag allPlayers = new CompoundTag();
+            NbtCompound allPlayers = new NbtCompound();
             for (UUID uuid : storedItems.keySet()) {
                 allPlayers.put(uuid.toString(), storedItems.get(uuid).saveToNbt());
             }
@@ -321,32 +325,32 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
             tag.putDouble("ClientMaxCharge", this.getMaxCharge(null));
         }
         tag.putBoolean("HasTeleportingEntity", hasTeleportingEntity);
-        ListTag list = new ListTag();
-        themes.forEach(t -> list.add(StringTag.valueOf(t.toString())));
+        NbtList list = new NbtList();
+        themes.forEach(t -> list.add(NbtString.of(t.toString())));
         tag.put("RenderThemes", list);
     }
 
-    protected static void setChanged(Level pLevel, BlockPos pPos, BlockState pState) {
-        BlockEntity.setChanged(pLevel, pPos, pState);
-        pLevel.sendBlockUpdated(pPos, pLevel.getBlockState(pPos), pState, 3);
+    protected static void markDirty(World pLevel, BlockPos pPos, BlockState pState) {
+        BlockEntity.markDirty(pLevel, pPos, pState);
+        pLevel.updateListeners(pPos, pLevel.getBlockState(pPos), pState, 3);
     }
 
     @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
+    public Packet<ClientPlayPacketListener> toUpdatePacket() {
+        return BlockEntityUpdateS2CPacket.create(this);
     }
 
-    public static void tick(Level level, BlockPos blockPos, BlockState state, RespawnObeliskBlockEntity blockEntity) {
-        if (level.getGameTime() % 100 == 0) {
-            if (!level.isClientSide) {
+    public static void tick(World level, BlockPos blockPos, BlockState state, RespawnObeliskBlockEntity blockEntity) {
+        if (level.getTime() % 100 == 0) {
+            if (!level.isClient) {
                 blockEntity.checkLimbo(true);
             }
         }
     }
 
     public void updateObeliskName() {
-        if (this.coreItem.stack().getOrCreateTag().contains("display")) {
-            CompoundTag displayData = this.coreItem.stack().getTag().getCompound("display");
+        if (this.coreItem.stack().getOrCreateNbt().contains("display")) {
+            NbtCompound displayData = this.coreItem.stack().getNbt().getCompound("display");
             if (displayData.contains("Name")) {
                 obeliskName = displayData.getString("Name");
                 return;
@@ -356,19 +360,19 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     }
 
     public void checkLimbo(boolean shouldSync) {
-        if (this.coreItem.stack().getOrCreateTag().contains("RespawnObeliskData")) {
-            CompoundTag obeliskData = this.coreItem.stack().getTag().getCompound("RespawnObeliskData");
+        if (this.coreItem.stack().getOrCreateNbt().contains("RespawnObeliskData")) {
+            NbtCompound obeliskData = this.coreItem.stack().getNbt().getCompound("RespawnObeliskData");
             if (obeliskData.contains("SavedEntities")) {
-                ListTag list = obeliskData.getList("SavedEntities", 10);
-                for (Tag tag : list) {
+                NbtList list = obeliskData.getList("SavedEntities", 10);
+                for (NbtElement tag : list) {
                     if (
-                            level instanceof ServerLevel serverLevel &&
-                                    tag instanceof CompoundTag compound &&
+                            world instanceof ServerWorld serverLevel &&
+                                    tag instanceof NbtCompound compound &&
                                     compound.contains("uuid") &&
                                     compound.contains("type") &&
                                     compound.contains("data")
                     ) {
-                        Entity entity = serverLevel.getEntity(compound.getUUID("uuid"));
+                        Entity entity = serverLevel.getEntity(compound.getUuid("uuid"));
                         if (entity == null || !entity.isAlive()) {
                             this.hasLimboEntity = true;
                             if (shouldSync) this.syncWithClient();
@@ -383,22 +387,22 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     }
 
     @Override
-    public PositionSource getListenerSource() {
+    public PositionSource getPositionSource() {
         return source;
     }
 
     @Override
-    public int getListenerRadius() {
+    public int getRange() {
         return 8;
     }
 
     @Override
-    public boolean handleGameEvent(ServerLevel level, GameEvent event, GameEvent.Context context, Vec3 pos) {
+    public boolean listen(ServerWorld level, GameEvent event, GameEvent.Emitter context, Vec3d pos) {
         if (this.isRemoved() || coreItem.isEmpty()) return false;
         boolean result = false;
         for (ObeliskInteraction interaction : ObeliskInteraction.EVENT_INTERACTIONS.getOrDefault(event, Map.of()).values()) {
             if (coreItem.core().interactions.contains(interaction.id)) {
-                boolean bl = interaction.eventHandler.apply(this, new GameEvent.ListenerInfo(event, pos, context, this, this.getBlockPos().getCenter()));
+                boolean bl = interaction.eventHandler.apply(this, new GameEvent.Message(event, pos, context, this, this.getPos().toCenterPos()));
                 result = !result ? bl : result;
             }
         }

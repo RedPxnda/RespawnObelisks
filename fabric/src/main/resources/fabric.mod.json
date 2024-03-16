@@ -32,7 +32,6 @@
   "depends": {
     "fabric": "*",
     "minecraft": ">=1.20.1",
-    "architectury": ">=9.0.8",
-    "resourcefulconfig": ">=2.0.0"
+    "architectury": ">=9.0.8"
   }
 }

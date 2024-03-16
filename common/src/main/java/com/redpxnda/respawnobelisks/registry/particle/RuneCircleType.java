@@ -5,11 +5,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.ExtraCodecs;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.ParticleType;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.dynamic.Codecs;
 import org.joml.Vector3f;
 
 public class RuneCircleType extends ParticleType<RuneCircleType.Options> {
@@ -17,8 +17,8 @@ public class RuneCircleType extends ParticleType<RuneCircleType.Options> {
             Codec.INT.fieldOf("time").forGetter(options -> options.time),
             Codec.INT.fieldOf("max_time").forGetter(options -> options.maxTime),
             Codec.FLOAT.fieldOf("scale").forGetter(options -> options.scale),
-            ExtraCodecs.VECTOR3F.fieldOf("primary_color").forGetter(options -> options.primary),
-            ExtraCodecs.VECTOR3F.fieldOf("secondary_color").forGetter(options -> options.secondary)
+            Codecs.VECTOR_3F.fieldOf("primary_color").forGetter(options -> options.primary),
+            Codecs.VECTOR_3F.fieldOf("secondary_color").forGetter(options -> options.secondary)
     ).apply(instance, Options::new));
 
     public RuneCircleType(boolean alwaysShow) {
@@ -26,11 +26,11 @@ public class RuneCircleType extends ParticleType<RuneCircleType.Options> {
     }
 
     @Override
-    public Codec<Options> codec() {
+    public Codec<Options> getCodec() {
         return CODEC;
     }
 
-    public record Options(int time, int maxTime, float scale, Vector3f primary, Vector3f secondary) implements ParticleOptions {
+    public record Options(int time, int maxTime, float scale, Vector3f primary, Vector3f secondary) implements ParticleEffect {
 
         @Override
         public ParticleType<Options> getType() {
@@ -38,7 +38,7 @@ public class RuneCircleType extends ParticleType<RuneCircleType.Options> {
         }
 
         @Override
-        public void writeToNetwork(FriendlyByteBuf buf) {
+        public void write(PacketByteBuf buf) {
             buf.writeInt(time);
             buf.writeInt(maxTime);
             buf.writeFloat(scale);
@@ -51,13 +51,13 @@ public class RuneCircleType extends ParticleType<RuneCircleType.Options> {
         }
 
         @Override
-        public String writeToString() {
-            return BuiltInRegistries.PARTICLE_TYPE.getKey(this.getType()).toString();
+        public String asString() {
+            return Registries.PARTICLE_TYPE.getId(this.getType()).toString();
         }
 
-        public static final ParticleOptions.Deserializer<Options> DESERIALIZER = new Deserializer<>() {
+        public static final ParticleEffect.Factory<Options> DESERIALIZER = new Factory<>() {
             @Override
-            public Options fromCommand(ParticleType<Options> particleType, StringReader stringReader) throws CommandSyntaxException {
+            public Options read(ParticleType<Options> particleType, StringReader stringReader) throws CommandSyntaxException {
                 stringReader.expect(' ');
                 int time = stringReader.readInt();
                 stringReader.expect(' ');
@@ -84,7 +84,7 @@ public class RuneCircleType extends ParticleType<RuneCircleType.Options> {
             }
 
             @Override
-            public Options fromNetwork(ParticleType<Options> particleType, FriendlyByteBuf buf) {
+            public Options read(ParticleType<Options> particleType, PacketByteBuf buf) {
                 return new Options(
                         buf.readInt(),
                         buf.readInt(),

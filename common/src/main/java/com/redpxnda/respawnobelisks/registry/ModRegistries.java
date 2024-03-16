@@ -3,7 +3,7 @@ package com.redpxnda.respawnobelisks.registry;
 import com.google.common.base.Suppliers;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
-import com.redpxnda.respawnobelisks.config.ObeliskDimensionsConfig;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.data.recipe.CoreMergeRecipe;
 import com.redpxnda.respawnobelisks.data.recipe.CoreUpgradeRecipe;
 import com.redpxnda.respawnobelisks.mixin.CriteriasAccessor;
@@ -20,26 +20,34 @@ import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrarManager;
 import dev.architectury.registry.registries.RegistrySupplier;
-import net.minecraft.advancements.critereon.*;
-import net.minecraft.core.particles.ParticleType;
-import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.*;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraft.world.level.levelgen.structure.StructureType;
-import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.advancement.criterion.AbstractCriterion;
+import net.minecraft.advancement.criterion.AbstractCriterionConditions;
+import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
+import net.minecraft.block.MapColor;
+import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.effect.StatusEffect;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.particle.DefaultParticleType;
+import net.minecraft.particle.ParticleType;
+import net.minecraft.predicate.entity.AdvancementEntityPredicateDeserializer;
+import net.minecraft.predicate.entity.EntityPredicate;
+import net.minecraft.predicate.entity.LootContextPredicate;
+import net.minecraft.recipe.RecipeSerializer;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.Rarity;
+import net.minecraft.world.gen.structure.Structure;
+import net.minecraft.world.gen.structure.StructureType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,38 +58,38 @@ import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
 public class ModRegistries {
     private static final List<Supplier<ItemStack>> tabItems = new ArrayList<>();
 
-    public static ResourceLocation rl(String loc) {
-        return new ResourceLocation(MOD_ID, loc);
+    public static Identifier rl(String loc) {
+        return new Identifier(MOD_ID, loc);
     }
     public static final Supplier<RegistrarManager> regs = Suppliers.memoize(() -> RegistrarManager.get(MOD_ID));
 
-    private static final Registrar<Block> blocks = regs.get().get(Registries.BLOCK);
-    private static final Registrar<CreativeModeTab> tabs = regs.get().get(Registries.CREATIVE_MODE_TAB);
-    private static final Registrar<Item> items = regs.get().get(Registries.ITEM);
-    private static final Registrar<ParticleType<?>> particles = regs.get().get(Registries.PARTICLE_TYPE);
-    private static final Registrar<Enchantment> enchants = regs.get().get(Registries.ENCHANTMENT);
-    private static final Registrar<MobEffect> effects = regs.get().get(Registries.MOB_EFFECT);
-    private static final Registrar<BlockEntityType<?>> blockEntities = regs.get().get(Registries.BLOCK_ENTITY_TYPE);
-    private static final Registrar<StructureType<?>> structures = regs.get().get(Registries.STRUCTURE_TYPE);
-    private static final Registrar<RecipeSerializer<?>> recipes = regs.get().get(Registries.RECIPE_SERIALIZER);
+    private static final Registrar<Block> blocks = regs.get().get(RegistryKeys.BLOCK);
+    private static final Registrar<ItemGroup> tabs = regs.get().get(RegistryKeys.ITEM_GROUP);
+    private static final Registrar<Item> items = regs.get().get(RegistryKeys.ITEM);
+    private static final Registrar<ParticleType<?>> particles = regs.get().get(RegistryKeys.PARTICLE_TYPE);
+    private static final Registrar<Enchantment> enchants = regs.get().get(RegistryKeys.ENCHANTMENT);
+    private static final Registrar<StatusEffect> effects = regs.get().get(RegistryKeys.STATUS_EFFECT);
+    private static final Registrar<BlockEntityType<?>> blockEntities = regs.get().get(RegistryKeys.BLOCK_ENTITY_TYPE);
+    private static final Registrar<StructureType<?>> structures = regs.get().get(RegistryKeys.STRUCTURE_TYPE);
+    private static final Registrar<RecipeSerializer<?>> recipes = regs.get().get(RegistryKeys.RECIPE_SERIALIZER);
 
     public static RegistrySupplier<ParticleType<RuneCircleType.Options>> runeCircleParticle = particles.register(rl("rune_circle"), () -> new RuneCircleType(false));
-    public static RegistrySupplier<SimpleParticleType> depleteRingParticle = particles.register(rl("deplete_ring"), () -> new SimpleParticleType(false));
-    public static RegistrySupplier<SimpleParticleType> chargeIndicatorParticle = particles.register(rl("charge_indicator"), () -> new SimpleParticleType(false));
+    public static RegistrySupplier<DefaultParticleType> depleteRingParticle = particles.register(rl("deplete_ring"), () -> new DefaultParticleType(false));
+    public static RegistrySupplier<DefaultParticleType> chargeIndicatorParticle = particles.register(rl("charge_indicator"), () -> new DefaultParticleType(false));
 
-    public static RegistrySupplier<CreativeModeTab> tab = tabs.register(rl("tab"), () -> CreativeTabRegistry.create(b -> {
-        b.title(Component.translatable("itemGroup.respawnobelisks.tab"));
-        b.icon(() -> ModRegistries.respawnObeliskItem.get().getDefaultInstance());
-        b.displayItems((flagSet, out) -> tabItems.forEach(sup -> out.accept(sup.get())));
+    public static RegistrySupplier<ItemGroup> tab = tabs.register(rl("tab"), () -> CreativeTabRegistry.create(b -> {
+        b.displayName(Text.translatable("itemGroup.respawnobelisks.tab"));
+        b.icon(() -> ModRegistries.respawnObeliskItem.get().getDefaultStack());
+        b.entries((flagSet, out) -> tabItems.forEach(sup -> out.add(sup.get())));
     }));
 
     public static RegistrySupplier<Enchantment> obeliskbound = enchants.register(rl("obeliskbound"), ObeliskboundEnchantment::new);
 
-    public static RegistrySupplier<Item> boundCompass = regItem("bound_compass", () -> new BoundCompassItem(new Item.Properties()));
+    public static RegistrySupplier<Item> boundCompass = regItem("bound_compass", () -> new BoundCompassItem(new Item.Settings()));
 
-    public static ResourceLocation OBELISK_CORE_LOC = rl("obelisk_core");
-    public static RegistrySupplier<Item> obeliskCore = regItem(OBELISK_CORE_LOC, () -> new CoreItem(new Item.Properties()
-            .fireResistant()
+    public static Identifier OBELISK_CORE_LOC = rl("obelisk_core");
+    public static RegistrySupplier<Item> obeliskCore = regItem(OBELISK_CORE_LOC, () -> new CoreItem(new Item.Settings()
+            .fireproof()
             .rarity(Rarity.UNCOMMON)
     ), () -> CoreItem.createTabItem(ModRegistries.obeliskCore.get()));
 
@@ -97,75 +105,75 @@ public class ModRegistries {
 //            .rarity(Rarity.UNCOMMON)
 //    ));
 
-    public static RegistrySupplier<Block> respawnObelisk = blocks.register(rl("respawn_obelisk"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of()
-            .sound(SoundType.STONE)
-            .pushReaction(PushReaction.IGNORE)
-            .mapColor(MapColor.COLOR_GRAY)
-            .noOcclusion()
+    public static RegistrySupplier<Block> respawnObelisk = blocks.register(rl("respawn_obelisk"), () -> new RespawnObeliskBlock(AbstractBlock.Settings
+            .create()
+            .sounds(BlockSoundGroup.STONE)
+            .pistonBehavior(PistonBehavior.IGNORE)
+            .mapColor(MapColor.GRAY)
+            .nonOpaque()
             .strength(10, 3600.0F)
-            .requiresCorrectToolForDrops(),
-            (level, state, pos, blockEntity, player) -> ObeliskDimensionsConfig.isValidOverworld(level)
+            .requiresTool(),
+            (level, state, pos, blockEntity, player) -> RespawnObelisksConfig.INSTANCE.dimensions.isValidOverworld(level)
     ));
 
-    public static RegistrySupplier<Item> respawnObeliskItem = regItem("respawn_obelisk", () -> new BlockItem(respawnObelisk.get(), new Item.Properties()
-            .stacksTo(1)
-            .fireResistant()
+    public static RegistrySupplier<Item> respawnObeliskItem = regItem("respawn_obelisk", () -> new BlockItem(respawnObelisk.get(), new Item.Settings()
+            .maxCount(1)
+            .fireproof()
             .rarity(Rarity.UNCOMMON)
     ));
 
-    public static RegistrySupplier<Block> netherRespawnObelisk = blocks.register(rl("respawn_obelisk_nether"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of()
-            .sound(SoundType.STONE)
-            .pushReaction(PushReaction.IGNORE)
-            .mapColor(MapColor.COLOR_RED)
-            .noOcclusion()
+    public static RegistrySupplier<Block> netherRespawnObelisk = blocks.register(rl("respawn_obelisk_nether"), () -> new RespawnObeliskBlock(AbstractBlock.Settings
+            .create()
+            .sounds(BlockSoundGroup.STONE)
+            .pistonBehavior(PistonBehavior.IGNORE)
+            .mapColor(MapColor.RED)
+            .nonOpaque()
             .strength(10, 3600.0F)
-            .requiresCorrectToolForDrops(),
-            (level, state, pos, blockEntity, player) -> ObeliskDimensionsConfig.isValidNether(level)
+            .requiresTool(),
+            (level, state, pos, blockEntity, player) -> RespawnObelisksConfig.INSTANCE.dimensions.isValidNether(level)
     ));
 
-    public static RegistrySupplier<Item> netherRespawnObeliskItem = regItem("respawn_obelisk_nether", () -> new BlockItem(netherRespawnObelisk.get(), new Item.Properties()
-            .stacksTo(1)
-            .fireResistant()
+    public static RegistrySupplier<Item> netherRespawnObeliskItem = regItem("respawn_obelisk_nether", () -> new BlockItem(netherRespawnObelisk.get(), new Item.Settings()
+            .maxCount(1)
+            .fireproof()
             .rarity(Rarity.UNCOMMON)
     ));
 
-    public static RegistrySupplier<Block> endRespawnObelisk = blocks.register(rl("respawn_obelisk_end"), () -> new RespawnObeliskBlock(BlockBehaviour.Properties
-            .of()
-            .sound(SoundType.STONE)
-            .pushReaction(PushReaction.IGNORE)
-            .mapColor(MapColor.COLOR_PURPLE)
-            .noOcclusion()
+    public static RegistrySupplier<Block> endRespawnObelisk = blocks.register(rl("respawn_obelisk_end"), () -> new RespawnObeliskBlock(AbstractBlock.Settings
+            .create()
+            .sounds(BlockSoundGroup.STONE)
+            .pistonBehavior(PistonBehavior.IGNORE)
+            .mapColor(MapColor.PURPLE)
+            .nonOpaque()
             .strength(10, 3600.0F)
-            .requiresCorrectToolForDrops(),
-            (level, state, pos, blockEntity, player) -> ObeliskDimensionsConfig.isValidEnd(level)
+            .requiresTool(),
+            (level, state, pos, blockEntity, player) -> RespawnObelisksConfig.INSTANCE.dimensions.isValidEnd(level)
     ));
 
-    public static RegistrySupplier<Item> endRespawnObeliskItem = regItem("respawn_obelisk_end", () -> new BlockItem(endRespawnObelisk.get(), new Item.Properties()
-            .stacksTo(1)
-            .fireResistant()
+    public static RegistrySupplier<Item> endRespawnObeliskItem = regItem("respawn_obelisk_end", () -> new BlockItem(endRespawnObelisk.get(), new Item.Settings()
+            .maxCount(1)
+            .fireproof()
             .rarity(Rarity.UNCOMMON)
     ));
 
-    public static RegistrySupplier<Item> dormantObelisk = regItem("dormant_obelisk", () -> new Item(new Item.Properties()
+    public static RegistrySupplier<Item> dormantObelisk = regItem("dormant_obelisk", () -> new Item(new Item.Settings()
             .rarity(Rarity.UNCOMMON)
     ));
 
 
-    public static RegistrySupplier<Block> fakeRespawnAnchor = blocks.register(rl("fake_respawn_anchor"), () -> new FakeRespawnAnchorBlock(BlockBehaviour.Properties
-            .of()
-            .sound(SoundType.STONE)
-            .pushReaction(PushReaction.IGNORE)
+    public static RegistrySupplier<Block> fakeRespawnAnchor = blocks.register(rl("fake_respawn_anchor"), () -> new FakeRespawnAnchorBlock(AbstractBlock.Settings
+            .create()
+            .sounds(BlockSoundGroup.STONE)
+            .pistonBehavior(PistonBehavior.IGNORE)
             .strength(-1.0f, 3600000.0f)
-            .noLootTable()
+            .dropsNothing()
     ));
 
     public static RegistrySupplier<BlockEntityType<RespawnObeliskBlockEntity>> ROBE = blockEntities.register(rl("respawn_obelisk"), () ->
-            BlockEntityType.Builder.of(RespawnObeliskBlockEntity::new, respawnObelisk.get(), netherRespawnObelisk.get(), endRespawnObelisk.get()).build(null)
+            BlockEntityType.Builder.create(RespawnObeliskBlockEntity::new, respawnObelisk.get(), netherRespawnObelisk.get(), endRespawnObelisk.get()).build(null)
     );
 
-    public static RegistrySupplier<MobEffect> immortalityCurse = effects.register(rl("immortality_curse"), ImmortalityCurseEffect::new);
+    public static RegistrySupplier<StatusEffect> immortalityCurse = effects.register(rl("immortality_curse"), ImmortalityCurseEffect::new);
 
     public static RegistrySupplier<StructureType<NetherLandStructures>> netherStructureType = structures.register(rl("nether_land_structure"), () -> explicitStructureTypeTyping(NetherLandStructures.CODEC));
 
@@ -179,63 +187,63 @@ public class ModRegistries {
     public static EmptyCriterion kaboomCriterion = CriteriasAccessor.callRegister(new EmptyCriterion(rl("kaboom")));
     public static EmptyCriterion catalystCriterion = CriteriasAccessor.callRegister(new EmptyCriterion(rl("destruction_catalyst")));
 
-    public static class EntityCriterion extends SimpleCriterionTrigger<EntityTriggerInstance> {
-        private final ResourceLocation id;
+    public static class EntityCriterion extends AbstractCriterion<EntityTriggerInstance> {
+        private final Identifier id;
 
-        public EntityCriterion(ResourceLocation id) {
+        public EntityCriterion(Identifier id) {
             this.id = id;
         }
 
         @Override
-        protected EntityTriggerInstance createInstance(JsonObject jsonObject, ContextAwarePredicate composite, DeserializationContext deserializationContext) {
-            ContextAwarePredicate entity = EntityPredicate.fromJson(jsonObject, "entity", deserializationContext);
+        protected EntityTriggerInstance conditionsFromJson(JsonObject jsonObject, LootContextPredicate composite, AdvancementEntityPredicateDeserializer deserializationContext) {
+            LootContextPredicate entity = EntityPredicate.contextPredicateFromJson(jsonObject, "entity", deserializationContext);
             return new EntityTriggerInstance(id, composite, entity);
         }
 
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return id;
         }
 
-        public void trigger(ServerPlayer player, Entity entity) {
+        public void trigger(ServerPlayerEntity player, Entity entity) {
             this.trigger(player, i -> i.matches(player, entity));
         }
     }
-    public static class EntityTriggerInstance extends AbstractCriterionTriggerInstance {
-        private final ContextAwarePredicate entity;
+    public static class EntityTriggerInstance extends AbstractCriterionConditions {
+        private final LootContextPredicate entity;
 
-        public EntityTriggerInstance(ResourceLocation resourceLocation, ContextAwarePredicate composite, ContextAwarePredicate entity) {
+        public EntityTriggerInstance(Identifier resourceLocation, LootContextPredicate composite, LootContextPredicate entity) {
             super(resourceLocation, composite);
             this.entity = entity;
         }
 
-        public boolean matches(ServerPlayer player, Entity entity) {
-            return this.entity.matches(EntityPredicate.createContext(player, entity));
+        public boolean matches(ServerPlayerEntity player, Entity entity) {
+            return this.entity.test(EntityPredicate.createAdvancementEntityLootContext(player, entity));
         }
     }
-    public static class EmptyCriterion extends SimpleCriterionTrigger<EmptyTriggerInstance> {
-        public final ResourceLocation id;
+    public static class EmptyCriterion extends AbstractCriterion<EmptyTriggerInstance> {
+        public final Identifier id;
 
-        public EmptyCriterion(ResourceLocation id) {
+        public EmptyCriterion(Identifier id) {
             this.id = id;
         }
 
         @Override
-        protected ModRegistries.EmptyTriggerInstance createInstance(JsonObject jsonObject, ContextAwarePredicate composite, DeserializationContext deserializationContext) {
-            return new ModRegistries.EmptyTriggerInstance(id, composite);
+        protected EmptyTriggerInstance conditionsFromJson(JsonObject jsonObject, LootContextPredicate composite, AdvancementEntityPredicateDeserializer deserializationContext) {
+            return new EmptyTriggerInstance(id, composite);
         }
 
-        public void trigger(ServerPlayer player) {
+        public void trigger(ServerPlayerEntity player) {
             this.trigger(player, i -> true);
         }
 
         @Override
-        public ResourceLocation getId() {
+        public Identifier getId() {
             return id;
         }
     }
-    public static class EmptyTriggerInstance extends AbstractCriterionTriggerInstance {
-        public EmptyTriggerInstance(ResourceLocation id, ContextAwarePredicate composite) {
+    public static class EmptyTriggerInstance extends AbstractCriterionConditions {
+        public EmptyTriggerInstance(Identifier id, LootContextPredicate composite) {
             super(id, composite);
         }
     }
@@ -250,13 +258,13 @@ public class ModRegistries {
     private static RegistrySupplier<Item> regItem(String id, Supplier<Item> item) {
         return regItem(rl(id), item);
     }
-    private static RegistrySupplier<Item> regItem(ResourceLocation id, Supplier<Item> item, Supplier<ItemStack> tabItem) {
+    private static RegistrySupplier<Item> regItem(Identifier id, Supplier<Item> item, Supplier<ItemStack> tabItem) {
         tabItems.add(tabItem);
         return items.register(id, item);
     }
-    private static RegistrySupplier<Item> regItem(ResourceLocation id, Supplier<Item> item) {
+    private static RegistrySupplier<Item> regItem(Identifier id, Supplier<Item> item) {
         RegistrySupplier<Item> toReg = items.register(id, item);
-        tabItems.add(() -> toReg.get().getDefaultInstance());
+        tabItems.add(() -> toReg.get().getDefaultStack());
         return toReg;
     }
 

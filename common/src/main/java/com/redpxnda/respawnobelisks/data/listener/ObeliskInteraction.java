@@ -2,13 +2,13 @@ package com.redpxnda.respawnobelisks.data.listener;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.redpxnda.respawnobelisks.config.ChargeConfig;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.event.GameEvent;
 import org.apache.commons.lang3.function.TriFunction;
 import org.apache.logging.log4j.util.TriConsumer;
 
@@ -21,42 +21,42 @@ import java.util.function.BiFunction;
 import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
 
 public class ObeliskInteraction {
-    public static Map<GameEvent, Map<ResourceLocation, ObeliskInteraction>> EVENT_INTERACTIONS = new HashMap<>();
+    public static Map<GameEvent, Map<Identifier, ObeliskInteraction>> EVENT_INTERACTIONS = new HashMap<>();
     public static List<ObeliskInteraction> RIGHT_CLICK_INTERACTIONS = new ArrayList<>();
     public static Multimap<Injection, ObeliskInteraction> RESPAWN_INTERACTIONS = HashMultimap.create();
 
-    public static ObeliskInteraction DEFAULT_CHARGING = ofClick(new ResourceLocation(MOD_ID, "default_charging"), (player, stack, be) -> {
-        if (!ChargeConfig.getChargeItems().containsKey(stack.getItem())) return false; // If the held item isn't in the config, don't do anything
+    public static ObeliskInteraction DEFAULT_CHARGING = ofClick(new Identifier(MOD_ID, "default_charging"), (player, stack, be) -> {
+        if (!RespawnObelisksConfig.INSTANCE.radiance.chargingItems.containsKey(stack.getItem())) return false; // If the held item isn't in the config, don't do anything
 
-        double charge = ChargeConfig.getChargeItems().get(stack.getItem()); // getting charge value of item
+        double charge = RespawnObelisksConfig.INSTANCE.radiance.chargingItems.get(stack.getItem()); // getting charge value of item
         double currentCharge = be.getCharge(player); // getting obelisk's charge level
 
         if (currentCharge + charge > be.getMaxCharge(player) || (currentCharge <= 0 && charge < 0)) return false; // don't allow when charge goes too high
 
-        ChargeConfig.getChargeItems().keySet().forEach(i -> player.getCooldowns().addCooldown(i, 30)); // adding cooldown
+        RespawnObelisksConfig.INSTANCE.radiance.chargingItems.keySet().forEach(i -> player.getItemCooldownManager().set(i, 30)); // adding cooldown
 
         be.chargeAndAnimate(player, charge); // method name says it all
 
-        if (!player.getAbilities().instabuild) player.getMainHandItem().shrink(1); // if not in creative, remove the item
+        if (!player.getAbilities().creativeMode) player.getMainHandStack().decrement(1); // if not in creative, remove the item
         return true;
     });
-    public static ObeliskInteraction INFINITE_CHARGE = ofRespawn(new ResourceLocation(MOD_ID, "infinite_charge"), Injection.START, ((player, be, manager) -> {
-        if (!be.hasLevel()) return;
-        if (ChargeConfig.isInfiniteCharger(be.getLevel().getBlockState(be.getBlockPos().below())))
+    public static ObeliskInteraction INFINITE_CHARGE = ofRespawn(new Identifier(MOD_ID, "infinite_charge"), Injection.START, ((player, be, manager) -> {
+        if (!be.hasWorld()) return;
+        if (RespawnObelisksConfig.INSTANCE.radiance.providesInfiniteRadiance(be.getWorld().getBlockState(be.getPos().down())))
             manager.cost = 0;
     }));
-    public static ObeliskInteraction TELEPORT = new ObeliskInteraction(new ResourceLocation(MOD_ID, "teleportation"));
-    public static ObeliskInteraction REVIVE = new ObeliskInteraction(new ResourceLocation(MOD_ID, "revival"));
-    public static ObeliskInteraction PROTECT = new ObeliskInteraction(new ResourceLocation(MOD_ID, "player_protection"));
-    public static ObeliskInteraction SAVE_INV = new ObeliskInteraction(new ResourceLocation(MOD_ID, "item_keeping"));
+    public static ObeliskInteraction TELEPORT = new ObeliskInteraction(new Identifier(MOD_ID, "teleportation"));
+    public static ObeliskInteraction REVIVE = new ObeliskInteraction(new Identifier(MOD_ID, "revival"));
+    public static ObeliskInteraction PROTECT = new ObeliskInteraction(new Identifier(MOD_ID, "player_protection"));
+    public static ObeliskInteraction SAVE_INV = new ObeliskInteraction(new Identifier(MOD_ID, "item_keeping"));
 
-    public final ResourceLocation id;
-    public final BiFunction<RespawnObeliskBlockEntity, GameEvent.ListenerInfo, Boolean> eventHandler;
-    public final TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Boolean> clickHandler;
-    public final TriConsumer<Player, RespawnObeliskBlockEntity, Manager> respawnHandler;
+    public final Identifier id;
+    public final BiFunction<RespawnObeliskBlockEntity, GameEvent.Message, Boolean> eventHandler;
+    public final TriFunction<PlayerEntity, ItemStack, RespawnObeliskBlockEntity, Boolean> clickHandler;
+    public final TriConsumer<PlayerEntity, RespawnObeliskBlockEntity, Manager> respawnHandler;
 
     // For GameEvents
-    private ObeliskInteraction(GameEvent event, ResourceLocation id, BiFunction<RespawnObeliskBlockEntity, GameEvent.ListenerInfo, Boolean> handler) {
+    private ObeliskInteraction(GameEvent event, Identifier id, BiFunction<RespawnObeliskBlockEntity, GameEvent.Message, Boolean> handler) {
         this.id = id;
         this.eventHandler = handler;
         this.clickHandler = (p, i, b) -> false;
@@ -66,7 +66,7 @@ public class ObeliskInteraction {
     }
 
     // For Right-Clicking
-    private ObeliskInteraction(ResourceLocation id, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Boolean> handler) {
+    private ObeliskInteraction(Identifier id, TriFunction<PlayerEntity, ItemStack, RespawnObeliskBlockEntity, Boolean> handler) {
         this.id = id;
         this.eventHandler = (be, message) -> false;
         this.clickHandler = handler;
@@ -75,7 +75,7 @@ public class ObeliskInteraction {
     }
 
     // For Respawning
-    private ObeliskInteraction(ResourceLocation id, Injection injection, TriConsumer<Player, RespawnObeliskBlockEntity, Manager> handler) {
+    private ObeliskInteraction(Identifier id, Injection injection, TriConsumer<PlayerEntity, RespawnObeliskBlockEntity, Manager> handler) {
         this.id = id;
         this.eventHandler = (be, message) -> false;
         this.clickHandler = (p, i, be) -> false;
@@ -84,20 +84,20 @@ public class ObeliskInteraction {
     }
 
     // For hardcoded use
-    public ObeliskInteraction(ResourceLocation id) {
+    public ObeliskInteraction(Identifier id) {
         this.id = id;
         this.eventHandler = (be, message) -> false;
         this.clickHandler = (p, i, be) -> false;
         this.respawnHandler = (p, be, m) -> {};
     }
 
-    public static ObeliskInteraction ofEvent(ResourceLocation id, GameEvent event, BiFunction<RespawnObeliskBlockEntity, GameEvent.ListenerInfo, Boolean> handler) {
+    public static ObeliskInteraction ofEvent(Identifier id, GameEvent event, BiFunction<RespawnObeliskBlockEntity, GameEvent.Message, Boolean> handler) {
         return new ObeliskInteraction(event, id, handler);
     }
-    public static ObeliskInteraction ofClick(ResourceLocation id, TriFunction<Player, ItemStack, RespawnObeliskBlockEntity, Boolean> handler) {
+    public static ObeliskInteraction ofClick(Identifier id, TriFunction<PlayerEntity, ItemStack, RespawnObeliskBlockEntity, Boolean> handler) {
         return new ObeliskInteraction(id, handler);
     }
-    public static ObeliskInteraction ofRespawn(ResourceLocation id, Injection injection, TriConsumer<Player, RespawnObeliskBlockEntity, Manager> handler) {
+    public static ObeliskInteraction ofRespawn(Identifier id, Injection injection, TriConsumer<PlayerEntity, RespawnObeliskBlockEntity, Manager> handler) {
         return new ObeliskInteraction(id, injection, handler);
     }
 
@@ -115,9 +115,9 @@ public class ObeliskInteraction {
 
     public static class Manager {
         public double cost;
-        public Vec3 spawnLoc;
+        public Vec3d spawnLoc;
 
-        public Manager(double cost, Vec3 spawnLoc) {
+        public Manager(double cost, Vec3d spawnLoc) {
             this.cost = cost;
             this.spawnLoc = spawnLoc;
         }
@@ -130,11 +130,11 @@ public class ObeliskInteraction {
             this.cost = cost;
         }
 
-        public Vec3 getSpawnLoc() {
+        public Vec3d getSpawnLoc() {
             return spawnLoc;
         }
 
-        public void setSpawnLoc(Vec3 spawnLoc) {
+        public void setSpawnLoc(Vec3d spawnLoc) {
             this.spawnLoc = spawnLoc;
         }
     }
