@@ -5,7 +5,6 @@ import com.redpxnda.respawnobelisks.facet.HardcoreRespawningTracker;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
 import com.redpxnda.respawnobelisks.network.AllowHardcoreRespawnPacket;
 import com.redpxnda.respawnobelisks.network.ModPackets;
-import com.redpxnda.respawnobelisks.network.SetPriorityChangerPacket;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.RespawnAvailability;
@@ -104,8 +103,14 @@ public abstract class ServerPlayerMixin {
             if (pos == null) facet.removeLatestPoint();
             else if (forced || facet.blockAdditionAllowed(getServerWorld().getBlockState(pos).getBlock(), player.getServer())) {
                 SpawnPoint point = new SpawnPoint(dimension, pos, angle, forced);
-                if (player.isSneaking()) ModPackets.CHANNEL.sendToPlayer(player, new SetPriorityChangerPacket(point, facet.points, player.getServer()));
+
+                if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableBlockPriorities && facet.points.contains(point)) {
+                    ci.cancel();
+                    return;
+                }
+
                 facet.addPoint(point);
+                if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableBlockPriorities) facet.sortByPrio(player.getServer());
             }
         }
     }

@@ -21,11 +21,9 @@ public class ClientUtils {
 
     public static boolean allowHardcoreRespawn = false;
 
-    public static List<SpawnPoint> allCachedSpawnPoints;
     public static Map<SpawnPoint, Item> cachedSpawnPointItems;
-    public static SpawnPoint focusedPriorityChanger;
     public static long priorityChangerLookAwayTime;
-    public static int priorityChangerIndex;
+    public static boolean hasLookedAwayFromPriorityChanger;
 
     public static int getBoundCompassBarWidth(ItemStack stack) {
         if (MinecraftClient.getInstance().player != null) {

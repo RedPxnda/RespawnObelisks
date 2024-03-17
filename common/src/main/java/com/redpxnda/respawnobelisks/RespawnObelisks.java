@@ -26,6 +26,7 @@ import net.minecraft.block.BedBlock;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -55,10 +56,10 @@ public class RespawnObelisks {
         SecondarySpawnPoints.KEY = FacetRegistry.register(new Identifier(MOD_ID, "spawn_points"), SecondarySpawnPoints.class);
         HardcoreRespawningTracker.KEY = FacetRegistry.register(new Identifier(MOD_ID, "hardcore_respawning"), HardcoreRespawningTracker.class);
         FacetRegistry.ENTITY_FACET_ATTACHMENT.register((entity, attacher) -> {
-            if (entity instanceof ServerPlayerEntity) {
-                if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) attacher.add(SecondarySpawnPoints.KEY, new SecondarySpawnPoints());
+            if (entity instanceof ServerPlayerEntity)
                 if (RespawnObelisksConfig.INSTANCE.allowHardcoreRespawning) attacher.add(HardcoreRespawningTracker.KEY, new HardcoreRespawningTracker());
-            }
+            if (entity instanceof PlayerEntity)
+                if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) attacher.add(SecondarySpawnPoints.KEY, new SecondarySpawnPoints());
         });
 
         EnvExecutor.runInEnv(Env.CLIENT, () -> () -> {

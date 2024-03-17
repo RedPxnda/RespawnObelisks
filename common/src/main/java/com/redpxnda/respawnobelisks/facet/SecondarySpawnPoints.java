@@ -3,9 +3,12 @@ package com.redpxnda.respawnobelisks.facet;
 import com.redpxnda.nucleus.codec.tag.TaggableBlock;
 import com.redpxnda.nucleus.facet.FacetKey;
 import com.redpxnda.nucleus.facet.entity.EntityFacet;
+import com.redpxnda.nucleus.network.PlayerSendable;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
+import com.redpxnda.respawnobelisks.network.SetPriorityChangerPacket;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -15,53 +18,82 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-public class SecondarySpawnPoints implements EntityFacet<NbtList> {
+public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
     public static FacetKey<SecondarySpawnPoints> KEY;
 
     public final List<SpawnPoint> points = new ArrayList<>();
-    public SpawnPoint reorderingTarget;
+    public @Nullable SpawnPoint reorderingTarget;
 
-    @Override
-    public NbtList toNbt() {
-        NbtList list = new NbtList();
-        for (SpawnPoint point : points) {
-            NbtCompound compound = new NbtCompound();
-            compound.putString("Dimension", point.dimension().getValue().toString());
-            compound.putInt("x", point.pos().getX());
-            compound.putInt("y", point.pos().getY());
-            compound.putInt("z", point.pos().getZ());
-            compound.putFloat("angle", point.angle());
-            compound.putBoolean("forced", point.forced());
-            list.add(compound);
-        }
-        return list;
+    public static NbtCompound serializeSpawnPoint(SpawnPoint point) {
+        NbtCompound compound = new NbtCompound();
+        compound.putString("Dimension", point.dimension().getValue().toString());
+        compound.putInt("x", point.pos().getX());
+        compound.putInt("y", point.pos().getY());
+        compound.putInt("z", point.pos().getZ());
+        compound.putFloat("angle", point.angle());
+        compound.putBoolean("forced", point.forced());
+        return compound;
+    }
+
+    public static SpawnPoint deserializeSpawnPoint(NbtCompound compound) {
+        return new SpawnPoint(
+                RegistryKey.of(RegistryKeys.WORLD, new Identifier(compound.getString("Dimension"))),
+                new BlockPos(
+                        compound.getInt("x"),
+                        compound.getInt("y"),
+                        compound.getInt("z")
+                ),
+                compound.getFloat("angle"),
+                compound.getBoolean("forced"));
     }
 
     @Override
-    public void loadNbt(NbtList nbt) {
-        for (NbtElement element : nbt) {
+    public NbtCompound toNbt() {
+        NbtCompound root = new NbtCompound();
+
+        NbtList list = new NbtList();
+        for (SpawnPoint point : points) {
+            list.add(serializeSpawnPoint(point));
+        }
+
+        root.put("Points", list);
+
+        if (reorderingTarget != null)
+            root.put("ReorderingTarget", serializeSpawnPoint(reorderingTarget));
+
+        return root;
+    }
+
+    @Override
+    public void loadNbt(NbtCompound nbt) {
+        points.clear();
+        reorderingTarget = null;
+        NbtList list = nbt.getList("Points", NbtElement.COMPOUND_TYPE);
+
+        for (NbtElement element : list) {
             if (element instanceof NbtCompound compound) {
-                points.add(new SpawnPoint(
-                        RegistryKey.of(RegistryKeys.WORLD, new Identifier(compound.getString("Dimension"))),
-                        new BlockPos(
-                                compound.getInt("x"),
-                                compound.getInt("y"),
-                                compound.getInt("z")
-                        ),
-                        compound.getFloat("angle"),
-                        compound.getBoolean("forced")));
+                points.add(deserializeSpawnPoint(compound));
             }
         }
+
+        if (nbt.contains("ReorderingTarget"))
+            reorderingTarget = deserializeSpawnPoint(nbt.getCompound("ReorderingTarget"));
     }
 
     public void addPoint(SpawnPoint pos) {
         points.remove(pos);
         points.add(pos);
+    }
+
+    public void sortByPrio(MinecraftServer server) {
+        points.sort(Comparator.comparingDouble(p -> getBlockPriority(server.getWorld(p.dimension()).getBlockState(p.pos()).getBlock())));
     }
 
     public SpawnPoint getLatestPoint() {
@@ -70,6 +102,13 @@ public class SecondarySpawnPoints implements EntityFacet<NbtList> {
 
     public SpawnPoint removeLatestPoint() {
         return points.isEmpty() ? null : points.remove(points.size()-1);
+    }
+
+    public float getBlockPriority(Block block) {
+        for (Map.Entry<TaggableBlock, Float> entry : RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.blockPriorities.entrySet()) {
+            if (entry.getKey().matches(block)) return entry.getValue();
+        }
+        return 0;
     }
 
     public boolean blockAdditionAllowed(Block block, MinecraftServer server) {
@@ -82,6 +121,7 @@ public class SecondarySpawnPoints implements EntityFacet<NbtList> {
             if (entry.getKey().matches(block)) {
                 targetType = entry.getKey();
                 targetAmount = entry.getValue();
+                break;
             }
         }
         if (targetType == null) {
@@ -98,5 +138,10 @@ public class SecondarySpawnPoints implements EntityFacet<NbtList> {
         }
 
         return collectedAmount < targetAmount;
+    }
+
+    @Override
+    public PlayerSendable createPacket(Entity target) {
+        return new SetPriorityChangerPacket(target, this);
     }
 }

@@ -1,9 +1,12 @@
 package com.redpxnda.respawnobelisks.event;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.redpxnda.nucleus.math.MathUtil;
 import com.redpxnda.nucleus.util.Color;
+import com.redpxnda.nucleus.util.MiscUtil;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
+import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
+import com.redpxnda.respawnobelisks.network.FinishPriorityChangePacket;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.ScrollWheelPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
@@ -35,8 +38,11 @@ import net.minecraft.util.math.MathHelper;
 
 public class ClientEvents {
     protected static void onHudRender(DrawContext graphics, float tickDelta) {
+        if (!RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints || !RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.allowPriorityShifting) return;
         float alpha = -1;
-        if (ClientUtils.focusedPriorityChanger != null && MinecraftClient.getInstance().crosshairTarget instanceof BlockHitResult blockHitResult && blockHitResult.getBlockPos().equals(ClientUtils.focusedPriorityChanger.pos())) {
+        SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(MinecraftClient.getInstance().player);
+        if (facet == null || facet.reorderingTarget == null) return;
+        if (!ClientUtils.hasLookedAwayFromPriorityChanger && MinecraftClient.getInstance().crosshairTarget instanceof BlockHitResult blockHitResult && blockHitResult.getBlockPos().equals(facet.reorderingTarget.pos())) {
             alpha = 1;
             ClientUtils.priorityChangerLookAwayTime = Util.getMeasuringTimeMs();
         } else if (ClientUtils.priorityChangerLookAwayTime >= 0) {
@@ -45,28 +51,58 @@ public class ClientEvents {
             if (delta == 0) {
                 ClientUtils.priorityChangerLookAwayTime = -100;
             } else alpha = delta;
-            ClientUtils.focusedPriorityChanger = null;
+            ClientUtils.hasLookedAwayFromPriorityChanger = true;
         }
 
         if (alpha != -1) {
-            int maxIndex = Math.min(5, ClientUtils.allCachedSpawnPoints.size());
+            int targetIndex = facet.points.indexOf(facet.reorderingTarget);
+            if (targetIndex == -1) return;
+            int size = facet.points.size();
+
+            int minIndex;
+            int maxIndex;
+
+            if (size <= 5) {
+                minIndex = 0;
+                maxIndex = size;
+            } else if ((float) targetIndex/size <= 0.5) {
+                minIndex = Math.max(0, targetIndex-2);
+                maxIndex = Math.min(minIndex+5, facet.points.size());
+            } else {
+                maxIndex = Math.min(targetIndex+3, facet.points.size());
+                minIndex = Math.max(0, maxIndex-5);
+            }
+
             int x = graphics.getScaledWindowWidth()/2 + 20;
-            int y = graphics.getScaledWindowHeight()/2 - maxIndex*10;
-            graphics.enableScissor(x, (int) ((y-4)+((1-alpha)*maxIndex*10)), graphics.getScaledWindowWidth(), (int) (y+maxIndex*20 - ((1-alpha)*maxIndex*10)));
-            for (int i = 0; i < maxIndex; i++) {
-                SpawnPoint point = ClientUtils.allCachedSpawnPoints.get(i);
+            int y = graphics.getScaledWindowHeight()/2 - Math.min(maxIndex, 5)*12;
+            float invAlpha = 1-alpha;
+            graphics.enableScissor(x-9, (int) (y - 2 + invAlpha*maxIndex*12), graphics.getScaledWindowWidth(), (int) (y + 2 + maxIndex*24 - invAlpha*maxIndex*12));
+            y+=4;
+            RenderSystem.enableBlend();
+            for (int i = minIndex; i < maxIndex; i++) {
+                SpawnPoint point = facet.points.get(i);
                 Item item = ClientUtils.cachedSpawnPointItems.getOrDefault(point, Items.AIR);
 
-                RenderSystem.enableBlend();
                 graphics.drawItem(item.getDefaultStack(), x, y);
                 Text text = Text.translatable(item.getTranslationKey()).append(Text.literal(" @(" + point.pos().getX() + ", " + point.pos().getY() + ", " + point.pos().getZ() + ")"));
-                RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.ZERO, GlStateManager.DstFactor.ONE_MINUS_SRC_COLOR, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
-                graphics.drawText(MinecraftClient.getInstance().textRenderer, text, x+20, y+4, Color.WHITE.argb(), true);
-                if (i == ClientUtils.priorityChangerIndex) graphics.drawHorizontalLine(x, x+16, y-2, Color.WHITE.argb());
+                Text dimensionText = Text.literal(point.dimension().getValue().toString());
+                graphics.drawText(MinecraftClient.getInstance().textRenderer, text, x+20, y-1, Color.WHITE.argb(), true);
+                graphics.drawText(MinecraftClient.getInstance().textRenderer, dimensionText, x+20, y+9, Color.TEXT_GRAY.argb(), true);
+                if (point.equals(facet.reorderingTarget)) {
+                    graphics.fill(x-2, y-2, x+18, y-1, Color.WHITE.argb());
+                    graphics.fill(x+17, y-2, x+18, y+18, Color.WHITE.argb());
+                    graphics.fill(x-2, y+17, x+18, y+18, Color.WHITE.argb());
+                    graphics.fill(x-2, y-2, x-1, y+18, Color.WHITE.argb());
+                }
+
+                if (i == minIndex)
+                    graphics.drawText(MinecraftClient.getInstance().textRenderer, "-", x-8, y+4, Color.WHITE.argb(), false);
+                else if (i == maxIndex-1)
+                    graphics.drawText(MinecraftClient.getInstance().textRenderer, "+", x-8, y+4, Color.WHITE.argb(), false);
+
                 y+=24;
-                RenderSystem.defaultBlendFunc();
-                RenderSystem.disableBlend();
             }
+            RenderSystem.disableBlend();
             graphics.disableScissor();
         }
     }
@@ -75,8 +111,11 @@ public class ClientEvents {
         ClientPlayerEntity player = mc.player;
         if (player == null || !player.isSneaking()) return EventResult.pass();
         if (mc.crosshairTarget instanceof BlockHitResult blockResult && mc.world != null) {
-            if (ClientUtils.focusedPriorityChanger != null) {
-                ClientUtils.priorityChangerIndex = MathHelper.clamp(ClientUtils.priorityChangerIndex + (amount > 0 ? 1 : -1), 0, ClientUtils.allCachedSpawnPoints.size()-1);
+            SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(MinecraftClient.getInstance().player);
+            if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.allowPriorityShifting && !ClientUtils.hasLookedAwayFromPriorityChanger && facet != null && facet.reorderingTarget != null) {
+                if (amount > 0) MiscUtil.moveListElementUp(facet.points, facet.reorderingTarget);
+                else MiscUtil.moveListElementDown(facet.points, facet.reorderingTarget);
+                ModPackets.CHANNEL.sendToServer(new FinishPriorityChangePacket(facet.points));
                 return EventResult.interruptFalse();
             }
             BlockState blockState = mc.world.getBlockState(blockResult.getBlockPos());

@@ -12,7 +12,7 @@ public class SecondarySpawnPointConfig {
     public boolean enableSecondarySpawnPoints = false;
 
     @Comment("Determines the overall maximum amount of secondary respawn points you can have. -1 is infinite.")
-    public int overallMaxPoints = -1;
+    public int overallMaxPoints = 5;
 
     @Comment("""
             Determines a per-block cap on the amount of respawn points you can have. -1 is infinite.
@@ -22,4 +22,17 @@ public class SecondarySpawnPointConfig {
 
     @Comment("Determines the maximum amount of secondary respawn points you can have at any block not specified in 'maxPointsPerBlock'. -1 is infinite.")
     public int defaultMaxPoints = -1;
+
+    @Comment("Whether players can forcefully change the order of their secondary respawn points by shift right clicking a respawn point.")
+    public boolean allowPriorityShifting = true;
+
+    @Comment("Whether blocks should be given a specific order for respawning. This will not work well with 'allowPriorityShifting.'")
+    public boolean enableBlockPriorities = false;
+
+    @Comment("""
+            Determines a per-block priority in which to order secondary respawn points. Default value is 0. Higher numbers have higher priority.
+            Tags(which get treated as a single entry) are supported by beginning the entry with a #.""")
+    public LinkedHashMap<TaggableBlock, Float> blockPriorities = new LinkedHashMap<>();
+
+
 }

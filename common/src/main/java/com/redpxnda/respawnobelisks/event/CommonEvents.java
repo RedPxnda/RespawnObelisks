@@ -16,6 +16,7 @@ import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEnt
 import com.redpxnda.respawnobelisks.registry.item.BoundCompassItem;
 import com.redpxnda.respawnobelisks.registry.structure.VillageAddition;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
+import com.redpxnda.respawnobelisks.util.SpawnPoint;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.*;
 import dev.architectury.utils.value.IntValue;
@@ -51,6 +52,23 @@ import java.util.UUID;
 
 public class CommonEvents {
     public static EventResult onBlockInteract(PlayerEntity player, Hand hand, BlockPos pos, Direction face) {
+        if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.allowPriorityShifting && player instanceof ServerPlayerEntity sp && player.isSneaking() && player.getMainHandStack().isEmpty() && RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) {
+            SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(player);
+            if (facet != null) {
+                SpawnPoint point = new SpawnPoint(player.getWorld().getRegistryKey(), pos, 0, false);
+                if (facet.points.contains(point)) {
+                    if (facet.reorderingTarget == null) {
+                        facet.reorderingTarget = point;
+                        facet.sendToClient(sp);
+                        return EventResult.interruptFalse();
+                    } else {
+                        facet.reorderingTarget = null;
+                        facet.sendToClient(sp);
+                    }
+                }
+            }
+        }
+
         if (!hand.equals(Hand.MAIN_HAND) || !player.getMainHandStack().isOf(Items.RECOVERY_COMPASS) || !RespawnObelisksConfig.INSTANCE.teleportation.allowedBindingBlocks.contains(player.getWorld().getBlockState(pos))) return EventResult.pass();
         if (RespawnObelisksConfig.INSTANCE.teleportation.enableTeleportation) player.setStackInHand(hand, new ItemStack(ModRegistries.boundCompass.get()));
         BlockHitResult hitResult = new BlockHitResult(new Vec3d(pos.getX(), pos.getY(), pos.getZ()), face, pos, false);

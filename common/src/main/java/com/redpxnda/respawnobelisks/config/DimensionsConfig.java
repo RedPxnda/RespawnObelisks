@@ -25,9 +25,10 @@ public class DimensionsConfig {
     @Comment("""
             Determines where you should spawn at after teleporting through an end portal. Available options:
             WORLD_SPAWN: Teleports you to the world spawn.
-            SET_SPAWN: Vanilla behavior; you will be sent to wherever your set spawn is.
-            NON_END_SECONDARY: Only works if secondary respawn points are enabled. It teleports you to your first secondary that isn't in the end.""")
-    public EndSpawnMode endSpawnMode = EndSpawnMode.WORLD_SPAWN;
+            SET_SPAWN: Vanilla behavior; you will be sent to wherever your set spawn is, even if it's in the end.
+            NON_END_SECONDARY: Only works if secondary respawn points are enabled. It teleports you to your first secondary spawn point that isn't in the end.
+            WORLD_SPAWN_IF_IN_END: Teleports you to the world spawn if your set spawn is in the end, otherwise it will teleport to your spawn.""")
+    public EndSpawnMode endSpawnMode = EndSpawnMode.WORLD_SPAWN_IF_IN_END;
 
     public enum EndSpawnMode {
         @Comment("World spawn will teleport you to the world spawn.")
@@ -35,7 +36,9 @@ public class DimensionsConfig {
         @Comment("Set spawn is vanilla behavior; you will be sent to wherever your set spawn is.")
         SET_SPAWN,
         @Comment("Non-end secondary only works if secondary respawn points are enabled. It teleports you to your first secondary that isn't in the end.")
-        NON_END_SECONDARY
+        NON_END_SECONDARY,
+        @Comment("World spawn if in end teleports you to the world spawn if your set spawn is in the end.")
+        WORLD_SPAWN_IF_IN_END
     }
 
     public boolean isValidOverworld(World level) {
