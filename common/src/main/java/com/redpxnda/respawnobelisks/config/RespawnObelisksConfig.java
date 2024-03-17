@@ -1,10 +1,14 @@
 package com.redpxnda.respawnobelisks.config;
 
 import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
+import com.redpxnda.nucleus.util.Comment;
 
 @ConfigAutoCodec.ConfigClassMarker
 public class RespawnObelisksConfig {
     public static RespawnObelisksConfig INSTANCE = new RespawnObelisksConfig();
+
+    @Comment("Whether players are allowed to respawn at an obelisk in hardcore mode.")
+    public boolean allowHardcoreRespawning = true;
 
     public BehaviorOverridesConfig behaviorOverrides = new BehaviorOverridesConfig();
 

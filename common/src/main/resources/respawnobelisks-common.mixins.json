@@ -5,7 +5,9 @@
   "package": "com.redpxnda.respawnobelisks.mixin",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "LivingEntityRendererMixin"
+    "ClientPlayNetworkHandlerMixin",
+    "LivingEntityRendererMixin",
+    "MinecraftClientMixin"
   ],
   "mixins": [
     "BeaconBlockEntityAccessor",
@@ -19,6 +21,7 @@
     "PlayerMixin",
     "RespawnAnchorBlockMixin",
     "ServerPlayerMixin",
+    "ServerPlayNetworkHandlerMixin",
     "StructurePoolAccessor"
   ],
   "injectors": {

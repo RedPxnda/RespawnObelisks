@@ -18,5 +18,6 @@ public class ModPackets {
         CHANNEL.register(PlayTotemAnimationPacket.class, PlayTotemAnimationPacket::toBytes, PlayTotemAnimationPacket::new, PlayTotemAnimationPacket::handle);
         CHANNEL.register(RuneCirclePacket.class, RuneCirclePacket::toBytes, RuneCirclePacket::new, RuneCirclePacket::handle);
         CHANNEL.register(SetPriorityChangerPacket.class, SetPriorityChangerPacket::toBytes, SetPriorityChangerPacket::new, SetPriorityChangerPacket::handle);
+        CHANNEL.register(AllowHardcoreRespawnPacket.class, AllowHardcoreRespawnPacket::toBytes, AllowHardcoreRespawnPacket::new, AllowHardcoreRespawnPacket::handle);
     }
 }

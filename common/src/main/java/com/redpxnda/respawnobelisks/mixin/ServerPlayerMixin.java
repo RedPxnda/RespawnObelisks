@@ -1,12 +1,17 @@
 package com.redpxnda.respawnobelisks.mixin;
 
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
+import com.redpxnda.respawnobelisks.facet.HardcoreRespawningTracker;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
+import com.redpxnda.respawnobelisks.network.AllowHardcoreRespawnPacket;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.SetPriorityChangerPacket;
+import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.RespawnAvailability;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -102,6 +107,23 @@ public abstract class ServerPlayerMixin {
                 if (player.isSneaking()) ModPackets.CHANNEL.sendToPlayer(player, new SetPriorityChangerPacket(point, facet.points, player.getServer()));
                 facet.addPoint(point);
             }
+        }
+    }
+
+    @Inject(method = "onDeath", at = @At("HEAD"))
+    private void RESPAWNOBELISKS_allowHardcoreRespawning(DamageSource damageSource, CallbackInfo ci) {
+        ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+        if (RespawnObelisksConfig.INSTANCE.allowHardcoreRespawning) {
+            BlockPos pos = player.getSpawnPointPosition();
+            if (pos == null) return;
+            RegistryKey<World> dim = player.getSpawnPointDimension();
+            ServerWorld world = player.getServer().getWorld(dim);
+            if (world == null) return;
+            BlockState state = world.getBlockState(pos);
+            boolean canRespawn = state.getBlock() instanceof RespawnObeliskBlock rob && rob.getRespawnLocation(false, false, false, state, pos, world, player).isPresent();
+            HardcoreRespawningTracker tracker = HardcoreRespawningTracker.KEY.get(player);
+            if (tracker != null) tracker.canRespawn = canRespawn;
+            ModPackets.CHANNEL.sendToPlayer(player, new AllowHardcoreRespawnPacket(canRespawn));
         }
     }
 }

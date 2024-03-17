@@ -19,6 +19,8 @@ public class ClientUtils {
     public static final Map<List<Double>, RuneCircleParticle> activeRuneParticles = new HashMap<>();
     private static final Map<String, Integer> genericTracker = new HashMap<>();
 
+    public static boolean allowHardcoreRespawn = false;
+
     public static List<SpawnPoint> allCachedSpawnPoints;
     public static Map<SpawnPoint, Item> cachedSpawnPointItems;
     public static SpawnPoint focusedPriorityChanger;

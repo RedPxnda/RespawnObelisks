@@ -6,6 +6,7 @@ import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.data.listener.RevivedNbtEditing;
 import com.redpxnda.respawnobelisks.data.saved.AnchorExplosions;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
+import com.redpxnda.respawnobelisks.facet.HardcoreRespawningTracker;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.SyncEffectsPacket;
@@ -156,6 +157,13 @@ public class CommonEvents {
                 newFacet.points.addAll(oldFacet.points);
             }
         }
+
+        if (RespawnObelisksConfig.INSTANCE.allowHardcoreRespawning) {
+            HardcoreRespawningTracker oldFacet = HardcoreRespawningTracker.KEY.get(oldPlayer);
+            HardcoreRespawningTracker newFacet = HardcoreRespawningTracker.KEY.get(newPlayer);
+            if (oldFacet != null && newFacet != null) newFacet.canRespawn = oldFacet.canRespawn;
+        }
+
         if (wonGame) return;
         if (oldPlayer.hasStatusEffect(ModRegistries.immortalityCurse.get())) cloneAddCurse(newPlayer, oldPlayer);
         if (
