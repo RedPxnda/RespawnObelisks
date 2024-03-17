@@ -1,12 +1,17 @@
 package com.redpxnda.respawnobelisks.config;
 
 import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
+import com.redpxnda.nucleus.codec.tag.BlockList;
 import com.redpxnda.nucleus.util.Comment;
+import net.minecraft.block.Blocks;
 
 @ConfigAutoCodec.ConfigClassMarker
 public class TeleportConfig {
     @Comment("Whether players can teleport to obelisks by binding a recovery compass to a lodestone under the obelisk.")
     public boolean enableTeleportation = true;
+
+    @Comment("A list of blocks that players can bind recovery compasses to.")
+    public BlockList allowedBindingBlocks = BlockList.of(Blocks.LODESTONE);
 
     @Comment("The delay before being able to teleport again. (In ticks)\nKeep this above 100, otherwise issues will arise.\nDefault value: 3 minutes/3600 ticks")
     public int teleportationCooldown = 3600;

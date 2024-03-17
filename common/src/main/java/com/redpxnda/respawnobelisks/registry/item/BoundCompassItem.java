@@ -11,8 +11,8 @@ import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEnt
 import com.redpxnda.respawnobelisks.util.ClientUtils;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.item.TooltipContext;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -56,7 +56,7 @@ public class BoundCompassItem extends CompassItem {
         PlayerEntity player = useOnContext.getPlayer();
         BlockPos blockPos = useOnContext.getBlockPos();
         World level = useOnContext.getWorld();
-        if (level.getBlockState(blockPos).isOf(Blocks.LODESTONE)) {
+        if (RespawnObelisksConfig.INSTANCE.teleportation.allowedBindingBlocks.contains(level.getBlockState(blockPos))) {
             level.playSound(null, blockPos, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 1.0f, 1.0f);
             ItemStack itemStack = useOnContext.getStack();
             if (!player.getAbilities().creativeMode && itemStack.getCount() == 1) {
@@ -109,6 +109,21 @@ public class BoundCompassItem extends CompassItem {
     }
 
     @Override
+    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+        if (world.isClient) return;
+        if (hasLodestone(stack)) {
+            BlockPos blockPos;
+            NbtCompound nbtCompound = stack.getOrCreateNbt();
+            if (nbtCompound.contains(LODESTONE_TRACKED_KEY) && !nbtCompound.getBoolean(LODESTONE_TRACKED_KEY)) {
+                return;
+            }
+            Optional<RegistryKey<World>> optional = getLodestoneDimension(nbtCompound);
+            if (optional.isPresent() && optional.get() == world.getRegistryKey() && nbtCompound.contains(LODESTONE_POS_KEY) && (!world.isInBuildLimit(blockPos = NbtHelper.toBlockPos(nbtCompound.getCompound(LODESTONE_POS_KEY))) || !RespawnObelisksConfig.INSTANCE.teleportation.allowedBindingBlocks.contains(world.getBlockState(blockPos))))
+                nbtCompound.remove(LODESTONE_POS_KEY);
+        }
+    }
+
+    @Override
     public void appendTooltip(ItemStack itemStack, @Nullable World level, List<Text> list, TooltipContext tooltipFlag) {
         if (level != null && level.isClient) ClientUtils.addCompassTooltipLines(itemStack, level, list, tooltipFlag);
     }
@@ -137,5 +152,9 @@ public class BoundCompassItem extends CompassItem {
         compoundTag.put(LODESTONE_POS_KEY, NbtHelper.fromBlockPos(blockPos));
         World.CODEC.encodeStart(NbtOps.INSTANCE, resourceKey).resultOrPartial(LOGGER::error).ifPresent(tag -> compoundTag.put(LODESTONE_DIMENSION_KEY, (NbtElement)tag));
         compoundTag.putBoolean(LODESTONE_TRACKED_KEY, true);
+    }
+
+    protected static Optional<RegistryKey<World>> getLodestoneDimension(NbtCompound nbt) {
+        return World.CODEC.parse(NbtOps.INSTANCE, nbt.get(LODESTONE_DIMENSION_KEY)).result();
     }
 }
