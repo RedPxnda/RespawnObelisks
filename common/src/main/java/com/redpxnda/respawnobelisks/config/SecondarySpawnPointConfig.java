@@ -34,5 +34,26 @@ public class SecondarySpawnPointConfig {
             Tags(which get treated as a single entry) are supported by beginning the entry with a #.""")
     public LinkedHashMap<TaggableBlock, Float> blockPriorities = new LinkedHashMap<>();
 
+    @Comment("""
+        When players are allowed to choose to spawn at a secondary respawn point.
+        NEVER: Players can never choose.
+        ALWAYS: Players can always choose.
+        IF_CHARGED: Players can only choose if their obelisk has charge.
+        IF_UNCHARGED: Players can only choose if their obelisk does not have charge, or when their respawn point isn't an obelisk.""")
+    public PointSpawnMode secondarySpawnMode = PointSpawnMode.NEVER;
 
+    @Comment("""
+        When players are allowed to choose to respawn at world spawn.
+        NEVER: Players can never choose.
+        ALWAYS: Players can always choose.
+        IF_CHARGED: Players can only choose if their obelisk has charge.
+        IF_UNCHARGED: Players can only choose if their obelisk does not have charge, or when their respawn point isn't an obelisk.""")
+    public PointSpawnMode worldSpawnMode = PointSpawnMode.NEVER;
+
+    public enum PointSpawnMode {
+        NEVER,
+        ALWAYS,
+        IF_CHARGED,
+        IF_UNCHARGED
+    }
 }

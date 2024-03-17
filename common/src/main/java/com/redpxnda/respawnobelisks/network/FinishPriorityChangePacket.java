@@ -1,5 +1,6 @@
 package com.redpxnda.respawnobelisks.network;
 
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
 import dev.architectury.networking.NetworkManager;
@@ -51,7 +52,7 @@ public class FinishPriorityChangePacket {
         context.queue(() -> {
             if (context.getPlayer() instanceof ServerPlayerEntity player) {
                 SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(player);
-                if (facet == null) return;
+                if (facet == null || (!RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.allowPriorityShifting && !facet.canChooseRespawn)) return;
                 facet.reorderingTarget = null;
 
                 List<SpawnPoint> finalList = new ArrayList<>();

@@ -20,5 +20,6 @@ public class ModPackets {
         CHANNEL.register(SetPriorityChangerPacket.class, SetPriorityChangerPacket::toBytes, SetPriorityChangerPacket::new, SetPriorityChangerPacket::handle);
         CHANNEL.register(AllowHardcoreRespawnPacket.class, AllowHardcoreRespawnPacket::toBytes, AllowHardcoreRespawnPacket::new, AllowHardcoreRespawnPacket::handle);
         CHANNEL.register(FinishPriorityChangePacket.class, FinishPriorityChangePacket::toBytes, FinishPriorityChangePacket::new, FinishPriorityChangePacket::handle);
+        CHANNEL.register(RespawnAtWorldSpawnPacket.class, RespawnAtWorldSpawnPacket::toBytes, RespawnAtWorldSpawnPacket::new, RespawnAtWorldSpawnPacket::handle);
     }
 }

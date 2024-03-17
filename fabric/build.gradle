@@ -44,6 +44,8 @@ dependencies {
     modImplementation("maven.modrinth:moonlight:1.20-2.8.27")
     modImplementation("maven.modrinth:spelunkery:1.20.1-0.3.4")
 
+    modImplementation("maven.modrinth:spark:1.10.53-fabric")
+
     if ("${rootProject.use_trinkets}" == "true")
         modApi("dev.emi:trinkets:${rootProject.trinkets_version}")
     else

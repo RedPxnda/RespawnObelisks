@@ -32,6 +32,7 @@
   "text.respawnobelisks.revive_mob_warning": "This vessel shall cradle the soul, but the ever-changing currents of reality leave no imprint on its form. Names may be rewritten, treasures may be lost to the cosmic dance. Know that in the dance of creation, some steps are lost to the void. §7[§9§nHover§r§7]",
   "text.respawnobelisks.revive_mob_warning.hover": "Stored entities won't update with changes (like renames- unlink and relink the entity after important updates) and won't retain any items in inventories.",
   "text.respawnobelisks.cannot_set_spawn": "An ancient force seems to have once protected this seemingly mundane object. However, that force now lays dormant. §7[§9§nHover§r§7]",
+  "text.respawnobelisks.world_spawn": "World Spawn",
   "text.respawnobelisks.cannot_set_spawn.hover": "You cannot set your spawn at this block. Instead, explore the world to find respawn obelisks.",
   "text.respawnobelisks.no_charge": "This obelisk has no charge.",
   "text.respawnobelisks.insufficient_charge": "This obelisk has insufficient charge to respawn entities.",

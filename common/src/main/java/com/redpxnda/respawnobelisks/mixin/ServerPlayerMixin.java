@@ -1,13 +1,13 @@
 package com.redpxnda.respawnobelisks.mixin;
 
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
+import com.redpxnda.respawnobelisks.config.SecondarySpawnPointConfig;
 import com.redpxnda.respawnobelisks.facet.HardcoreRespawningTracker;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
 import com.redpxnda.respawnobelisks.network.AllowHardcoreRespawnPacket;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import com.redpxnda.respawnobelisks.util.RespawnAvailability;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.damage.DamageSource;
@@ -54,35 +54,24 @@ public abstract class ServerPlayerMixin {
         if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) {
             SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(player);
             if (facet != null) {
-                SpawnPoint point = facet.getLatestPoint();
-                if (point == null) pos = null;
-                else {
-                    while (!facet.points.isEmpty() && !RespawnAvailability.canRespawnAt(point, player)) {
-                        facet.removeLatestPoint();
-                        point = facet.getLatestPoint();
-                    }
-
-                    if (point != null) {
-                        spawnPointDimension = point.dimension();
-                        spawnPointPosition = point.pos();
-                        spawnAngle = point.angle();
-                        spawnForced = point.forced();
-                        pos = point.asGlobalPos();
-                    } else pos = null;
-                }
-
+                SpawnPoint point = facet.getValidSpawnPoint(player);
+                if (point != null) {
+                    spawnPointDimension = point.dimension();
+                    spawnPointPosition = point.pos();
+                    spawnAngle = point.angle();
+                    spawnForced = point.forced();
+                    pos = point.asGlobalPos();
+                } else pos = null;
                 override = true;
             } else pos = bp == null ? null : GlobalPos.create(player.getSpawnPointDimension(), bp);
         } else pos = bp == null ? null : GlobalPos.create(player.getSpawnPointDimension(), bp);
 
-        if (pos == null) return;
-
-        if (player.getWorld().getBlockEntity(pos.getPos()) instanceof RespawnObeliskBlockEntity robe) {
+        if (pos != null && player.getWorld().getBlockEntity(pos.getPos()) instanceof RespawnObeliskBlockEntity robe) {
             robe.respawningPlayers.remove(pos, player);
             robe.respawningPlayers.put(pos, player);
         }
 
-        if (override) cir.setReturnValue(pos.getPos());
+        if (override) cir.setReturnValue(pos == null ? null : pos.getPos());
     }
 
     @Inject(method = "setSpawnPoint", at = @At("HEAD"), cancellable = true)
@@ -101,7 +90,7 @@ public abstract class ServerPlayerMixin {
             SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(player);
             if (facet == null) return;
             if (pos == null) facet.removeLatestPoint();
-            else if (forced || facet.blockAdditionAllowed(getServerWorld().getBlockState(pos).getBlock(), player.getServer())) {
+            else if (facet.blockAdditionAllowed(getServerWorld().getBlockState(pos).getBlock(), player.getServer())) {
                 SpawnPoint point = new SpawnPoint(dimension, pos, angle, forced);
 
                 if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableBlockPriorities && facet.points.contains(point)) {
@@ -118,6 +107,28 @@ public abstract class ServerPlayerMixin {
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void RESPAWNOBELISKS_allowHardcoreRespawning(DamageSource damageSource, CallbackInfo ci) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+        if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.worldSpawnMode != SecondarySpawnPointConfig.PointSpawnMode.NEVER || RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.secondarySpawnMode != SecondarySpawnPointConfig.PointSpawnMode.NEVER) {
+            SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(player);
+            if (facet != null) {
+                SpawnPoint point = facet.getLatestPoint();
+
+                facet.willRespawnAtWorldSpawn = false;
+                facet.canChooseRespawn = switch (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.secondarySpawnMode) {
+                    case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player) > 0;
+                    case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player) <= 0;
+                    case NEVER -> false;
+                    default -> true;
+                };
+                facet.canChooseWorldSpawn = switch (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.worldSpawnMode) {
+                    case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player) > 0;
+                    case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player) <= 0;
+                    case NEVER -> false;
+                    default -> true;
+                };
+
+                facet.sendToClient(player);
+            }
+        }
         if (RespawnObelisksConfig.INSTANCE.allowHardcoreRespawning) {
             BlockPos pos = player.getSpawnPointPosition();
             if (pos == null) return;

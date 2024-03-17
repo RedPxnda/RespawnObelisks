@@ -173,6 +173,7 @@ public class CommonEvents {
             if (oldFacet != null && newFacet != null) {
                 newFacet.points.clear();
                 newFacet.points.addAll(oldFacet.points);
+                if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableBlockPriorities) newFacet.sortByPrio(newPlayer.getServer());
             }
         }
 

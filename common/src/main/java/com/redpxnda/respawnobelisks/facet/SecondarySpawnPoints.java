@@ -6,6 +6,7 @@ import com.redpxnda.nucleus.facet.entity.EntityFacet;
 import com.redpxnda.nucleus.network.PlayerSendable;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.network.SetPriorityChangerPacket;
+import com.redpxnda.respawnobelisks.util.RespawnAvailability;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -15,6 +16,7 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -30,6 +32,9 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
 
     public final List<SpawnPoint> points = new ArrayList<>();
     public @Nullable SpawnPoint reorderingTarget;
+    public boolean canChooseRespawn = false;
+    public boolean canChooseWorldSpawn = false;
+    public boolean willRespawnAtWorldSpawn = false;
 
     public static NbtCompound serializeSpawnPoint(SpawnPoint point) {
         NbtCompound compound = new NbtCompound();
@@ -68,6 +73,9 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
         if (reorderingTarget != null)
             root.put("ReorderingTarget", serializeSpawnPoint(reorderingTarget));
 
+        root.putBoolean("WorldSpawnAllowed", canChooseWorldSpawn);
+        root.putBoolean("RespawnChoiceAllowed", canChooseRespawn);
+
         return root;
     }
 
@@ -85,6 +93,9 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
 
         if (nbt.contains("ReorderingTarget"))
             reorderingTarget = deserializeSpawnPoint(nbt.getCompound("ReorderingTarget"));
+
+        canChooseWorldSpawn = nbt.getBoolean("WorldSpawnAllowed");
+        canChooseRespawn = nbt.getBoolean("RespawnChoiceAllowed");
     }
 
     public void addPoint(SpawnPoint pos) {
@@ -96,12 +107,25 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
         points.sort(Comparator.comparingDouble(p -> getBlockPriority(server.getWorld(p.dimension()).getBlockState(p.pos()).getBlock())));
     }
 
+    public SpawnPoint getValidSpawnPoint(ServerPlayerEntity player) {
+        SpawnPoint point = getLatestPoint();
+        if (point == null) return null;
+        else {
+            while (!points.isEmpty() && !RespawnAvailability.canRespawnAt(point, player)) {
+                removeLatestPoint();
+                point = getLatestPoint();
+            }
+            return point;
+        }
+    }
+
     public SpawnPoint getLatestPoint() {
+        if (willRespawnAtWorldSpawn) return null;
         return points.isEmpty() ? null : points.get(points.size()-1);
     }
 
-    public SpawnPoint removeLatestPoint() {
-        return points.isEmpty() ? null : points.remove(points.size()-1);
+    public void removeLatestPoint() {
+        if (!points.isEmpty()) points.remove(points.size() - 1);
     }
 
     public float getBlockPriority(Block block) {
