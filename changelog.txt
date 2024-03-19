@@ -1,2 +1,9 @@
-# 2.4-d
-- Updated nucleus dependency (should fix #11)
+# 2.5-a
+- added config category related to secondary respawn points including several features surrounding that
+- added options to control how going through an end portal returns you to your spawn point
+- added option to disable respawn anchor override
+- added support for hardcore mode
+- added option to require a certain beacon power level for infinite charge
+- added option to allow dispensers to charge obelisks
+- added option to change what blocks recovery compasses can be bound to
+- fixed other mods not returning the player to obelisk respawn point correctly
