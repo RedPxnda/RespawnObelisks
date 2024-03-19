@@ -54,12 +54,12 @@ public abstract class DeathScreenMixin extends Screen {
                 choices.add(facet.getLatestPoint());
             } else return;
 
-            ButtonWidget button = addDrawableChild(new ButtonWidget(width / 2 - 124, height / 4 + 72, 20, 20, Text.empty(), wid -> {
+            addDrawableChild(new ButtonWidget(width / 2 - 124, height / 4 + 72, 20, 20, Text.empty(), wid -> {
                 ticksSinceDeath = 0;
                 setButtonsActive(false);
                 if (choices.isEmpty()) return;
                 Collections.rotate(choices, 1);
-                SpawnPoint point = choices.get(choices.size()-1);
+                SpawnPoint point = choices.get(choices.size() - 1);
                 if (point == null)
                     ModPackets.CHANNEL.sendToServer(new RespawnAtWorldSpawnPacket(true));
                 else {
@@ -72,7 +72,7 @@ public abstract class DeathScreenMixin extends Screen {
                 @Override
                 protected void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
                     if (choices.isEmpty()) return;
-                    SpawnPoint point = choices.get(choices.size()-1);
+                    SpawnPoint point = choices.get(choices.size() - 1);
 
                     Item item;
                     Text text;
@@ -89,16 +89,14 @@ public abstract class DeathScreenMixin extends Screen {
                     }
                     context.drawItem(item.getDefaultStack(), getX(), getY());
                     if (isHovered()) {
-                        context.fill(getX()-2, getY()-2, getX()+18, getY()-1, Color.WHITE.argb());
-                        context.fill(getX()+17, getY()-2, getX()+18, getY()+18, Color.WHITE.argb());
-                        context.fill(getX()-2, getY()+17, getX()+18, getY()+18, Color.WHITE.argb());
-                        context.fill(getX()-2, getY()-2, getX()-1, getY()+18, Color.WHITE.argb());
+                        context.fill(getX() - 2, getY() - 2, getX() + 18, getY() - 1, Color.WHITE.argb());
+                        context.fill(getX() + 17, getY() - 2, getX() + 18, getY() + 18, Color.WHITE.argb());
+                        context.fill(getX() - 2, getY() + 17, getX() + 18, getY() + 18, Color.WHITE.argb());
+                        context.fill(getX() - 2, getY() - 2, getX() - 1, getY() + 18, Color.WHITE.argb());
                         context.drawTooltip(client.textRenderer, List.of(text, dimensionText), getX(), getY());
                     }
                 }
             });
-            buttons.add(button);
-            button.active = false;
         }
     }
 }

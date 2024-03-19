@@ -168,11 +168,13 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
             double charge = blockEntity.getCharge(player);
             double cost = !shouldCost ? 0 : isTeleport ? RespawnObelisksConfig.INSTANCE.teleportation.teleportationCost : RespawnObelisksConfig.INSTANCE.radiance.respawnCost; // preparing cost value
 
+            ObeliskInteraction.Manager startManager = new ObeliskInteraction.Manager(forceCurse, shouldCost, cost, null);
             for (ObeliskInteraction i : ObeliskInteraction.RESPAWN_INTERACTIONS.get(ObeliskInteraction.Injection.START)) { // Obelisk Respawn Interactions, for the start injection point
-                ObeliskInteraction.Manager manager = new ObeliskInteraction.Manager(cost, null);
-                i.respawnHandler.accept(player, blockEntity, manager);
-                cost = manager.cost;
+                i.respawnHandler.accept(player, blockEntity, startManager);
             }
+            cost = startManager.cost;
+            forceCurse = startManager.curseForced;
+            shouldCost = startManager.shouldConsumeCost;
 
             if (charge-cost >= 0 && shouldCost && !forceCurse) player.removeStatusEffect(immortalityCurse.get()); // remove curse if charge
 
@@ -209,11 +211,12 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
             BlockPos spawnPos = pos.offset(state.get(RESPAWN_SIDE));
             Vec3d vec = new Vec3d(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
 
+            ObeliskInteraction.Manager endManager = new ObeliskInteraction.Manager(forceCurse, shouldCost, cost, vec);
             for (ObeliskInteraction i : ObeliskInteraction.RESPAWN_INTERACTIONS.get(ObeliskInteraction.Injection.END)) { // Obelisk Respawn Interactions, for the end injection point
-                ObeliskInteraction.Manager manager = new ObeliskInteraction.Manager(cost, vec);
-                i.respawnHandler.accept(player, blockEntity, manager);
-                vec = manager.getSpawnLoc();
+                i.respawnHandler.accept(player, blockEntity, endManager);
             }
+            vec = endManager.getSpawnLoc();
+            shouldCost = startManager.shouldConsumeCost;
 
             if (shouldCost) ModRegistries.respawnCriterion.trigger(player); // achievement bs
             return Optional.of(vec);

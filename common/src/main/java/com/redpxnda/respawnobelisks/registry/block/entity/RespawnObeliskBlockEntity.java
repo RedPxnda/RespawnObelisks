@@ -136,6 +136,17 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     public double getClientMaxCharge() {
         return clientMaxCharge;
     }
+    public double getCost(ServerPlayerEntity player) {
+        return getCost(player, false, false, false);
+    }
+    public double getCost(ServerPlayerEntity player, boolean curseForced, boolean shouldConsumeCost, boolean isTeleport) {
+        double cost = !shouldConsumeCost ? 0 : isTeleport ? RespawnObelisksConfig.INSTANCE.teleportation.teleportationCost : RespawnObelisksConfig.INSTANCE.radiance.respawnCost;
+        ObeliskInteraction.Manager manager = new ObeliskInteraction.Manager(curseForced, shouldConsumeCost, cost, null);
+        for (ObeliskInteraction i : ObeliskInteraction.RESPAWN_INTERACTIONS.get(ObeliskInteraction.Injection.START)) {
+            i.respawnHandler.accept(player, this, manager);
+        }
+        return manager.cost;
+    }
     public double getCharge(@Nullable PlayerEntity player) {
         if (world == null || world.isClient) return clientCharge;
         if (coreItem.isEmpty() || (coreItem.core().alwaysRequiresPlayer && player == null)) return 0;

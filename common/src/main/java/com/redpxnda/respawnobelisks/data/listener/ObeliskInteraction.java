@@ -114,10 +114,14 @@ public class ObeliskInteraction {
     }
 
     public static class Manager {
+        public boolean curseForced;
+        public boolean shouldConsumeCost;
         public double cost;
         public Vec3d spawnLoc;
 
-        public Manager(double cost, Vec3d spawnLoc) {
+        public Manager(boolean curseForced, boolean shouldConsumeCost, double cost, Vec3d spawnLoc) {
+            this.curseForced = curseForced;
+            this.shouldConsumeCost = shouldConsumeCost;
             this.cost = cost;
             this.spawnLoc = spawnLoc;
         }

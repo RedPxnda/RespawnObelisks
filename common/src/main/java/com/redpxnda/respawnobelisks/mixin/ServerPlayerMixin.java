@@ -114,14 +114,14 @@ public abstract class ServerPlayerMixin {
 
                 facet.willRespawnAtWorldSpawn = false;
                 facet.canChooseRespawn = switch (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.secondarySpawnMode) {
-                    case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player) > 0;
-                    case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player) <= 0;
+                    case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) >= 0;
+                    case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
                     case NEVER -> false;
                     default -> true;
                 };
                 facet.canChooseWorldSpawn = switch (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.worldSpawnMode) {
-                    case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player) > 0;
-                    case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player) <= 0;
+                    case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) >= 0;
+                    case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
                     case NEVER -> false;
                     default -> true;
                 };
