@@ -110,14 +110,12 @@ subprojects {
             if (modLoader == "fabric") {
                 dependencies {
                     required.project "fabric-api"
-                    required.project "resourceful-config"
                     required.project "architectury-api"
                     optional.project "modmenu"
                     optional.project "jei"
                 }
             } else {
                 dependencies {
-                    required.project "resourceful-config"
                     required.project "architectury-api"
                     optional.project "jei"
                 }
@@ -143,14 +141,12 @@ subprojects {
                     relations {
                         requiredDependency "fabric-api"
                         requiredDependency "architectury-api"
-                        requiredDependency "resourceful-config"
                         optionalDependency "modmenu"
                         optionalDependency "jei"
                     }
                 } else {
                     relations {
                         requiredDependency "architectury-api"
-                        requiredDependency "resourceful-config"
                         optionalDependency "jei"
                     }
                 }
