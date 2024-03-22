@@ -14,7 +14,7 @@ public class TrinketsCompat {
         TrinketDropCallback.EVENT.register((rule, stack, ref, entity) -> {
             if (
                     ObeliskUtils.shouldEnchantmentApply(stack, random) ||
-                    (RespawnObelisksConfig.INSTANCE.respawnPerks.trinketsConfig.keepTrinkets && random.nextInt(100) <= RespawnObelisksConfig.INSTANCE.respawnPerks.trinketsConfig.keepTrinketsChance-1)
+                    (RespawnObelisksConfig.INSTANCE.respawnPerks.trinkets.keepTrinkets && random.nextInt(100) <= RespawnObelisksConfig.INSTANCE.respawnPerks.trinkets.keepTrinketsChance-1)
             )
                 return TrinketEnums.DropRule.KEEP;
             return rule;

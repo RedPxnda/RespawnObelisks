@@ -44,10 +44,10 @@ public abstract class LivingEntityMixin {
                 (RespawnObelisksConfig.INSTANCE.respawnPerks.allowCursedItemKeeping || !player.hasStatusEffect(ModRegistries.immortalityCurse.get()))
         ) {
             ObeliskInventory inventory = be.storedItems.containsKey(player.getUuid()) ? be.storedItems.get(player.getUuid()) : new ObeliskInventory();
-            if (!player.isExperienceDroppingDisabled() && RespawnObelisksConfig.INSTANCE.respawnPerks.experienceConfig.keepExperience && inventory.xp <= 0) {
+            if (!player.isExperienceDroppingDisabled() && RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperience && inventory.xp <= 0) {
                 int rawXp = PlayerUtil.getTotalXp(player);
-                inventory.xp = MathHelper.floor(rawXp*(RespawnObelisksConfig.INSTANCE.respawnPerks.experienceConfig.keepExperiencePercent/100f));
-                if (RespawnObelisksConfig.INSTANCE.respawnPerks.experienceConfig.keepExperiencePercent >= 100) player.disableExperienceDropping();
+                inventory.xp = MathHelper.floor(rawXp*(RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperiencePercent/100f));
+                if (RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperiencePercent >= 100) player.disableExperienceDropping();
                 else player.addExperience(-inventory.xp);
             }
             if (inventory.isArmorEmpty()) {
@@ -55,7 +55,7 @@ public abstract class LivingEntityMixin {
                 List<ItemStack> stacks = new ArrayList<>(
                         player.getInventory().armor.stream().map(i -> {
                             if (
-                                    (RespawnObelisksConfig.INSTANCE.respawnPerks.armorConfig.keepArmor && MathUtil.random.nextInt(100) <= RespawnObelisksConfig.INSTANCE.respawnPerks.armorConfig.keepArmorChance-1) ||
+                                    (RespawnObelisksConfig.INSTANCE.respawnPerks.armor.keepArmor && MathUtil.random.nextInt(100) <= RespawnObelisksConfig.INSTANCE.respawnPerks.armor.keepArmorChance-1) ||
                                     (ObeliskUtils.shouldEnchantmentApply(i, MathUtil.random))
                             ) {
                                 int index = player.getInventory().armor.indexOf(i);
@@ -71,7 +71,7 @@ public abstract class LivingEntityMixin {
             if (!player.getOffHandStack().isEmpty() && inventory.isOffhandEmpty()) {
                 inventory.offhand.clear();
                 if (
-                        (RespawnObelisksConfig.INSTANCE.respawnPerks.offhandConfig.keepOffhand && MathUtil.random.nextInt(100) <= RespawnObelisksConfig.INSTANCE.respawnPerks.offhandConfig.keepOffhandChance-1) ||
+                        (RespawnObelisksConfig.INSTANCE.respawnPerks.offhand.keepOffhand && MathUtil.random.nextInt(100) <= RespawnObelisksConfig.INSTANCE.respawnPerks.offhand.keepOffhandChance-1) ||
                         (ObeliskUtils.shouldEnchantmentApply(player.getOffHandStack(), MathUtil.random))
                 ) {
                     inventory.offhand.add(player.getOffHandStack());
@@ -80,12 +80,12 @@ public abstract class LivingEntityMixin {
             }
             if (inventory.isItemsEmpty()) {
                 inventory.items.clear();
-                boolean onlyHotbar = RespawnObelisksConfig.INSTANCE.respawnPerks.hotbarConfig.keepHotbar && !RespawnObelisksConfig.INSTANCE.respawnPerks.inventoryConfig.keepInventory;
+                boolean onlyHotbar = RespawnObelisksConfig.INSTANCE.respawnPerks.hotbar.keepHotbar && !RespawnObelisksConfig.INSTANCE.respawnPerks.inventory.keepInventory;
                 List<ItemStack> rawStacks = onlyHotbar ? player.getInventory().main.subList(0, 9) : player.getInventory().main;
-                double chance = onlyHotbar ? RespawnObelisksConfig.INSTANCE.respawnPerks.hotbarConfig.keepHotbarChance : RespawnObelisksConfig.INSTANCE.respawnPerks.inventoryConfig.keepInventoryChance;
+                double chance = onlyHotbar ? RespawnObelisksConfig.INSTANCE.respawnPerks.hotbar.keepHotbarChance : RespawnObelisksConfig.INSTANCE.respawnPerks.inventory.keepInventoryChance;
                 List<ItemStack> stacks = new ArrayList<>(rawStacks.stream().map(i -> {
                     if (
-                            ((RespawnObelisksConfig.INSTANCE.respawnPerks.inventoryConfig.keepInventory || RespawnObelisksConfig.INSTANCE.respawnPerks.hotbarConfig.keepHotbar) && MathUtil.random.nextInt(100) <= chance) ||
+                            ((RespawnObelisksConfig.INSTANCE.respawnPerks.inventory.keepInventory || RespawnObelisksConfig.INSTANCE.respawnPerks.hotbar.keepHotbar) && MathUtil.random.nextInt(100) <= chance) ||
                             (ObeliskUtils.shouldEnchantmentApply(i, MathUtil.random))
                     ) {
                         int index = player.getInventory().main.indexOf(i);

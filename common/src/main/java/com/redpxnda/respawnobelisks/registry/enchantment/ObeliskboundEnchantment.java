@@ -18,18 +18,18 @@ public class ObeliskboundEnchantment extends Enchantment {
 
     @Override
     public int getMaxLevel() {
-        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantmentConfig.maxLevel;
+        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantment.maxLevel;
     }
     @Override
     public boolean isTreasure() {
-        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantmentConfig.treasureOnly;
+        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantment.treasureOnly;
     }
     @Override
     public boolean isAvailableForEnchantedBookOffer() {
-        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantmentConfig.tradeable;
+        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantment.tradeable;
     }
     @Override
     public boolean isAvailableForRandomSelection() {
-        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantmentConfig.discoverable;
+        return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantment.discoverable;
     }
 }

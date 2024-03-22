@@ -89,10 +89,9 @@ public abstract class ServerPlayerMixin {
             ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
             SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(player);
             if (facet == null) return;
+            SpawnPoint point = new SpawnPoint(dimension, pos, angle, forced);
             if (pos == null) facet.removeLatestPoint();
             else if (facet.blockAdditionAllowed(getServerWorld().getBlockState(pos).getBlock(), player.getServer())) {
-                SpawnPoint point = new SpawnPoint(dimension, pos, angle, forced);
-
                 if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableBlockPriorities && facet.points.contains(point)) {
                     ci.cancel();
                     return;
@@ -100,37 +99,33 @@ public abstract class ServerPlayerMixin {
 
                 facet.addPoint(point);
                 if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableBlockPriorities) facet.sortByPrio(player.getServer());
-            }
+            } else if (!facet.points.contains(point)) {
+                player.sendMessage(Text.translatable("block.respawnobelisks.cannot_set_spawn"));
+                ci.cancel();
+            } else
+                ci.cancel();
         }
     }
 
     @Inject(method = "onDeath", at = @At("HEAD"))
     private void RESPAWNOBELISKS_allowHardcoreRespawning(DamageSource damageSource, CallbackInfo ci) {
         ServerPlayerEntity player = (ServerPlayerEntity) (Object) this;
+        BlockPos pos = BlockPos.ORIGIN;
         if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.worldSpawnMode != SecondarySpawnPointConfig.PointSpawnMode.NEVER || RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.secondarySpawnMode != SecondarySpawnPointConfig.PointSpawnMode.NEVER) {
+            pos = player.getSpawnPointPosition(); // updating player spawn points
             SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(player);
             if (facet != null) {
                 SpawnPoint point = facet.getLatestPoint();
 
                 facet.willRespawnAtWorldSpawn = false;
-                facet.canChooseRespawn = switch (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.secondarySpawnMode) {
-                    case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) >= 0;
-                    case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
-                    case NEVER -> false;
-                    default -> true;
-                };
-                facet.canChooseWorldSpawn = switch (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.worldSpawnMode) {
-                    case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) >= 0;
-                    case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
-                    case NEVER -> false;
-                    default -> true;
-                };
+                facet.canChooseRespawn = RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.secondarySpawnMode.evaluate(point, player);
+                facet.canChooseWorldSpawn = RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.worldSpawnMode.evaluate(point, player);
 
                 facet.sendToClient(player);
             }
         }
         if (RespawnObelisksConfig.INSTANCE.allowHardcoreRespawning) {
-            BlockPos pos = player.getSpawnPointPosition();
+            if (pos == BlockPos.ORIGIN) pos = player.getSpawnPointPosition();
             if (pos == null) return;
             RegistryKey<World> dim = player.getSpawnPointDimension();
             ServerWorld world = player.getServer().getWorld(dim);

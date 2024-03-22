@@ -11,19 +11,19 @@ public class RespawnPerksConfig {
     @Comment("Whether players can keep items on death even when they have the immortality curse.")
     public boolean allowCursedItemKeeping = false;
 
-    public Enchantment enchantmentConfig = new Enchantment();
+    public Enchantment enchantment = new Enchantment();
 
-    public Inventory inventoryConfig = new Inventory();
+    public Inventory inventory = new Inventory();
 
-    public Hotbar hotbarConfig = new Hotbar();
+    public Hotbar hotbar = new Hotbar();
 
-    public Armor armorConfig = new Armor();
+    public Armor armor = new Armor();
 
-    public Offhand offhandConfig = new Offhand();
+    public Offhand offhand = new Offhand();
 
-    public Experience experienceConfig = new Experience();
+    public Experience experience = new Experience();
 
-    public Trinkets trinketsConfig = new Trinkets();
+    public Trinkets trinkets = new Trinkets();
 
 
     @ConfigAutoCodec.ConfigClassMarker

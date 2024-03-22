@@ -58,6 +58,7 @@
 
   "block.minecraft.spawn.not_valid": "You have no home respawn point or charged respawn obelisk, or it was obstructed",
   "block.respawnobelisks.set_spawn": "Respawn point added/prioritized",
+  "block.respawnobelisks.cannot_set_spawn": "You cannot set your spawn at this block. You have reached a limit of respawn points, either overall or for this block type.",
   "block.respawnobelisks.destruction_catalyst": "Destruction Catalyst",
 
   "effect.respawnobelisks.immortality_curse": "Immortality Curse"

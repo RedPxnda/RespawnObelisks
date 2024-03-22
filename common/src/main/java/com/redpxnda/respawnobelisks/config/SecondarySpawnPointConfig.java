@@ -3,6 +3,9 @@ package com.redpxnda.respawnobelisks.config;
 import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
 import com.redpxnda.nucleus.codec.tag.TaggableBlock;
 import com.redpxnda.nucleus.util.Comment;
+import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.util.SpawnPoint;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 import java.util.LinkedHashMap;
 
@@ -39,7 +42,8 @@ public class SecondarySpawnPointConfig {
         NEVER: Players can never choose.
         ALWAYS: Players can always choose.
         IF_CHARGED: Players can only choose if their obelisk has charge.
-        IF_UNCHARGED: Players can only choose if their obelisk does not have charge, or when their respawn point isn't an obelisk.""")
+        IF_UNCHARGED: Players can only choose if their obelisk does not have charge, or when their respawn point isn't an obelisk.,
+        IF_UNCHARGED_OBELISK: Players can only choose if their obelisk does not have charge, not including when their respawn point isn't an obelisk.""")
     public PointSpawnMode secondarySpawnMode = PointSpawnMode.NEVER;
 
     @Comment("""
@@ -47,13 +51,25 @@ public class SecondarySpawnPointConfig {
         NEVER: Players can never choose.
         ALWAYS: Players can always choose.
         IF_CHARGED: Players can only choose if their obelisk has charge.
-        IF_UNCHARGED: Players can only choose if their obelisk does not have charge, or when their respawn point isn't an obelisk.""")
+        IF_UNCHARGED: Players can only choose if their obelisk does not have charge, or when their respawn point isn't an obelisk.
+        IF_UNCHARGED_OBELISK: Players can only choose if their obelisk does not have charge, not including when their respawn point isn't an obelisk.""")
     public PointSpawnMode worldSpawnMode = PointSpawnMode.NEVER;
 
     public enum PointSpawnMode {
         NEVER,
         ALWAYS,
         IF_CHARGED,
-        IF_UNCHARGED
+        IF_UNCHARGED,
+        IF_UNCHARGED_OBELISK;
+
+        public boolean evaluate(SpawnPoint point, ServerPlayerEntity player) {
+            return switch (this) {
+                case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) >= 0;
+                case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
+                case IF_UNCHARGED_OBELISK -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) < 0;
+                case NEVER -> false;
+                default -> true;
+            };
+        }
     }
 }

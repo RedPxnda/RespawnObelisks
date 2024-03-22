@@ -46,7 +46,8 @@ public class RespawnObelisks {
                 .creator(RespawnObelisksConfig::new)
                 .type(ConfigType.COMMON)
                 .updateListener(instance -> RespawnObelisksConfig.INSTANCE = instance)
-                .automaticScreen()); // todo presets
+                .presetGetter(conf -> conf.preset)
+                .automaticScreen());
 
         ModRegistries.init();
         ModPackets.init();

@@ -7,7 +7,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @ConfigAutoCodec.ConfigClassMarker
@@ -29,7 +28,7 @@ public class ReviveConfig {
         '$animals' (pigs, cows, sheep, etc.),
         '$merchants' (villagers)"""
     )
-    public EntityTypeList revivableEntities = new EntityTypeList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(List.of("tamables", "animals", "merchants")));
+    public EntityTypeList revivableEntities = new EntityTypeList(List.of(), List.of(), List.of("tamables", "animals", "merchants"));
     public boolean isEntityListed(Entity entity) {
         return entitiesIsBlacklist != revivableEntities.contains(entity);
     }
