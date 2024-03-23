@@ -60,6 +60,11 @@ dependencies {
         }
     }
 
+    if ("${rootProject.use_carryon}" == "true")
+        modApi("tschipp.carryon:carryon-forge-${rootProject.minecraft_version}:${rootProject.carryon_version}")
+    else
+        modCompileOnlyApi("tschipp.carryon:carryon-forge-${rootProject.minecraft_version}:${rootProject.carryon_version}")
+
     if ("${rootProject.use_rei}" == "true")
         modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-forge:${rootProject.rei_version}")
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-api-forge:${rootProject.rei_version}")

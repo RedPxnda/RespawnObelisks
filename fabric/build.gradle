@@ -25,6 +25,7 @@ repositories {
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
     maven { url = "https://api.modrinth.com/maven" }
     maven { url = 'https://maven.blamejared.com' }
+    maven { url = "https://maven.siphalor.de/" }
     maven { url = "https://maven.shedaniel.me/" }
     maven { url = "https://maven.terraformersmc.com/" }
     maven { url = 'https://maven.ladysnake.org/releases' }
@@ -35,6 +36,8 @@ dependencies {
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}+${rootProject.minecraft_version}"
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
+
+    modImplementation "curse.maven:revive-533879:4656297" // todo remove
 
     modApi(include("com.redpxnda.nucleus:nucleus-core-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_core_version}"))
     modApi(include("com.redpxnda.nucleus:nucleus-codec-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_codec_version}"))
@@ -50,6 +53,11 @@ dependencies {
         modApi("dev.emi:trinkets:${rootProject.trinkets_version}")
     else
         modCompileOnlyApi("dev.emi:trinkets:${rootProject.trinkets_version}")
+
+    if ("${rootProject.use_carryon}" == "true")
+        modApi("tschipp.carryon:carryon-fabric-${rootProject.minecraft_version}:${rootProject.carryon_version}")
+    else
+        modCompileOnlyApi("tschipp.carryon:carryon-fabric-${rootProject.minecraft_version}:${rootProject.carryon_version}")
 
     if ("${rootProject.use_jei}" == "true") {
         modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}") {

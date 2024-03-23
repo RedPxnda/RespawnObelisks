@@ -21,6 +21,8 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 
+    modImplementation "curse.maven:revive-533879:4656297" // todo remove
+
     modApi "com.redpxnda.nucleus:nucleus-core-common:${rootProject.minecraft_version}+${rootProject.nucleus_core_version}"
     modApi "com.redpxnda.nucleus:nucleus-codec-common:${rootProject.minecraft_version}+${rootProject.nucleus_codec_version}"
     modApi "com.redpxnda.nucleus:nucleus-config-common:${rootProject.minecraft_version}+${rootProject.nucleus_config_version}"
@@ -29,6 +31,8 @@ dependencies {
     modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}") {
         transitive = false
     }
+
+    modCompileOnlyApi("tschipp.carryon:carryon-common-${rootProject.minecraft_version}:${rootProject.carryon_common_version}")
 
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-api:${rootProject.rei_version}")
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-default-plugin:${rootProject.rei_version}")
