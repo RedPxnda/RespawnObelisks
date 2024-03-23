@@ -1,6 +1,8 @@
 package com.redpxnda.respawnobelisks.util;
 
+import com.redpxnda.nucleus.math.MathUtil;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
+import com.redpxnda.respawnobelisks.facet.kept.KeptRespawnItems;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.ParticleAnimationPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
@@ -44,6 +46,25 @@ public class ObeliskUtils {
         List<ServerPlayerEntity> players = level.getPlayers(p -> getAABB(player.getBlockX(), player.getBlockY(), player.getBlockZ()).contains(p.getX(), p.getY(), p.getZ()));
         if (!players.contains(player)) players.add(player);
         ModPackets.CHANNEL.sendToPlayers(players, new ParticleAnimationPacket("curse", player.getId(), pos));
+    }
+
+    public static boolean shouldSaveItem(boolean enabled, double chance, ItemStack stack) {
+        return
+                (enabled && MathUtil.random.nextInt(100) < chance) ||
+                shouldEnchantmentApply(stack, MathUtil.random);
+    }
+
+    public static void restoreSavedItems(ServerPlayerEntity player) {
+        KeptRespawnItems items = KeptRespawnItems.KEY.get(player);
+        if (items == null) return;
+        items.restore(player);
+        //if (has && player instanceof ServerPlayerEntity sp) ModRegistries.keepItemsCriterion.trigger(sp); // todo reimplement
+    }
+
+    public static void scatterSavedItems(ServerPlayerEntity player) {
+        KeptRespawnItems items = KeptRespawnItems.KEY.get(player);
+        if (items == null) return;
+        items.scatter(player.getX(), player.getY(), player.getZ(), player);
     }
 
     public static boolean shouldEnchantmentApply(ItemStack stack, Random random) {

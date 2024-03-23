@@ -8,6 +8,7 @@ import com.redpxnda.respawnobelisks.data.saved.AnchorExplosions;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
 import com.redpxnda.respawnobelisks.facet.HardcoreRespawningTracker;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
+import com.redpxnda.respawnobelisks.facet.kept.KeptRespawnItems;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.SyncEffectsPacket;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
@@ -16,6 +17,7 @@ import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEnt
 import com.redpxnda.respawnobelisks.registry.item.BoundCompassItem;
 import com.redpxnda.respawnobelisks.registry.structure.VillageAddition;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
+import com.redpxnda.respawnobelisks.util.ObeliskUtils;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.*;
@@ -84,7 +86,6 @@ public class CommonEvents {
             if (
                     level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity && ( // making sure the block is a respawn obelisk block (entity)
                             (!RespawnObelisksConfig.INSTANCE.playerTrusting.allowObeliskBreaking && !blockEntity.isPlayerTrusted(player.getEntityName())) || // if untrusted
-                            (blockEntity.hasStoredItems && !player.isSneaking()) || // if has items inside
                             (!blockEntity.getItemStack().isEmpty() && !player.isSneaking()) || // if has core inside
                             (blockEntity.hasTeleportingEntity) // if has teleporting entity
                     )
@@ -183,14 +184,18 @@ public class CommonEvents {
             if (oldFacet != null && newFacet != null) newFacet.canRespawn = oldFacet.canRespawn;
         }
 
+        KeptRespawnItems oldFacet = KeptRespawnItems.KEY.get(oldPlayer);
+        KeptRespawnItems newFacet = KeptRespawnItems.KEY.get(newPlayer);
+        if (oldFacet != null && newFacet != null) newFacet.modules.putAll(oldFacet.modules);
+
         if (wonGame) return;
         if (oldPlayer.hasStatusEffect(ModRegistries.immortalityCurse.get())) cloneAddCurse(newPlayer, oldPlayer);
         if (
             oldPlayer.getSpawnPointPosition() != null &&
             oldPlayer.getWorld().getBlockEntity(oldPlayer.getSpawnPointPosition()) instanceof RespawnObeliskBlockEntity be
         ) {
-            be.restoreSavedItems(newPlayer);
-        }
+            ObeliskUtils.restoreSavedItems(newPlayer);
+        } else ObeliskUtils.scatterSavedItems(oldPlayer);
     }
 
     private static void cloneAddCurse(ServerPlayerEntity newPlayer, ServerPlayerEntity oldPlayer) {

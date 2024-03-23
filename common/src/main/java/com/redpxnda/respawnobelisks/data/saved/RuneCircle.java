@@ -8,6 +8,7 @@ import com.redpxnda.respawnobelisks.network.PlayLocalSoundPacket;
 import com.redpxnda.respawnobelisks.network.RuneCirclePacket;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
+import com.redpxnda.respawnobelisks.util.ObeliskUtils;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtDouble;
@@ -159,7 +160,7 @@ public class RuneCircle {
             player.setExperiencePoints(0);
         }
         player.requestTeleport(target.getX()+0.5, target.getY(), target.getZ()+0.5);
-        blockEntity.restoreSavedItems(player);
+        ObeliskUtils.restoreSavedItems(player);
         block.getRespawnLocation(true, true, RespawnObelisksConfig.INSTANCE.teleportation.forcedCurseOnTp, blockEntity.getCachedState(), pos, level, player);
         blockEntity.hasTeleportingEntity = false;
         blockEntity.syncWithClient();

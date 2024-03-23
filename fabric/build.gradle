@@ -29,6 +29,7 @@ repositories {
     maven { url = "https://maven.shedaniel.me/" }
     maven { url = "https://maven.terraformersmc.com/" }
     maven { url = 'https://maven.ladysnake.org/releases' }
+    maven { url = "https://cursemaven.com" }
 }
 
 dependencies {
@@ -36,8 +37,6 @@ dependencies {
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}+${rootProject.minecraft_version}"
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
-
-    modImplementation "curse.maven:revive-533879:4656297" // todo remove
 
     modApi(include("com.redpxnda.nucleus:nucleus-core-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_core_version}"))
     modApi(include("com.redpxnda.nucleus:nucleus-codec-fabric:${rootProject.minecraft_version}+${rootProject.nucleus_codec_version}"))
@@ -49,9 +48,11 @@ dependencies {
 
     modImplementation("maven.modrinth:spark:1.10.53-fabric")
 
-    if ("${rootProject.use_trinkets}" == "true")
+    if ("${rootProject.use_trinkets}" == "true") {
         modApi("dev.emi:trinkets:${rootProject.trinkets_version}")
-    else
+        modImplementation "curse.maven:icarus-428151:4586587"
+        modImplementation "curse.maven:midnightlib-488090:4576371"
+    } else
         modCompileOnlyApi("dev.emi:trinkets:${rootProject.trinkets_version}")
 
     if ("${rootProject.use_carryon}" == "true")

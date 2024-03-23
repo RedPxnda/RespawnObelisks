@@ -384,8 +384,6 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
         if (blockEntity instanceof RespawnObeliskBlockEntity be) {
             if (!be.getItemStack().isEmpty()) // outdated code but idc (should be be.getCoreInstance()...)
                 ItemScatterer.spawn(level, pos.getX()+0.5, pos.getY(), pos.getZ()+0.5, be.getItemStack());
-            if (be.hasStoredItems)
-                be.storedItems.values().forEach(inv -> inv.dropAll(level, pos.getX()+0.5, pos.getY(), pos.getZ()+0.5));
         }
         super.onStateReplaced(blockState, level, pos, newBlockState, isMoving);
     }
@@ -402,10 +400,6 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
             }
             if (!blockEntity.getItemStack().isEmpty() && !player.isSneaking()) { // outdated code but idc (should be be.getCoreInstance()...)
                 if (player instanceof ServerPlayerEntity serverPlayer) serverPlayer.sendMessageToClient(Text.translatable("text.respawnobelisks.has_core"), true);
-                return 0f;
-            }
-            if (blockEntity.hasStoredItems && !player.isSneaking()) {
-                if (player instanceof ServerPlayerEntity serverPlayer) serverPlayer.sendMessageToClient(Text.translatable("text.respawnobelisks.items_are_stored"), true);
                 return 0f;
             }
             if (blockEntity.hasTeleportingEntity) {

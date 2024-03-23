@@ -12,6 +12,7 @@ repositories {
     maven { url = "https://maven.resourcefulbees.com/repository/maven-public/" }
     maven { url = 'https://maven.blamejared.com' }
     maven { url = "https://maven.shedaniel.me/" }
+    maven { url = "https://cursemaven.com" }
 }
 
 dependencies {
@@ -20,8 +21,6 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
-
-    modImplementation "curse.maven:revive-533879:4656297" // todo remove
 
     modApi "com.redpxnda.nucleus:nucleus-core-common:${rootProject.minecraft_version}+${rootProject.nucleus_core_version}"
     modApi "com.redpxnda.nucleus:nucleus-codec-common:${rootProject.minecraft_version}+${rootProject.nucleus_codec_version}"

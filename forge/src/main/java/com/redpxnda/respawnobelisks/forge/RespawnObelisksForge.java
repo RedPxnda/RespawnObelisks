@@ -1,18 +1,17 @@
 package com.redpxnda.respawnobelisks.forge;
 
+import com.redpxnda.respawnobelisks.RespawnObelisks;
 import com.redpxnda.respawnobelisks.forge.compat.CuriosCompat;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.item.BoundCompassItem;
 import com.redpxnda.respawnobelisks.registry.particle.RuneCircleParticle;
 import dev.architectury.platform.Platform;
 import dev.architectury.platform.forge.EventBuses;
-import com.redpxnda.respawnobelisks.RespawnObelisks;
 import net.minecraft.client.item.CompassAnglePredicateProvider;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.util.Identifier;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -28,7 +27,8 @@ public class RespawnObelisksForge {
         RespawnObelisks.init();
 
         if (Platform.isModLoaded("curios")) {
-            MinecraftForge.EVENT_BUS.addListener(CuriosCompat::onDropRules);
+            //MinecraftForge.EVENT_BUS.addListener(CuriosCompat::onDropRules);
+            CuriosCompat.init();
         }
     }
 

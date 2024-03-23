@@ -12,6 +12,8 @@ import com.redpxnda.respawnobelisks.event.ClientEvents;
 import com.redpxnda.respawnobelisks.event.CommonEvents;
 import com.redpxnda.respawnobelisks.facet.HardcoreRespawningTracker;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
+import com.redpxnda.respawnobelisks.facet.kept.KeptItemsModule;
+import com.redpxnda.respawnobelisks.facet.kept.KeptRespawnItems;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.ModTags;
@@ -54,13 +56,22 @@ public class RespawnObelisks {
 
         CommonEvents.init();
 
+        KeptItemsModule.init();
+
         SecondarySpawnPoints.KEY = FacetRegistry.register(new Identifier(MOD_ID, "spawn_points"), SecondarySpawnPoints.class);
         HardcoreRespawningTracker.KEY = FacetRegistry.register(new Identifier(MOD_ID, "hardcore_respawning"), HardcoreRespawningTracker.class);
+        KeptRespawnItems.KEY = FacetRegistry.register(new Identifier(MOD_ID, "kept_items"), KeptRespawnItems.class);
         FacetRegistry.ENTITY_FACET_ATTACHMENT.register((entity, attacher) -> {
-            if (entity instanceof ServerPlayerEntity)
-                if (RespawnObelisksConfig.INSTANCE.allowHardcoreRespawning) attacher.add(HardcoreRespawningTracker.KEY, new HardcoreRespawningTracker());
-            if (entity instanceof PlayerEntity)
-                if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) attacher.add(SecondarySpawnPoints.KEY, new SecondarySpawnPoints());
+            if (entity instanceof ServerPlayerEntity sp) {
+                if (RespawnObelisksConfig.INSTANCE.allowHardcoreRespawning)
+                    attacher.add(HardcoreRespawningTracker.KEY, new HardcoreRespawningTracker());
+                attacher.add(KeptRespawnItems.KEY, new KeptRespawnItems(sp));
+            }
+
+            if (entity instanceof PlayerEntity) {
+                if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints)
+                    attacher.add(SecondarySpawnPoints.KEY, new SecondarySpawnPoints());
+            }
         });
 
         EnvExecutor.runInEnv(Env.CLIENT, () -> () -> {

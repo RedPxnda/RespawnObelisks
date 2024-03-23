@@ -10,11 +10,9 @@ import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.theme.ThemeLayout;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
-import com.redpxnda.respawnobelisks.util.ObeliskInventory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
@@ -61,8 +59,6 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     public boolean hasRandomCharge = true;
     private String obeliskName = "";
     private Text obeliskNameComponent = null;
-    public final Map<UUID, ObeliskInventory> storedItems = new HashMap<>();
-    public boolean hasStoredItems = false;
     public boolean hasTeleportingEntity = false;
     private final List<Identifier> themes = new ArrayList<>();
     public final Multimap<GlobalPos, ServerPlayerEntity> respawningPlayers = Multimaps.newMultimap(new ConcurrentHashMap<>(), HashSet::new);
@@ -208,62 +204,9 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
         this.syncWithClient();
     }
 
-    public void restoreSavedItems(PlayerEntity player) {
-        ObeliskInventory inv = storedItems.get(player.getUuid());
-        if (inv == null) return;
-        boolean has = false;
-        if (!inv.isItemsEmpty()) {
-            has = true;
-            inv.items.forEach(i -> {
-                if (!i.isEmpty()) player.getInventory().offerOrDrop(i);
-            });
-            inv.items.clear();
-        }
-        if (!inv.isArmorEmpty()) {
-            has = true;
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                if (slot.getType().equals(EquipmentSlot.Type.ARMOR)) {
-                    if (inv.armor.size() <= slot.getEntitySlotId())
-                        continue;
-                    if (player.getEquippedStack(slot).isEmpty())
-                        player.equipStack(slot, inv.armor.get(slot.getEntitySlotId()));
-                    else
-                        player.getInventory().offerOrDrop(inv.armor.get(slot.getEntitySlotId()));
-                }
-            }
-            inv.armor.clear();
-        }
-        if (!inv.isOffhandEmpty()) {
-            has = true;
-            if (player.getEquippedStack(EquipmentSlot.OFFHAND).isEmpty())
-                player.equipStack(EquipmentSlot.OFFHAND, inv.offhand.get(0));
-            else
-                player.getInventory().offerOrDrop(inv.offhand.get(0));
-            inv.offhand.clear();
-        }
-        if (inv.isXpEmpty()) {
-            player.addExperience(inv.xp);
-            inv.xp = 0;
-        }
-        if (has && player instanceof ServerPlayerEntity sp) ModRegistries.keepItemsCriterion.trigger(sp);
-        syncWithClient();
-    }
-
     public void syncWithClient() {
         if (world == null || world.isClient) return;
-        updateHasSavedItems();
         markDirty(this.world, this.getPos(), this.getCachedState());
-    }
-
-    public void updateHasSavedItems() {
-        boolean isEmpty = true;
-        for (ObeliskInventory inv : storedItems.values()) {
-            if (!inv.isEmpty()) {
-                isEmpty = false;
-                break;
-            }
-        }
-        this.hasStoredItems = !isEmpty;
     }
 
     @Override
@@ -286,16 +229,9 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
         this.lastRespawn = tag.getLong("LastRespawn");
         this.lastCharge = tag.getLong("LastCharge");
         this.hasLimboEntity = tag.getBoolean("HasLimboEntity");
-        this.hasStoredItems = tag.getBoolean("HasStoredItems");
         this.obeliskName = tag.getString("Name");
         if (tag.contains("ClientCharge")) this.clientCharge = tag.getDouble("ClientCharge");
         if (tag.contains("ClientMaxCharge")) this.clientMaxCharge = tag.getDouble("ClientMaxCharge");
-        if (tag.contains("StoredItems", 10)) {
-            NbtCompound stored = tag.getCompound("StoredItems");
-            for (String key : stored.getKeys()) {
-                this.storedItems.put(UUID.fromString(key), ObeliskInventory.readFromNbt(stored.getCompound(key)));
-            }
-        }
         this.obeliskNameComponent = Text.Serializer.fromJson(tag.getString("Name"));
         this.hasTeleportingEntity = tag.getBoolean("HasTeleportingEntity");
         this.themes.clear();
@@ -306,31 +242,23 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
     @Override
     protected void writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
-        this.saveData(tag, true, true);
+        this.saveData(tag, true);
     }
 
     @Override
     public NbtCompound toInitialChunkDataNbt() {
         NbtCompound tag = new NbtCompound();
-        this.saveData(tag, false, true);
+        this.saveData(tag, true);
         return tag;
     }
 
-    private void saveData(NbtCompound tag, boolean saveItems, boolean sendCharge) {
+    private void saveData(NbtCompound tag, boolean sendCharge) {
         tag.putBoolean("RandomCharge", hasRandomCharge);
         tag.put("Item", Instance.CODEC.encodeStart(NbtOps.INSTANCE, coreItem).getOrThrow(true, s -> LOGGER.error("Failed to save Obelisk's 'Item'. " + s)));
         tag.putLong("LastRespawn", lastRespawn);
         tag.putLong("LastCharge", lastCharge);
         tag.putBoolean("HasLimboEntity", hasLimboEntity);
-        tag.putBoolean("HasStoredItems", hasStoredItems);
         tag.putString("Name", obeliskName);
-        if (saveItems) {
-            NbtCompound allPlayers = new NbtCompound();
-            for (UUID uuid : storedItems.keySet()) {
-                allPlayers.put(uuid.toString(), storedItems.get(uuid).saveToNbt());
-            }
-            tag.put("StoredItems", allPlayers);
-        }
         if (sendCharge) {
             tag.putDouble("ClientCharge", this.getCharge(null));
             tag.putDouble("ClientMaxCharge", this.getMaxCharge(null));
