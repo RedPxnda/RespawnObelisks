@@ -43,7 +43,7 @@ public enum ConfigPresets implements ConfigProvider<RespawnObelisksConfig> {
         config.behaviorOverrides.destructionCatalysts = false;
 
         config.secondarySpawnPoints.enableSecondarySpawnPoints = true;
-        config.secondarySpawnPoints.worldSpawnMode = SecondarySpawnPointConfig.PointSpawnMode.IF_UNCHARGED_OBELISK;
+        config.secondarySpawnPoints.worldSpawnMode = SecondarySpawnPointConfig.PointSpawnMode.UNLESS_CHARGED;
 
         config.respawnPerks.experience.keepExperience = true;
         config.respawnPerks.inventory.keepInventory = true;
@@ -74,8 +74,8 @@ public enum ConfigPresets implements ConfigProvider<RespawnObelisksConfig> {
         config.secondarySpawnPoints.enableBlockPriorities = true;
         config.secondarySpawnPoints.blockPriorities.put(new TaggableBlock(ModTags.Blocks.RESPAWN_OBELISKS), 10f);
 
-        config.secondarySpawnPoints.worldSpawnMode = SecondarySpawnPointConfig.PointSpawnMode.IF_UNCHARGED_OBELISK;
-        config.secondarySpawnPoints.secondarySpawnMode = SecondarySpawnPointConfig.PointSpawnMode.IF_UNCHARGED_OBELISK;
+        config.secondarySpawnPoints.worldSpawnMode = SecondarySpawnPointConfig.PointSpawnMode.UNLESS_CHARGED;
+        config.secondarySpawnPoints.secondarySpawnMode = SecondarySpawnPointConfig.PointSpawnMode.UNLESS_CHARGED;
     }));
 
     private final Supplier<RespawnObelisksConfig> supplier;

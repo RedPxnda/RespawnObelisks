@@ -37,36 +37,36 @@ public class SecondarySpawnPointConfig {
             Tags(which get treated as a single entry) are supported by beginning the entry with a #.""")
     public LinkedHashMap<TaggableBlock, Float> blockPriorities = new LinkedHashMap<>();
 
-    @Comment("""
-        When players are allowed to choose to spawn at a secondary respawn point.
-        NEVER: Players can never choose.
-        ALWAYS: Players can always choose.
-        IF_CHARGED: Players can only choose if their obelisk has charge.
-        IF_UNCHARGED: Players can only choose if their obelisk does not have charge, or when their respawn point isn't an obelisk.,
-        IF_UNCHARGED_OBELISK: Players can only choose if their obelisk does not have charge, not including when their respawn point isn't an obelisk.""")
+    public static final String spawnModeComment = """
+            NEVER: Players can never choose.
+            ALWAYS: Players can always choose.
+            IF_CHARGED: Players can only choose if their respawn point is an obelisk that has charge.
+            UNLESS_CHARGED: Players can only choose if their respawn point is an obelisk that does not have charge.
+            UNLESS_CHARGED_OBELISK: Players can only choose if their obelisk does not have charge, or if their respawn point isn't an obelisk.
+            IF_OBELISK: Players can only choose if their respawn point is an obelisk.
+            UNLESS_OBELISK: Players can only choose if their respawn point is not an obelisk.
+            """;
+
+    @Comment("When players are allowed to choose to spawn at a secondary respawn point.\n" + spawnModeComment)
     public PointSpawnMode secondarySpawnMode = PointSpawnMode.NEVER;
 
-    @Comment("""
-        When players are allowed to choose to respawn at world spawn.
-        NEVER: Players can never choose.
-        ALWAYS: Players can always choose.
-        IF_CHARGED: Players can only choose if their obelisk has charge.
-        IF_UNCHARGED: Players can only choose if their obelisk does not have charge, or when their respawn point isn't an obelisk.
-        IF_UNCHARGED_OBELISK: Players can only choose if their obelisk does not have charge, not including when their respawn point isn't an obelisk.""")
+    @Comment("When players are allowed to choose to respawn at world spawn.\n" + spawnModeComment)
     public PointSpawnMode worldSpawnMode = PointSpawnMode.NEVER;
 
     public enum PointSpawnMode {
         NEVER,
         ALWAYS,
         IF_CHARGED,
-        IF_UNCHARGED,
-        IF_UNCHARGED_OBELISK;
+        UNLESS_CHARGED,
+        UNLESS_CHARGED_OBELISK,
+        IF_OBELISK,
+        UNLESS_OBELISK;
 
         public boolean evaluate(SpawnPoint point, ServerPlayerEntity player) {
             return switch (this) {
                 case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) >= 0;
-                case IF_UNCHARGED -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
-                case IF_UNCHARGED_OBELISK -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) < 0;
+                case UNLESS_CHARGED_OBELISK -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
+                case UNLESS_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) < 0;
                 case NEVER -> false;
                 default -> true;
             };
