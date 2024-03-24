@@ -44,7 +44,15 @@ public class KeptRespawnItems implements EntityFacet<NbtCompound> {
         modules.forEach((key, module) -> module.scatter(x, y, z, player));
     }
 
-    public void gather(ServerPlayerEntity player) {
+    public boolean gather(ServerPlayerEntity player) {
+        if (!isEmpty()) return false;
         modules.forEach((key, module) -> module.gather(player));
+        return true;
+    }
+
+    public boolean isEmpty() {
+        for (Map.Entry<String, KeptItemsModule> entry : modules.entrySet())
+            if (!entry.getValue().isEmpty()) return false;
+        return true;
     }
 }

@@ -192,10 +192,10 @@ public class CommonEvents {
         if (oldPlayer.hasStatusEffect(ModRegistries.immortalityCurse.get())) cloneAddCurse(newPlayer, oldPlayer);
         if (
             oldPlayer.getSpawnPointPosition() != null &&
-            oldPlayer.getWorld().getBlockEntity(oldPlayer.getSpawnPointPosition()) instanceof RespawnObeliskBlockEntity be
+            oldPlayer.getWorld().getBlockEntity(oldPlayer.getSpawnPointPosition()) instanceof RespawnObeliskBlockEntity
         ) {
             ObeliskUtils.restoreSavedItems(newPlayer);
-        } else ObeliskUtils.scatterSavedItems(oldPlayer);
+        }// else ObeliskUtils.scatterSavedItems(oldPlayer);
     }
 
     private static void cloneAddCurse(ServerPlayerEntity newPlayer, ServerPlayerEntity oldPlayer) {

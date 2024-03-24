@@ -34,4 +34,5 @@ public interface KeptItemsModule {
     void restore(ServerPlayerEntity player);
     void gather(ServerPlayerEntity player);
     void scatter(double x, double y, double z, ServerPlayerEntity player);
+    boolean isEmpty();
 }

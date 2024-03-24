@@ -46,4 +46,9 @@ public class KeptXpModule implements KeptItemsModule {
         player.getWorld().spawnEntity(orb);
         xp = 0;
     }
+
+    @Override
+    public boolean isEmpty() {
+        return xp <= 0;
+    }
 }

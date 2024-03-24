@@ -3,6 +3,7 @@ package com.redpxnda.respawnobelisks.registry.block;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
+import com.redpxnda.respawnobelisks.facet.kept.KeptRespawnItems;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.ParticleAnimationPacket;
 import com.redpxnda.respawnobelisks.network.PlaySoundPacket;
@@ -271,7 +272,9 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
                     if (reviveEntities(revivalItem, blockEntity, player, level, pos)) return ActionResult.SUCCESS;
                 } else if (blockEntity.getCoreInstance().isEmpty())
                     player.sendMessage(Text.translatable("text.respawnobelisks.no_core"));
-                else if (charge <= 0 && !RespawnObelisksConfig.INSTANCE.radiance.allowEmptySpawnSetting)
+                else if (restoreItems(blockEntity, player, level, pos)) {
+                    return ActionResult.SUCCESS;
+                } else if (charge <= 0 && !RespawnObelisksConfig.INSTANCE.radiance.allowEmptySpawnSetting)
                     player.sendMessage(Text.translatable("text.respawnobelisks.no_charge"));
                 else { // Setting spawn point
                     int degrees = 90; // degrees for respawn
@@ -288,6 +291,16 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
             }
         }
         return ActionResult.FAIL;
+    }
+
+    public boolean restoreItems(RespawnObeliskBlockEntity blockEntity, ServerPlayerEntity player, ServerWorld world, BlockPos pos) {
+        KeptRespawnItems items = KeptRespawnItems.KEY.get(player);
+        if (items != null && !items.isEmpty() && blockEntity.getCharge(player)-RespawnObelisksConfig.INSTANCE.radiance.respawnCost >= 0) {
+            blockEntity.chargeAndAnimate(player, -RespawnObelisksConfig.INSTANCE.radiance.respawnCost);
+            items.restore(player);
+            return true;
+        }
+        return false;
     }
 
     public static boolean clickInteractions(@Nullable PlayerEntity player, RespawnObeliskBlockEntity blockEntity, ItemStack stack) {

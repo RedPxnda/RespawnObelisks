@@ -95,4 +95,9 @@ public class KeptCuriosModule implements KeptItemsModule {
         curiosInventory.forEach((key, items) -> items.forEach(item -> ItemScatterer.spawn(player.getWorld(), x, y, z, item)));
         curiosInventory.clear();
     }
+
+    @Override
+    public boolean isEmpty() {
+        return curiosInventory.isEmpty();
+    }
 }

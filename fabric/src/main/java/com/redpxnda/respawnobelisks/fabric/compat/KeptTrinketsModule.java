@@ -110,4 +110,9 @@ public class KeptTrinketsModule implements KeptItemsModule {
         trinketInventory.forEach((group, slots) -> slots.forEach((key, items) -> items.forEach(item -> ItemScatterer.spawn(player.getWorld(), x, y, z, item))));
         trinketInventory.clear();
     }
+
+    @Override
+    public boolean isEmpty() {
+        return trinketInventory.isEmpty();
+    }
 }

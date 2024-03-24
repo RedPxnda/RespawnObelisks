@@ -46,4 +46,9 @@ public class KeptOffhandModule implements KeptItemsModule {
         ItemScatterer.spawn(player.getWorld(), x, y, z, item);
         item = ItemStack.EMPTY;
     }
+
+    @Override
+    public boolean isEmpty() {
+        return item.isEmpty();
+    }
 }

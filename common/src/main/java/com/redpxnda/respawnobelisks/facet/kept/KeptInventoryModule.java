@@ -65,4 +65,9 @@ public class KeptInventoryModule implements KeptItemsModule {
         items.forEach(item -> ItemScatterer.spawn(player.getWorld(), x, y, z, item));
         items.clear();
     }
+
+    @Override
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
 }

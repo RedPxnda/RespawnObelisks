@@ -57,8 +57,8 @@ public class ObeliskUtils {
     public static void restoreSavedItems(ServerPlayerEntity player) {
         KeptRespawnItems items = KeptRespawnItems.KEY.get(player);
         if (items == null) return;
+        if (!items.isEmpty()) ModRegistries.keepItemsCriterion.trigger(player);
         items.restore(player);
-        //if (has && player instanceof ServerPlayerEntity sp) ModRegistries.keepItemsCriterion.trigger(sp); // todo reimplement
     }
 
     public static void scatterSavedItems(ServerPlayerEntity player) {

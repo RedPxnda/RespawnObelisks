@@ -11,6 +11,7 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -42,8 +43,10 @@ public abstract class LivingEntityMixin extends Entity {
                 (RespawnObelisksConfig.INSTANCE.respawnPerks.allowCursedItemKeeping || !player.hasStatusEffect(ModRegistries.immortalityCurse.get()))
         ) {
             KeptRespawnItems items = KeptRespawnItems.KEY.get(player);
-            if (items != null)
-                items.gather(player);
+            if (items != null) {
+                boolean result = items.gather(player);
+                if (!result) player.sendMessage(Text.translatable("text.respawnobelisks.cannot_save_items"));
+            }
         }
     }
 }
