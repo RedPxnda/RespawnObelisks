@@ -1,3 +1,4 @@
 # 2.5-b
 - added respawn obelisks to carryon blacklist
 - added new spawn mode options
+- reworked item keeping
