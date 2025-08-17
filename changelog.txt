@@ -1,3 +1,5 @@
-# 2.6-b
-- added option for radiant lanterns to be reused
-- fixed cannot set spawn at this block message repeating
+# 2.6-c
+- added option to bind recovery compasses at the obelisk itself
+- fixed everlasting radiant flames showing 00:00 as the timer
+- fixed radiant flames showing empty texture particles when walking over them
+- fixed server hanging when attempting to shut down (nucleus updated)

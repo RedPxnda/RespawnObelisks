@@ -55,7 +55,7 @@ public class BoundCompassItem extends CompassItem {
         PlayerEntity player = useOnContext.getPlayer();
         BlockPos blockPos = useOnContext.getBlockPos();
         World level = useOnContext.getWorld();
-        if (RespawnObelisksConfig.INSTANCE.teleportation.allowedBindingBlocks.contains(level.getBlockState(blockPos))) {
+        if ((blockPos = RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(level, blockPos)) != null) {
             level.playSound(null, blockPos, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 1.0f, 1.0f);
             ItemStack itemStack = useOnContext.getStack();
             if (/*!player.getAbilities().creativeMode && */itemStack.getCount() == 1) {
@@ -81,8 +81,8 @@ public class BoundCompassItem extends CompassItem {
             GlobalPos pos = createLodestonePos(player.getMainHandStack().getOrCreateNbt());
             if (
                 pos != null &&
-                level.getBlockState(pos.getPos().up()).getBlock() instanceof RespawnObeliskBlock block &&
-                level.getBlockEntity(pos.getPos().up()) instanceof RespawnObeliskBlockEntity blockEntity &&
+                level.getBlockState(pos.getPos()).getBlock() instanceof RespawnObeliskBlock block &&
+                level.getBlockEntity(pos.getPos()) instanceof RespawnObeliskBlockEntity blockEntity &&
                 blockEntity.getCharge(player) >= RespawnObelisksConfig.INSTANCE.teleportation.minimumTpRadiance
             ) {
                 if (!CoreUtils.hasInteraction(blockEntity.getCoreInstance(), ObeliskInteraction.TELEPORT)) {
@@ -93,11 +93,11 @@ public class BoundCompassItem extends CompassItem {
                     serverPlayer.sendMessageToClient(Text.translatable("text.respawnobelisks.wormhole_failed_requirements"), true);
                     return ActionResult.FAIL;
                 }
-                BlockState state = level.getBlockState(pos.getPos().up());
-                Optional<Vec3d> obeliskLoc = block.getRespawnLocation(true, false, false, state, pos.getPos().up(), serverLevel, serverPlayer);
+                BlockState state = level.getBlockState(pos.getPos());
+                Optional<Vec3d> obeliskLoc = block.getRespawnLocation(true, false, false, state, pos.getPos(), serverLevel, serverPlayer);
                 obeliskLoc.ifPresent(vec3 -> {
                     player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 130, 0, true, false));
-                    RuneCircles.getCache(serverLevel).create(serverPlayer, serverPlayer.getMainHandStack(), pos.getPos().up(), new BlockPos((int) vec3.x, (int) vec3.y, (int) vec3.z), serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ());
+                    RuneCircles.getCache(serverLevel).create(serverPlayer, serverPlayer.getMainHandStack(), pos.getPos(), new BlockPos((int) vec3.x, (int) vec3.y, (int) vec3.z), serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ());
                 });
                 return ActionResult.SUCCESS;
             }
@@ -117,7 +117,7 @@ public class BoundCompassItem extends CompassItem {
                 return;
             }
             Optional<RegistryKey<World>> optional = getLodestoneDimension(nbtCompound);
-            if (optional.isPresent() && optional.get() == world.getRegistryKey() && nbtCompound.contains(LODESTONE_POS_KEY) && (!world.isInBuildLimit(blockPos = NbtHelper.toBlockPos(nbtCompound.getCompound(LODESTONE_POS_KEY))) || !RespawnObelisksConfig.INSTANCE.teleportation.allowedBindingBlocks.contains(world.getBlockState(blockPos))))
+            if (optional.isPresent() && optional.get() == world.getRegistryKey() && nbtCompound.contains(LODESTONE_POS_KEY) && (!world.isInBuildLimit(blockPos = NbtHelper.toBlockPos(nbtCompound.getCompound(LODESTONE_POS_KEY))) || RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(world, blockPos) == null))
                 nbtCompound.remove(LODESTONE_POS_KEY);
         }
     }

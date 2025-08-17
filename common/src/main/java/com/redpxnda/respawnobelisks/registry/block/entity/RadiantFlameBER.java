@@ -1,6 +1,7 @@
 package com.redpxnda.respawnobelisks.registry.block.entity;
 
 import com.redpxnda.nucleus.client.Rendering;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
@@ -31,7 +32,8 @@ public class RadiantFlameBER implements BlockEntityRenderer<RadiantFlameBlockEnt
         int totalSeconds = blockEntity.timeRemaining/20;
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
-        Rendering.renderNameTag(context, false, Text.of(String.format("%02d:%02d", minutes, seconds)), poseStack, bufferSource, packedLight);
+        Text nameTagText = (RespawnObelisksConfig.INSTANCE != null && RespawnObelisksConfig.INSTANCE.radiantFlame.lifetime <= -1) ? Text.of("∞") : Text.of(String.format("%02d:%02d", minutes, seconds));
+        Rendering.renderNameTag(context, false, nameTagText, poseStack, bufferSource, packedLight);
         poseStack.pop();
 
         if (SPRITE == null) SPRITE = MinecraftClient.getInstance().getSpriteAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).apply(FLAME);

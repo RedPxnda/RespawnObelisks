@@ -42,6 +42,12 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 
+    /*modImplementation("curse.maven:cerbons-better-beacons-921066:5065762")
+    modImplementation("curse.maven:cerbons-api-955605:5050080")
+    modImplementation("curse.maven:cloth-config-348521:4973441")
+    modImplementation("curse.maven:quark-243121:5594847")
+    modImplementation("curse.maven:zeta-968868:5597406")*/
+
     modApi(include("com.redpxnda.nucleus:nucleus-core-forge:${rootProject.minecraft_version}+${rootProject.nucleus_core_version}"))
     modApi(include("com.redpxnda.nucleus:nucleus-codec-forge:${rootProject.minecraft_version}+${rootProject.nucleus_codec_version}"))
     modApi(include("com.redpxnda.nucleus:nucleus-config-forge:${rootProject.minecraft_version}+${rootProject.nucleus_config_version}"))

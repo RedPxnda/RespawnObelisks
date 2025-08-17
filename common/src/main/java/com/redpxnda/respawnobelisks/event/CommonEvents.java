@@ -71,7 +71,7 @@ public class CommonEvents {
             }
         }
 
-        if (!hand.equals(Hand.MAIN_HAND) || !player.getMainHandStack().isOf(Items.RECOVERY_COMPASS) || !RespawnObelisksConfig.INSTANCE.teleportation.allowedBindingBlocks.contains(player.getWorld().getBlockState(pos))) return EventResult.pass();
+        if (!hand.equals(Hand.MAIN_HAND) || !player.getMainHandStack().isOf(Items.RECOVERY_COMPASS) || RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(player.getWorld(), pos) == null) return EventResult.pass();
         if (RespawnObelisksConfig.INSTANCE.teleportation.enableTeleportation) {
             ItemStack stack = player.getStackInHand(hand);
             player.setStackInHand(hand, new ItemStack(ModRegistries.boundCompass.get()));

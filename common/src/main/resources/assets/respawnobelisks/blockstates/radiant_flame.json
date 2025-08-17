@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "minecraft:block/air"
+      "model": "respawnobelisks:block/radiant_flame"
     }
   }
 }
