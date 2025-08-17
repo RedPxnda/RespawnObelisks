@@ -1,5 +1,6 @@
 # 2.6-c
 - added option to bind recovery compasses at the obelisk itself
+- added Russian translation (thanks Quarkrus)
 - fixed everlasting radiant flames showing 00:00 as the timer
 - fixed radiant flames showing empty texture particles when walking over them
 - fixed server hanging when attempting to shut down (nucleus updated)
