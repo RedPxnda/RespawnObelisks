@@ -117,7 +117,7 @@ public class BoundCompassItem extends CompassItem {
                 return;
             }
             Optional<RegistryKey<World>> optional = getLodestoneDimension(nbtCompound);
-            if (optional.isPresent() && optional.get() == world.getRegistryKey() && nbtCompound.contains(LODESTONE_POS_KEY) && (!world.isInBuildLimit(blockPos = NbtHelper.toBlockPos(nbtCompound.getCompound(LODESTONE_POS_KEY))) || RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(world, blockPos) == null))
+            if (optional.isPresent() && optional.get() == world.getRegistryKey() && nbtCompound.contains(LODESTONE_POS_KEY) && (!world.isInBuildLimit(blockPos = NbtHelper.toBlockPos(nbtCompound.getCompound(LODESTONE_POS_KEY)).down()) || RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(world, blockPos) == null))
                 nbtCompound.remove(LODESTONE_POS_KEY);
         }
     }
