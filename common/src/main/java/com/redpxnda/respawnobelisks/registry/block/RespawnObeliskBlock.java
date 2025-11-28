@@ -4,6 +4,7 @@ import com.redpxnda.nucleus.util.MiscUtil;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
+import com.redpxnda.respawnobelisks.data.saved.LimboEntities;
 import com.redpxnda.respawnobelisks.facet.kept.KeptRespawnItems;
 import com.redpxnda.respawnobelisks.network.ModPackets;
 import com.redpxnda.respawnobelisks.network.ParticleAnimationPacket;
@@ -253,7 +254,6 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
                 if (dimension != null && !dimension.isValid(level, state, pos, blockEntity, player)) {
                     level.setBlockState(pos, Blocks.AIR.getDefaultState(), 3);
                     level.setBlockState(pos.up(), Blocks.AIR.getDefaultState(), 3);
-                    level.setBlockState(pos.down(), Blocks.AIR.getDefaultState(), 3);
                     level.createExplosion(null, level.getDamageSources().badRespawnPoint(pos.toCenterPos()), null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 5.0F, true, World.ExplosionSourceType.BLOCK);
                     ModRegistries.kaboomCriterion.trigger(player);
                     return ActionResult.SUCCESS;
@@ -341,26 +341,27 @@ public class RespawnObeliskBlock extends Block implements BlockEntityProvider {
                                 compound.contains("data")
                 ) {
                     if (player.getWorld() instanceof ServerWorld serverLevel) {
-                        Entity entity = serverLevel.getEntity(compound.getUuid("uuid"));
-                        if ((entity == null || !entity.isAlive()) && blockEntity.getCharge(player) - RespawnObelisksConfig.INSTANCE.revival.revivalCost < 0) {
-                            player.sendMessage(Text.translatable("text.respawnobelisks.insufficient_charge"));
-                            break;
-                        }
-                        if (entity != null && entity.isAlive())
+                        LimboEntities limboData = LimboEntities.getCache(serverLevel.getServer().getOverworld());
+                        NbtCompound entityData = limboData.limboEntities.get(compound.getUuid("uuid"));
+                        if (entityData == null)
                             continue;
+                        else if (blockEntity.getCharge(player) - RespawnObelisksConfig.INSTANCE.revival.revivalCost < 0)
+                            break;
+
+                        Entity toSummon = Registries.ENTITY_TYPE.get(Identifier.tryParse(compound.getString("type"))).create(player.getWorld());
+                        if (toSummon == null) continue;
+                        toSummon.readNbt(compound.getCompound("data"));
+                        toSummon.setPosition(pos.getX()+0.5, pos.getY()+2.5, pos.getZ()+0.5);
+                        toSummon.addCommandTag("respawnobelisks:no_drops_entity");
+                        player.getWorld().spawnEntity(toSummon);
+                        ModRegistries.reviveCriterion.trigger(player, toSummon);
+                        if (toSummon instanceof VillagerEntity villager)
+                            villager.getGossip().startGossip(player.getUuid(), VillageGossipType.MAJOR_POSITIVE, 40);
+                        blockEntity.decreaseCharge(player, RespawnObelisksConfig.INSTANCE.revival.revivalCost);
+                        hasFired = true;
+                        count++;
+                        limboData.limboEntities.remove(compound.getUuid("uuid"));
                     }
-                    Entity toSummon = Registries.ENTITY_TYPE.get(Identifier.tryParse(compound.getString("type"))).create(player.getWorld());
-                    if (toSummon == null) continue;
-                    toSummon.readNbt(compound.getCompound("data"));
-                    toSummon.setPosition(pos.getX()+0.5, pos.getY()+2.5, pos.getZ()+0.5);
-                    toSummon.addCommandTag("respawnobelisks:no_drops_entity");
-                    player.getWorld().spawnEntity(toSummon);
-                    ModRegistries.reviveCriterion.trigger(player, toSummon);
-                    if (toSummon instanceof VillagerEntity villager)
-                        villager.getGossip().startGossip(player.getUuid(), VillageGossipType.MAJOR_POSITIVE, 40);
-                    blockEntity.decreaseCharge(player, RespawnObelisksConfig.INSTANCE.revival.revivalCost);
-                    hasFired = true;
-                    count++;
                 }
             }
             if (hasFired) {

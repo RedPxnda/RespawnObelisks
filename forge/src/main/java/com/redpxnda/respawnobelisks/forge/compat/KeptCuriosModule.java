@@ -81,7 +81,7 @@ public class KeptCuriosModule implements KeptItemsModule {
                     ItemStack stack = inv.getStackInSlot(i);
                     if (!ObeliskUtils.shouldSaveItem(RespawnObelisksConfig.INSTANCE.respawnPerks.trinkets.keepTrinkets, RespawnObelisksConfig.INSTANCE.respawnPerks.trinkets.keepTrinketsChance, stack))
                         stack = ItemStack.EMPTY;
-                    storedItems.add(stack);
+                    if (!stack.isEmpty()) storedItems.add(stack);
                     if (!stack.isEmpty()) inv.setStackInSlot(i, ItemStack.EMPTY);
                 }
 

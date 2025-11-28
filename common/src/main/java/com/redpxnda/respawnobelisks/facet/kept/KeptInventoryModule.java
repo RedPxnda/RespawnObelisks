@@ -54,7 +54,6 @@ public class KeptInventoryModule implements KeptItemsModule {
                 items.add(stack);
                 player.getInventory().main.set(index, ItemStack.EMPTY);
             }
-            else items.add(ItemStack.EMPTY);
 
             index++;
         }

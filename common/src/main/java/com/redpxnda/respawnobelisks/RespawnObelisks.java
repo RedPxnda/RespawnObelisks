@@ -12,6 +12,7 @@ import com.redpxnda.respawnobelisks.event.ClientEvents;
 import com.redpxnda.respawnobelisks.event.CommonEvents;
 import com.redpxnda.respawnobelisks.facet.FailedSpawnBlocks;
 import com.redpxnda.respawnobelisks.facet.HardcoreRespawningTracker;
+import com.redpxnda.respawnobelisks.facet.LimboReviveTracker;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
 import com.redpxnda.respawnobelisks.facet.kept.KeptItemsModule;
 import com.redpxnda.respawnobelisks.facet.kept.KeptRespawnItems;
@@ -30,6 +31,7 @@ import net.minecraft.block.BedBlock;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.RespawnAnchorBlock;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.resource.ResourceType;
@@ -60,6 +62,7 @@ public class RespawnObelisks {
 
         KeptItemsModule.init();
 
+        LimboReviveTracker.KEY = FacetRegistry.register(new Identifier(MOD_ID, "limbo_trackers"), LimboReviveTracker.class);
         SecondarySpawnPoints.KEY = FacetRegistry.register(new Identifier(MOD_ID, "spawn_points"), SecondarySpawnPoints.class);
         HardcoreRespawningTracker.KEY = FacetRegistry.register(new Identifier(MOD_ID, "hardcore_respawning"), HardcoreRespawningTracker.class);
         KeptRespawnItems.KEY = FacetRegistry.register(new Identifier(MOD_ID, "kept_items"), KeptRespawnItems.class);
@@ -75,6 +78,10 @@ public class RespawnObelisks {
             if (entity instanceof PlayerEntity) {
                 if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints)
                     attacher.add(SecondarySpawnPoints.KEY, new SecondarySpawnPoints());
+            }
+
+            if (entity instanceof LivingEntity && !entity.getWorld().isClient) {
+                attacher.add(LimboReviveTracker.KEY, new LimboReviveTracker());
             }
         });
 

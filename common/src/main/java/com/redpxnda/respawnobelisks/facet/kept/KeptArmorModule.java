@@ -70,6 +70,10 @@ public class KeptArmorModule implements KeptItemsModule {
 
     @Override
     public boolean isEmpty() {
-        return items.isEmpty();
+        for (ItemStack i : items) {
+            if (!i.isEmpty())
+                return false;
+        }
+        return true;
     }
 }

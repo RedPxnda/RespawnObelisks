@@ -5,8 +5,10 @@ import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
 import com.redpxnda.respawnobelisks.data.listener.RevivedNbtEditing;
 import com.redpxnda.respawnobelisks.data.saved.AnchorExplosions;
+import com.redpxnda.respawnobelisks.data.saved.LimboEntities;
 import com.redpxnda.respawnobelisks.data.saved.RuneCircles;
 import com.redpxnda.respawnobelisks.facet.HardcoreRespawningTracker;
+import com.redpxnda.respawnobelisks.facet.LimboReviveTracker;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
 import com.redpxnda.respawnobelisks.facet.kept.KeptRespawnItems;
 import com.redpxnda.respawnobelisks.network.ModPackets;
@@ -26,6 +28,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.enums.DoubleBlockHalf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -114,28 +117,33 @@ public class CommonEvents {
                     stack.getNbt().getCompound("RespawnObeliskData").put("SavedEntities", new NbtList());
                 NbtList listTag = stack.getNbt().getCompound("RespawnObeliskData").getList("SavedEntities", 10);
                 if (listTag.size() >= RespawnObelisksConfig.INSTANCE.cores.maxStoredEntities) return EventResult.pass();
-                if (!containsUUID(listTag, entity.getUuid())) {
-                    NbtCompound entityTag = new NbtCompound();
+                LimboReviveTracker tracker = LimboReviveTracker.KEY.get(entity);
+                if (tracker != null) {
+                    if (!containsUUID(listTag, entity.getUuid())) {
+                        tracker.trackers++;
+                        NbtCompound entityTag = new NbtCompound();
 
-                    entityTag.putUuid("uuid", entity.getUuid());
-                    entityTag.putString("type", Registries.ENTITY_TYPE.getId(entity.getType()).toString());
-                    NbtCompound dataTag = new NbtCompound();
-                    entity.writeNbt(dataTag); // filling data info
-                    RevivedNbtEditing.modify(dataTag, entity);
-                    entityTag.put("data", dataTag);
+                        entityTag.putUuid("uuid", entity.getUuid());
+                        entityTag.putString("type", Registries.ENTITY_TYPE.getId(entity.getType()).toString());
+                        NbtCompound dataTag = new NbtCompound();
+                        entity.writeNbt(dataTag); // filling data info
+                        RevivedNbtEditing.modify(dataTag, entity);
+                        entityTag.put("data", dataTag);
 
-                    if (!listTag.contains(entityTag)) {
-                        listTag.add(entityTag); // add entity to item nbt
-                        player.getItemCooldownManager().set(stack.getItem(), 50); // add item cooldown
-                        player.sendMessage(
-                                Text.translatable("text.respawnobelisks.revive_mob_warning")
-                                .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                        Text.translatable("text.respawnobelisks.revive_mob_warning.hover")))));
-                        return EventResult.interruptFalse();
+                        if (!listTag.contains(entityTag)) {
+                            listTag.add(entityTag); // add entity to item nbt
+                            player.getItemCooldownManager().set(stack.getItem(), 50); // add item cooldown
+                            player.sendMessage(
+                                    Text.translatable("text.respawnobelisks.revive_mob_warning")
+                                            .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                                    Text.translatable("text.respawnobelisks.revive_mob_warning.hover")))));
+                            return EventResult.interruptFalse();
+                        }
+                    } else {
+                        tracker.trackers--;
+                        removeUUID(listTag, entity.getUuid());
+                        player.getItemCooldownManager().set(stack.getItem(), 50);
                     }
-                } else {
-                    removeUUID(listTag, entity.getUuid());
-                    player.getItemCooldownManager().set(stack.getItem(), 50);
                 }
             }
         }
@@ -225,6 +233,20 @@ public class CommonEvents {
         AnchorExplosions.getCache(level).tick();
     }
 
+    public static EventResult onEntityDeath(LivingEntity entity, DamageSource source) {
+        LimboReviveTracker tracker = LimboReviveTracker.KEY.get(entity);
+        if (tracker != null) {
+            int trackers = tracker.trackers;
+            if (trackers > 0 && entity.getServer() != null) {
+                ServerWorld overworld = entity.getServer().getOverworld();
+                if (overworld != null) {
+                    LimboEntities.getCache(overworld).limboEntities.put(entity.getUuid(), entity.writeNbt(new NbtCompound()));
+                }
+            }
+        }
+        return EventResult.pass();
+    }
+
     public static void init() {
         LifecycleEvent.SERVER_BEFORE_START.register(VillageAddition::addNewVillageBuilding);
         TickEvent.SERVER_LEVEL_POST.register(CommonEvents::onServerTick);
@@ -236,5 +258,6 @@ public class CommonEvents {
         InteractionEvent.INTERACT_ENTITY.register(CommonEvents::onEntityInteract);
         InteractionEvent.RIGHT_CLICK_BLOCK.register(CommonEvents::onBlockInteract);
         BlockEvent.BREAK.register(CommonEvents::onBreakBlock);
+        EntityEvent.LIVING_DEATH.register(CommonEvents::onEntityDeath); // todo AFTER death event
     }
 }

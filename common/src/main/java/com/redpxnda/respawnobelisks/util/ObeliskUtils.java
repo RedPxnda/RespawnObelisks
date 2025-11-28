@@ -49,6 +49,7 @@ public class ObeliskUtils {
     }
 
     public static boolean shouldSaveItem(boolean enabled, double chance, ItemStack stack) {
+        if (stack.isEmpty()) return false;
         return
                 (enabled && MathUtil.random.nextInt(100) < chance) ||
                 shouldEnchantmentApply(stack, MathUtil.random);
@@ -57,7 +58,8 @@ public class ObeliskUtils {
     public static void restoreSavedItems(ServerPlayerEntity oldPlayer, ServerPlayerEntity player) {
         KeptRespawnItems items = KeptRespawnItems.KEY.get(player);
         if (items == null) return;
-        if (!items.isEmpty()) ModRegistries.keepItemsCriterion.trigger(player);
+        if (!items.isEmpty())
+            ModRegistries.keepItemsCriterion.trigger(player);
         items.restore(oldPlayer, player);
     }
 

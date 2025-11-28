@@ -7,12 +7,12 @@ import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskCore.Instance;
 import com.redpxnda.respawnobelisks.data.listener.ObeliskInteraction;
+import com.redpxnda.respawnobelisks.data.saved.LimboEntities;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import com.redpxnda.respawnobelisks.registry.block.entity.theme.ThemeLayout;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
@@ -308,8 +308,10 @@ public class RespawnObeliskBlockEntity extends BlockEntity implements GameEventL
                                     compound.contains("type") &&
                                     compound.contains("data")
                     ) {
-                        Entity entity = serverLevel.getEntity(compound.getUuid("uuid"));
-                        if (entity == null || !entity.isAlive()) {
+                        LimboEntities limboData = LimboEntities.getCache(serverLevel.getServer().getOverworld());
+                        NbtCompound entityData = limboData.limboEntities.get(compound.getUuid("uuid"));
+
+                        if (entityData != null) {
                             this.hasLimboEntity = true;
                             if (shouldSync) this.syncWithClient();
                             return;

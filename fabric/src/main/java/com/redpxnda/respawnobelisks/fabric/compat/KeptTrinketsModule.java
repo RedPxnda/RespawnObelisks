@@ -11,10 +11,7 @@ import net.minecraft.nbt.NbtList;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ItemScatterer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class KeptTrinketsModule implements KeptItemsModule {
     public Map<String, Map<String, List<ItemStack>>> trinketInventory = new HashMap<>();
@@ -94,7 +91,7 @@ public class KeptTrinketsModule implements KeptItemsModule {
                         ItemStack stack = inv.getStack(i);
                         if (!ObeliskUtils.shouldSaveItem(RespawnObelisksConfig.INSTANCE.respawnPerks.armor.keepArmor, RespawnObelisksConfig.INSTANCE.respawnPerks.armor.keepArmorChance, stack))
                             stack = ItemStack.EMPTY;
-                        storedInv.add(stack);
+                        if (!stack.isEmpty()) storedInv.add(stack);
                         if (!stack.isEmpty()) inv.setStack(i, ItemStack.EMPTY);
                     }
 
@@ -113,6 +110,13 @@ public class KeptTrinketsModule implements KeptItemsModule {
 
     @Override
     public boolean isEmpty() {
-        return trinketInventory.isEmpty();
+        for (Map<String, List<ItemStack>> map : trinketInventory.values()) {
+            for (List<ItemStack> list : map.values()) {
+                if (!list.isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
