@@ -91,7 +91,15 @@ public class RenderUtils {
 
         poseStack.translate(0.5, 18/16f, 0.5);
         for (int i = 0; i < 4; i++) {
-            addQuad(false, poseStack, vc, colors[0], colors[1], colors[2], (float) (blockEntity.getClientCharge()/blockEntity.getClientMaxCharge()), 9/32f, 24/32f, -5.505f/16f, 0, sprite.getFrameU(3), sprite.getFrameU(12), sprite.getFrameV(2), sprite.getFrameV(14), packedLight);
+            int texStartX = RespawnObelisksConfig.INSTANCE.clientOptions.minTextureX;
+            int texEndX = RespawnObelisksConfig.INSTANCE.clientOptions.maxTextureX;
+            int texStartY = RespawnObelisksConfig.INSTANCE.clientOptions.minTextureY;
+            int texEndY = RespawnObelisksConfig.INSTANCE.clientOptions.maxTextureY;
+
+            int width = texEndX-texStartX;
+            int height = texEndY-texStartY;
+
+            addQuad(false, poseStack, vc, colors[0], colors[1], colors[2], (float) (blockEntity.getClientCharge()/blockEntity.getClientMaxCharge()), width/32f, 2*height/32f, -5.505f/16f, 0, sprite.getFrameU(texStartX), sprite.getFrameU(texEndX), sprite.getFrameV(texStartY), sprite.getFrameV(texEndY), packedLight);
             poseStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(90));
         }
         poseStack.pop();

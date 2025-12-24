@@ -20,6 +20,8 @@ public class RespawnObelisksConfig {
     @Comment("Whether players are allowed to respawn at an obelisk in hardcore mode.")
     public boolean allowHardcoreRespawning = true;
 
+    public ClientConfig clientOptions = new ClientConfig();
+
     public BehaviorOverridesConfig behaviorOverrides = new BehaviorOverridesConfig();
 
     public SecondarySpawnPointConfig secondarySpawnPoints = new SecondarySpawnPointConfig();
