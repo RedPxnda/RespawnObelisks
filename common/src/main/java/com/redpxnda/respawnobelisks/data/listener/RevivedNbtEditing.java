@@ -14,31 +14,31 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.passive.AbstractDonkeyEntity;
-import net.minecraft.entity.passive.AbstractHorseEntity;
-import net.minecraft.nbt.AbstractNbtList;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.registry.Registries;
-import net.minecraft.resource.JsonDataLoader;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CollectionTag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.animal.horse.AbstractChestedHorse;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 
 /**
  * system used to remove/adjust data in entity nbt
  */
-public class RevivedNbtEditing extends JsonDataLoader {
+public class RevivedNbtEditing extends SimpleJsonResourceReloadListener {
     private static final Logger LOGGER = RespawnObelisks.getLogger();
     public static final Multimap<EntityType<?>, NbtAdjuster> typeNbtAdjusters = HashMultimap.create();
     public static final List<Pair<EntityPredicate, NbtAdjuster>> predicateNbtAdjusters = new ArrayList<>();
     public static final Map<String, EntityPredicate> builtinEntityPredicates = MiscUtil.initialize(new HashMap<>(), map -> {
-        map.put("mobs", e -> e instanceof MobEntity);
-        map.put("chested_horses", e -> e instanceof AbstractDonkeyEntity);
-        map.put("horse_likes", e -> e instanceof AbstractHorseEntity);
+        map.put("mobs", e -> e instanceof Mob);
+        map.put("chested_horses", e -> e instanceof AbstractChestedHorse);
+        map.put("horse_likes", e -> e instanceof AbstractHorse);
     });
     public static final Map<String, NbtAdjusterCreator> adjusterCreators = MiscUtil.initialize(new HashMap<>(), map -> {
         map.put("remove", root -> {
@@ -55,7 +55,7 @@ public class RevivedNbtEditing extends JsonDataLoader {
     });
     private static final NbtAdjusterCreator dispatcher = InterfaceDispatcher.of(adjusterCreators, "type").dispatcher();
 
-    public static void modify(NbtCompound tag, Entity entity) {
+    public static void modify(CompoundTag tag, Entity entity) {
         typeNbtAdjusters.get(entity.getType()).forEach(a -> a.modify(tag));
         predicateNbtAdjusters.forEach(a -> {
             if (a.getFirst().isValid(entity)) a.getSecond().modify(tag);
@@ -67,7 +67,7 @@ public class RevivedNbtEditing extends JsonDataLoader {
     }
 
     @Override
-    protected void apply(Map<Identifier, JsonElement> object, ResourceManager resourceManager, Profiler profilerFiller) {
+    protected void apply(Map<ResourceLocation, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profilerFiller) {
         typeNbtAdjusters.clear();
         predicateNbtAdjusters.clear();
 
@@ -85,10 +85,10 @@ public class RevivedNbtEditing extends JsonDataLoader {
                     else if (entityStr.startsWith("$"))
                         predicates.add(builtinEntityPredicates.get(entityStr.substring(1)));
                     else
-                        Registries.ENTITY_TYPE.getOrEmpty(new Identifier(entityStr)).ifPresent(entities::add);
+                        BuiltInRegistries.ENTITY_TYPE.getOptional(new ResourceLocation(entityStr)).ifPresent(entities::add);
                 } else {
                     for (JsonElement emnt : entitiesRaw.getAsJsonArray()) {
-                        Registries.ENTITY_TYPE.getOrEmpty(new Identifier(emnt.getAsString())).ifPresent(entities::add);
+                        BuiltInRegistries.ENTITY_TYPE.getOptional(new ResourceLocation(emnt.getAsString())).ifPresent(entities::add);
                     }
                 }
 
@@ -114,19 +114,19 @@ public class RevivedNbtEditing extends JsonDataLoader {
     }
 
     public interface NbtAdjuster {
-        void modify(NbtCompound storedEntityData);
+        void modify(CompoundTag storedEntityData);
     }
 
     public record TagClearingAdjuster(String[] targets, boolean clearList) implements NbtAdjuster {
         @Override
-        public void modify(NbtCompound storedEntityData) {
-            NbtCompound currentTarget = storedEntityData;
+        public void modify(CompoundTag storedEntityData) {
+            CompoundTag currentTarget = storedEntityData;
             for (int i = 0; i < targets.length; i++) {
                 String current = targets[i];
                 boolean isLast = i == targets.length-1;
                 if (isLast) {
-                    NbtElement tag = currentTarget.get(current);
-                    if (clearList && tag instanceof AbstractNbtList<?> cl) cl.clear();
+                    Tag tag = currentTarget.get(current);
+                    if (clearList && tag instanceof CollectionTag<?> cl) cl.clear();
                     else currentTarget.remove(current);
                     break;
                 } else currentTarget = currentTarget.getCompound(current);

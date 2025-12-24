@@ -3,47 +3,47 @@ package com.redpxnda.respawnobelisks.data.saved;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.PersistentState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.saveddata.SavedData;
 
-public class RuneCircles extends PersistentState {
-    public final ServerWorld level;
+public class RuneCircles extends SavedData {
+    public final ServerLevel level;
     private final List<RuneCircle> runeCircles = new ArrayList<>();
 
-    public void create(ServerPlayerEntity player, ItemStack stack, BlockPos pos, BlockPos target, double x, double y, double z) {
+    public void create(ServerPlayer player, ItemStack stack, BlockPos pos, BlockPos target, double x, double y, double z) {
         runeCircles.add(new RuneCircle(level, player, stack, pos, target, x, y, z));
-        this.markDirty();
+        this.setDirty();
     }
 
-    public RuneCircles(ServerWorld level) {
+    public RuneCircles(ServerLevel level) {
         this.level = level;
-        this.markDirty();
+        this.setDirty();
     }
 
-    public static RuneCircles getCache(ServerWorld level) {
-        return level.getPersistentStateManager().getOrCreate(tag -> RuneCircles.load(level, tag), () -> new RuneCircles(level), "rune_circles");
+    public static RuneCircles getCache(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(tag -> RuneCircles.load(level, tag), () -> new RuneCircles(level), "rune_circles");
     }
 
-    public static RuneCircles load(ServerWorld level, NbtCompound tag) {
+    public static RuneCircles load(ServerLevel level, CompoundTag tag) {
         RuneCircles circles = new RuneCircles(level);
         tag.getList("RuneCircles", 10).forEach(t -> {
-            if (t instanceof NbtCompound compoundTag)
+            if (t instanceof CompoundTag compoundTag)
                 circles.runeCircles.add(RuneCircle.fromNbt(level, compoundTag));
         });
 
-        circles.markDirty();
+        circles.setDirty();
         return circles;
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag) {
-        NbtList list = new NbtList();
-        runeCircles.forEach(runeCircle -> list.add(runeCircle.save(new NbtCompound())));
+    public CompoundTag save(CompoundTag tag) {
+        ListTag list = new ListTag();
+        runeCircles.forEach(runeCircle -> list.add(runeCircle.save(new CompoundTag())));
         tag.put("RuneCircles", list);
 
         return tag;
@@ -56,7 +56,7 @@ public class RuneCircles extends PersistentState {
             circle.tick(level);
             if (circle.stopped) {
                 iterator.remove();
-                this.markDirty();
+                this.setDirty();
             }
         }
     }

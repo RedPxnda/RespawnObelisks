@@ -1,80 +1,54 @@
 package com.redpxnda.respawnobelisks.util;
 
 import com.redpxnda.respawnobelisks.registry.particle.RuneCircleParticle;
-import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class ClientUtils {
     public static final Map<List<Double>, RuneCircleParticle> activeRuneParticles = new HashMap<>();
-    private static final Map<String, Integer> genericTracker = new HashMap<>();
-
-    public static Set<String> attemptedSpawnBlockKeys = new HashSet<>(); // a set containing the blocks a player has attempted to set their spawn at(but couldnt)
 
     public static boolean allowHardcoreRespawn = false;
 
     public static Map<SpawnPoint, Block> cachedSpawnPointBlocks;
-    public static Map<SpawnPoint, Item> cachedSpawnPointItems;
+    public static Map<SpawnPoint, ItemStack> cachedSpawnPointItems;
     public static long priorityChangerLookAwayTime;
     public static boolean hasLookedAwayFromPriorityChanger;
 
     public static int getBoundCompassBarWidth(ItemStack stack) {
-        if (MinecraftClient.getInstance().player != null) {
-            PlayerEntity player = MinecraftClient.getInstance().player;
-            if (player.getItemCooldownManager().isCoolingDown(stack.getItem()))
-                return Math.round(13.0f - player.getItemCooldownManager().getCooldownProgress(stack.getItem(), 0) * 13.0f);
+        if (Minecraft.getInstance().player != null) {
+            Player player = Minecraft.getInstance().player;
+            if (player.getCooldowns().isOnCooldown(stack.getItem()))
+                return Math.round(13.0f - player.getCooldowns().getCooldownPercent(stack.getItem(), 0) * 13.0f);
         }
         return 0;
     }
 
     public static boolean isBoundCompassBarVisible(ItemStack stack) {
-        if (MinecraftClient.getInstance().player != null) {
-            PlayerEntity player = MinecraftClient.getInstance().player;
-            if (player.getItemCooldownManager().isCoolingDown(stack.getItem())) return true;
+        if (Minecraft.getInstance().player != null) {
+            Player player = Minecraft.getInstance().player;
+            if (player.getCooldowns().isOnCooldown(stack.getItem())) return true;
         }
         return false;
     }
 
-    public static void addCompassTooltipLines(ItemStack itemStack, @Nullable World level, List<Text> list, TooltipContext tooltipFlag) {
-        if (MinecraftClient.getInstance().player != null) {
-            PlayerEntity player = MinecraftClient.getInstance().player;
-            if (player.getItemCooldownManager().isCoolingDown(itemStack.getItem())) {
+    public static void addCompassTooltipLines(ItemStack itemStack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
+        if (Minecraft.getInstance().player != null) {
+            Player player = Minecraft.getInstance().player;
+            if (player.getCooldowns().isOnCooldown(itemStack.getItem())) {
                 list.add(1,
-                        Text
-                                .literal(((int) (100-(player.getItemCooldownManager().getCooldownProgress(itemStack.getItem(), 0)*100))) + "% ").formatted(Formatting.AQUA)
-                                .append(Text.translatable("text.respawnobelisks.tooltip.loaded").formatted(Formatting.DARK_AQUA)));
+                        Component
+                                .literal(((int) (100-(player.getCooldowns().getCooldownPercent(itemStack.getItem(), 0)*100))) + "% ").withStyle(ChatFormatting.AQUA)
+                                .append(Component.translatable("text.respawnobelisks.tooltip.loaded").withStyle(ChatFormatting.DARK_AQUA)));
             }
         }
-    }
-
-    public static int getTracker(String key) {
-        return genericTracker.getOrDefault(key, -1);
-    }
-
-    public static int getOrStartTracker(String key, int amount) {
-        if (!genericTracker.containsKey(key)) genericTracker.put(key, amount);
-        return genericTracker.get(key);
-    }
-
-    public static boolean hasTracker(String key) {
-        return genericTracker.containsKey(key);
-    }
-
-    public static void tickTracker(String key) {
-        genericTracker.replace(key, genericTracker.get(key)+1);
-    }
-
-    public static void setTracker(String key, int amount) {
-        if (genericTracker.containsKey(key)) genericTracker.replace(key, amount);
-        else genericTracker.put(key, amount);
     }
 }

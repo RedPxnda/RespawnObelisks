@@ -1,39 +1,44 @@
 package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.nucleus.facet.network.clientbound.FacetSyncPacket;
+import com.redpxnda.nucleus.util.ByteBufUtil;
+import com.redpxnda.respawnobelisks.RespawnObelisks;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
+import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.ClientUtils;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class SetPriorityChangerPacket extends FacetSyncPacket<NbtCompound, SecondarySpawnPoints> {
-    private final Map<SpawnPoint, Item> cachedItems;
+public class SetPriorityChangerPacket extends FacetSyncPacket<CompoundTag, SecondarySpawnPoints> {
+    private final Map<SpawnPoint, ItemStack> cachedItems;
     private final Map<SpawnPoint, Block> cachedBlocks;
 
     @Override
-    public void send(ServerPlayerEntity player) {
+    public void send(ServerPlayer player) {
         ModPackets.CHANNEL.sendToPlayer(player, this);
     }
 
     @Override
-    public void send(Iterable<ServerPlayerEntity> players) {
+    public void send(Iterable<ServerPlayer> players) {
         ModPackets.CHANNEL.sendToPlayers(players, this);
     }
 
@@ -42,14 +47,21 @@ public class SetPriorityChangerPacket extends FacetSyncPacket<NbtCompound, Secon
         cachedItems = new HashMap<>();
         cachedBlocks = new HashMap<>();
         for (SpawnPoint point : facet.points) {
-            Block block = target.getServer().getWorld(point.dimension()).getBlockState(point.pos()).getBlock();
-            cachedItems.put(point, block.asItem());
+            Block block = target.getServer().getLevel(point.dimension()).getBlockState(point.pos()).getBlock();
+            ItemStack stack = block.asItem().getDefaultInstance();
+            if (target.getServer().getLevel(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity blockEntity) {
+                ItemStack coreStack = blockEntity.getCoreInstance().stack();
+                if (coreStack.getItem().getDefaultInstance().getHoverName().equals(coreStack.getHoverName()))
+                    stack.setHoverName(Component.literal("Respawn Obelisk"));
+                else stack.setHoverName(coreStack.getHoverName());
+            }
+            cachedItems.put(point, stack);
             if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.secondarySpawnBlocksAsWhitelist == RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.secondarySpawnBlockBlacklist.contains(block))
                 cachedBlocks.put(point, block);
         }
     }
 
-    public SetPriorityChangerPacket(PacketByteBuf buffer) {
+    public SetPriorityChangerPacket(FriendlyByteBuf buffer) {
         super(buffer);
         cachedItems = new HashMap<>();
         cachedBlocks = new HashMap<>();
@@ -59,10 +71,15 @@ public class SetPriorityChangerPacket extends FacetSyncPacket<NbtCompound, Secon
             int tempX = buffer.readInt();
             int tempY = buffer.readInt();
             int tempZ = buffer.readInt();
-            RegistryKey<World> tempWorld = RegistryKey.of(RegistryKeys.WORLD, new Identifier(buffer.readString()));
+            ResourceKey<Level> tempWorld = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(buffer.readUtf()));
 
             SpawnPoint spawnPoint = new SpawnPoint(tempWorld, new BlockPos(tempX, tempY, tempZ), 0, false);
-            Item item = Registries.ITEM.get(new Identifier(buffer.readString()));
+            Tag tag = ByteBufUtil.readTag(buffer);
+            ItemStack item;
+            if (!(tag instanceof CompoundTag compound)) {
+                RespawnObelisks.getLogger().error("Nbt from byte buffer is not a compound tag for an ItemStack!");
+                item = ItemStack.EMPTY;
+            } else item = ItemStack.of(compound);
 
             cachedItems.put(spawnPoint, item);
         }
@@ -72,24 +89,25 @@ public class SetPriorityChangerPacket extends FacetSyncPacket<NbtCompound, Secon
             int tempX = buffer.readInt();
             int tempY = buffer.readInt();
             int tempZ = buffer.readInt();
-            RegistryKey<World> tempWorld = RegistryKey.of(RegistryKeys.WORLD, new Identifier(buffer.readString()));
+            ResourceKey<Level> tempWorld = ResourceKey.create(Registries.DIMENSION, new ResourceLocation(buffer.readUtf()));
 
             SpawnPoint spawnPoint = new SpawnPoint(tempWorld, new BlockPos(tempX, tempY, tempZ), 0, false);
-            Block block = Registries.BLOCK.get(new Identifier(buffer.readString()));
+            Block block = BuiltInRegistries.BLOCK.get(new ResourceLocation(buffer.readUtf()));
 
             cachedBlocks.put(spawnPoint, block);
         }
     }
 
-    public void toBytes(PacketByteBuf buffer) {
+    public void toBytes(FriendlyByteBuf buffer) {
         super.toBuffer(buffer);
         buffer.writeInt(cachedItems.size());
         cachedItems.forEach((point, item) -> {
             buffer.writeInt(point.pos().getX());
             buffer.writeInt(point.pos().getY());
             buffer.writeInt(point.pos().getZ());
-            buffer.writeString(point.dimension().getValue().toString());
-            buffer.writeString(Registries.ITEM.getId(item).toString());
+            buffer.writeUtf(point.dimension().location().toString());
+            ByteBufUtil.writeTag(item.save(new CompoundTag()), buffer);
+            //buffer.writeUtf(BuiltInRegistries.ITEM.getKey(item).toString());
         });
 
         buffer.writeInt(cachedBlocks.size());
@@ -97,8 +115,8 @@ public class SetPriorityChangerPacket extends FacetSyncPacket<NbtCompound, Secon
             buffer.writeInt(point.pos().getX());
             buffer.writeInt(point.pos().getY());
             buffer.writeInt(point.pos().getZ());
-            buffer.writeString(point.dimension().getValue().toString());
-            buffer.writeString(Registries.BLOCK.getId(block).toString());
+            buffer.writeUtf(point.dimension().location().toString());
+            buffer.writeUtf(BuiltInRegistries.BLOCK.getKey(block).toString());
         });
     }
 

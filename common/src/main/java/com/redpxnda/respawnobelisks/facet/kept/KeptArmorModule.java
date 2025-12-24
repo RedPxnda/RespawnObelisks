@@ -2,13 +2,13 @@ package com.redpxnda.respawnobelisks.facet.kept;
 
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.util.ObeliskUtils;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ItemScatterer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,37 +17,37 @@ public class KeptArmorModule implements KeptItemsModule {
     public List<ItemStack> items = new ArrayList<>();
 
     @Override
-    public NbtElement toNbt() {
-        NbtList tag = new NbtList();
-        items.forEach(stack -> tag.add(stack.writeNbt(new NbtCompound())));
+    public Tag toNbt() {
+        ListTag tag = new ListTag();
+        items.forEach(stack -> tag.add(stack.save(new CompoundTag())));
         return tag;
     }
 
     @Override
-    public void fromNbt(NbtElement element) {
-        if (!(element instanceof NbtList list)) return;
+    public void fromNbt(Tag element) {
+        if (!(element instanceof ListTag list)) return;
         items.clear();
-        for (NbtElement itemTag : list) {
-            if (itemTag instanceof NbtCompound compound)
-                items.add(ItemStack.fromNbt(compound));
+        for (Tag itemTag : list) {
+            if (itemTag instanceof CompoundTag compound)
+                items.add(ItemStack.of(compound));
         }
     }
 
     @Override
-    public void restore(ServerPlayerEntity oldPlayer, ServerPlayerEntity player) {
+    public void restore(ServerPlayer oldPlayer, ServerPlayer player) {
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             if (slot.getType().equals(EquipmentSlot.Type.ARMOR)) {
-                if (items.size() <= slot.getEntitySlotId()) continue;
+                if (items.size() <= slot.getIndex()) continue;
 
-                if (player.getEquippedStack(slot).isEmpty()) player.equipStack(slot, items.get(slot.getEntitySlotId()));
-                else player.getInventory().offerOrDrop(items.get(slot.getEntitySlotId()));
+                if (player.getItemBySlot(slot).isEmpty()) player.setItemSlot(slot, items.get(slot.getIndex()));
+                else ObeliskUtils.givePlayerSavedItem(player, items.get(slot.getIndex()), oldPlayer.getRespawnPosition());
             }
         }
         items.clear();
     }
 
     @Override
-    public void gather(ServerPlayerEntity player) {
+    public void gather(ServerPlayer player) {
         if (!items.isEmpty()) return;
         items = new ArrayList<>(
                 player.getInventory().armor.stream().map(i -> {
@@ -63,8 +63,8 @@ public class KeptArmorModule implements KeptItemsModule {
     }
 
     @Override
-    public void scatter(double x, double y, double z, ServerPlayerEntity player) {
-        items.forEach(item -> ItemScatterer.spawn(player.getWorld(), x, y, z, item));
+    public void scatter(double x, double y, double z, ServerPlayer player) {
+        items.forEach(item -> Containers.dropItemStack(player.level(), x, y, z, item));
         items.clear();
     }
 

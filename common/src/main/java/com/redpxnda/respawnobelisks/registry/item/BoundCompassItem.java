@@ -10,31 +10,31 @@ import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.ClientUtils;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.CompassItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtHelper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.CompassItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -44,116 +44,116 @@ import java.util.Optional;
 public class BoundCompassItem extends CompassItem {
     private static final Logger LOGGER = RespawnObelisks.getLogger();
 
-    public BoundCompassItem(Settings properties) {
+    public BoundCompassItem(Properties properties) {
         super(properties);
     }
 
     @Override
-    public ActionResult useOnBlock(ItemUsageContext useOnContext) {
-        if (!RespawnObelisksConfig.INSTANCE.teleportation.enableTeleportation) return ActionResult.FAIL;
-        if (useOnContext.getPlayer() == null) return super.useOnBlock(useOnContext);
-        PlayerEntity player = useOnContext.getPlayer();
-        BlockPos blockPos = useOnContext.getBlockPos();
-        World level = useOnContext.getWorld();
+    public InteractionResult useOn(UseOnContext useOnContext) {
+        if (!RespawnObelisksConfig.INSTANCE.teleportation.enableTeleportation) return InteractionResult.FAIL;
+        if (useOnContext.getPlayer() == null) return super.useOn(useOnContext);
+        Player player = useOnContext.getPlayer();
+        BlockPos blockPos = useOnContext.getClickedPos();
+        Level level = useOnContext.getLevel();
         if ((blockPos = RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(level, blockPos)) != null) {
-            level.playSound(null, blockPos, SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.PLAYERS, 1.0f, 1.0f);
-            ItemStack itemStack = useOnContext.getStack();
+            level.playSound(null, blockPos, SoundEvents.LODESTONE_COMPASS_LOCK, SoundSource.PLAYERS, 1.0f, 1.0f);
+            ItemStack itemStack = useOnContext.getItemInHand();
             if (/*!player.getAbilities().creativeMode && */itemStack.getCount() == 1) {
-                this.writeNbt(level.getRegistryKey(), blockPos, itemStack.getOrCreateNbt());
+                this.addLodestoneTags(level.dimension(), blockPos, itemStack.getOrCreateTag());
             } else {
                 ItemStack itemStack2 = new ItemStack(ModRegistries.boundCompass.get(), 1);
-                NbtCompound compoundTag = itemStack.hasNbt() ? itemStack.getNbt().copy() : new NbtCompound();
-                itemStack2.setNbt(compoundTag);
-                if (!player.getAbilities().creativeMode) {
-                    itemStack.decrement(1);
+                CompoundTag compoundTag = itemStack.hasTag() ? itemStack.getTag().copy() : new CompoundTag();
+                itemStack2.setTag(compoundTag);
+                if (!player.getAbilities().instabuild) {
+                    itemStack.shrink(1);
                 }
-                this.writeNbt(level.getRegistryKey(), blockPos, compoundTag);
-                if (!player.getInventory().insertStack(itemStack2)) {
-                    player.dropItem(itemStack2, false);
+                this.addLodestoneTags(level.dimension(), blockPos, compoundTag);
+                if (!player.getInventory().add(itemStack2)) {
+                    player.drop(itemStack2, false);
                 }
             }
-            return ActionResult.success(level.isClient);
-        } else if (useOnContext.getHand().equals(Hand.MAIN_HAND) && player instanceof ServerPlayerEntity serverPlayer && level instanceof ServerWorld serverLevel) {
-            if (!RespawnObelisksConfig.INSTANCE.teleportation.allowCursedTeleportation && player.hasStatusEffect(ModRegistries.immortalityCurse.get())) {
-                serverPlayer.sendMessageToClient(Text.translatable("text.respawnobelisks.wormhole_cursed"), true);
-                return ActionResult.FAIL;
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        } else if (useOnContext.getHand().equals(InteractionHand.MAIN_HAND) && player instanceof ServerPlayer serverPlayer && level instanceof ServerLevel serverLevel) {
+            if (!RespawnObelisksConfig.INSTANCE.teleportation.allowCursedTeleportation && player.hasEffect(ModRegistries.immortalityCurse.get())) {
+                serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_cursed"), true);
+                return InteractionResult.FAIL;
             }
-            GlobalPos pos = createLodestonePos(player.getMainHandStack().getOrCreateNbt());
+            GlobalPos pos = getLodestonePosition(player.getMainHandItem().getOrCreateTag());
             if (
                 pos != null &&
-                level.getBlockState(pos.getPos()).getBlock() instanceof RespawnObeliskBlock block &&
-                level.getBlockEntity(pos.getPos()) instanceof RespawnObeliskBlockEntity blockEntity &&
+                level.getBlockState(pos.pos()).getBlock() instanceof RespawnObeliskBlock block &&
+                level.getBlockEntity(pos.pos()) instanceof RespawnObeliskBlockEntity blockEntity &&
                 blockEntity.getCharge(player) >= RespawnObelisksConfig.INSTANCE.teleportation.minimumTpRadiance
             ) {
                 if (!CoreUtils.hasInteraction(blockEntity.getCoreInstance(), ObeliskInteraction.TELEPORT)) {
-                    serverPlayer.sendMessageToClient(Text.translatable("text.respawnobelisks.wormhole_invalid"), true);
-                    return ActionResult.FAIL;
+                    serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_invalid"), true);
+                    return InteractionResult.FAIL;
                 }
                 if (PlayerUtil.getTotalXp(player) < RespawnObelisksConfig.INSTANCE.teleportation.xpCost || player.experienceLevel < RespawnObelisksConfig.INSTANCE.teleportation.levelCost) {
-                    serverPlayer.sendMessageToClient(Text.translatable("text.respawnobelisks.wormhole_failed_requirements"), true);
-                    return ActionResult.FAIL;
+                    serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_failed_requirements"), true);
+                    return InteractionResult.FAIL;
                 }
-                BlockState state = level.getBlockState(pos.getPos());
-                Optional<Vec3d> obeliskLoc = block.getRespawnLocation(true, false, false, state, pos.getPos(), serverLevel, serverPlayer);
+                BlockState state = level.getBlockState(pos.pos());
+                Optional<Vec3> obeliskLoc = block.getRespawnLocation(true, false, false, state, pos.pos(), serverLevel, serverPlayer);
                 obeliskLoc.ifPresent(vec3 -> {
-                    player.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 130, 0, true, false));
-                    RuneCircles.getCache(serverLevel).create(serverPlayer, serverPlayer.getMainHandStack(), pos.getPos(), new BlockPos((int) vec3.x, (int) vec3.y, (int) vec3.z), serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ());
+                    player.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 130, 0, true, false));
+                    RuneCircles.getCache(serverLevel).create(serverPlayer, serverPlayer.getMainHandItem(), pos.pos(), new BlockPos((int) vec3.x, (int) vec3.y, (int) vec3.z), serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ());
                 });
-                return ActionResult.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
-            serverPlayer.sendMessageToClient(Text.translatable("text.respawnobelisks.wormhole_invalid"), true);
-            return ActionResult.FAIL;
+            serverPlayer.sendSystemMessage(Component.translatable("text.respawnobelisks.wormhole_invalid"), true);
+            return InteractionResult.FAIL;
         }
-        return super.useOnBlock(useOnContext);
+        return super.useOn(useOnContext);
     }
 
     @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        if (world.isClient) return;
-        if (hasLodestone(stack)) {
+    public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
+        if (world.isClientSide) return;
+        if (isLodestoneCompass(stack)) {
             BlockPos blockPos;
-            NbtCompound nbtCompound = stack.getOrCreateNbt();
-            if (nbtCompound.contains(LODESTONE_TRACKED_KEY) && !nbtCompound.getBoolean(LODESTONE_TRACKED_KEY)) {
+            CompoundTag nbtCompound = stack.getOrCreateTag();
+            if (nbtCompound.contains(TAG_LODESTONE_TRACKED) && !nbtCompound.getBoolean(TAG_LODESTONE_TRACKED)) {
                 return;
             }
-            Optional<RegistryKey<World>> optional = getLodestoneDimension(nbtCompound);
-            if (optional.isPresent() && optional.get() == world.getRegistryKey() && nbtCompound.contains(LODESTONE_POS_KEY) && (!world.isInBuildLimit(blockPos = NbtHelper.toBlockPos(nbtCompound.getCompound(LODESTONE_POS_KEY)).down()) || RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(world, blockPos) == null))
-                nbtCompound.remove(LODESTONE_POS_KEY);
+            Optional<ResourceKey<Level>> optional = getLodestoneDimension(nbtCompound);
+            if (optional.isPresent() && optional.get() == world.dimension() && nbtCompound.contains(TAG_LODESTONE_POS) && (!world.isInWorldBounds(blockPos = NbtUtils.readBlockPos(nbtCompound.getCompound(TAG_LODESTONE_POS)).below()) || RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(world, blockPos) == null))
+                nbtCompound.remove(TAG_LODESTONE_POS);
         }
     }
 
     @Override
-    public void appendTooltip(ItemStack itemStack, @Nullable World level, List<Text> list, TooltipContext tooltipFlag) {
-        if (level != null && level.isClient) ClientUtils.addCompassTooltipLines(itemStack, level, list, tooltipFlag);
+    public void appendHoverText(ItemStack itemStack, @Nullable Level level, List<Component> list, TooltipFlag tooltipFlag) {
+        if (level != null && level.isClientSide) ClientUtils.addCompassTooltipLines(itemStack, level, list, tooltipFlag);
     }
 
     @Override
-    public boolean isItemBarVisible(ItemStack stack) {
+    public boolean isBarVisible(ItemStack stack) {
         return ClientUtils.isBoundCompassBarVisible(stack);
     }
 
     @Override
-    public int getItemBarColor(ItemStack stack) {
-        return MathHelper.hsvToRgb(0.5f, 0.66f, 1f);
+    public int getBarColor(ItemStack stack) {
+        return Mth.hsvToRgb(0.5f, 0.66f, 1f);
     }
 
     @Override
-    public int getItemBarStep(ItemStack itemStack) {
+    public int getBarWidth(ItemStack itemStack) {
         return ClientUtils.getBoundCompassBarWidth(itemStack);
     }
 
     @Override
-    public String getTranslationKey(ItemStack itemStack) {
-        return hasLodestone(itemStack) ? "item.respawnobelisks.bound_bound_compass" : super.getTranslationKey(itemStack);
+    public String getDescriptionId(ItemStack itemStack) {
+        return isLodestoneCompass(itemStack) ? "item.respawnobelisks.bound_bound_compass" : super.getDescriptionId(itemStack);
     }
 
-    public static void writeNbt(RegistryKey<World> resourceKey, BlockPos blockPos, NbtCompound compoundTag) {
-        compoundTag.put(LODESTONE_POS_KEY, NbtHelper.fromBlockPos(blockPos));
-        World.CODEC.encodeStart(NbtOps.INSTANCE, resourceKey).resultOrPartial(LOGGER::error).ifPresent(tag -> compoundTag.put(LODESTONE_DIMENSION_KEY, tag));
-        compoundTag.putBoolean(LODESTONE_TRACKED_KEY, true);
+    public static void addLodestoneTags(ResourceKey<Level> resourceKey, BlockPos blockPos, CompoundTag compoundTag) {
+        compoundTag.put(TAG_LODESTONE_POS, NbtUtils.writeBlockPos(blockPos));
+        Level.RESOURCE_KEY_CODEC.encodeStart(NbtOps.INSTANCE, resourceKey).resultOrPartial(LOGGER::error).ifPresent(tag -> compoundTag.put(TAG_LODESTONE_DIMENSION, tag));
+        compoundTag.putBoolean(TAG_LODESTONE_TRACKED, true);
     }
 
-    protected static Optional<RegistryKey<World>> getLodestoneDimension(NbtCompound nbt) {
-        return World.CODEC.parse(NbtOps.INSTANCE, nbt.get(LODESTONE_DIMENSION_KEY)).result();
+    protected static Optional<ResourceKey<Level>> getLodestoneDimension(CompoundTag nbt) {
+        return Level.RESOURCE_KEY_CODEC.parse(NbtOps.INSTANCE, nbt.get(TAG_LODESTONE_DIMENSION)).result();
     }
 }

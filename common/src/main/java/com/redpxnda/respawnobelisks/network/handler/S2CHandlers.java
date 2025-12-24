@@ -9,38 +9,37 @@ import com.redpxnda.respawnobelisks.util.ClientUtils;
 import com.redpxnda.respawnobelisks.util.RenderUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.BlockStateParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.Registries;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class S2CHandlers {
     public static void setupRuneCircleRenderPacket(boolean kill, int age, double x, double y, double z) {
-        if (MinecraftClient.getInstance().world == null) return;
+        if (Minecraft.getInstance().level == null) return;
         List<Double> pos = ImmutableList.of(x, y, z);
         if (ClientUtils.activeRuneParticles.containsKey(pos)) {
             RuneCircleParticle particle = ClientUtils.activeRuneParticles.get(pos);
             particle.setAge(age);
             if (kill || !particle.isAlive() || particle.getAge() >= 100) ClientUtils.activeRuneParticles.remove(pos);
         } else
-            MinecraftClient.getInstance().world.addParticle(
+            Minecraft.getInstance().level.addParticle(
                     new RuneCircleType.Options(age, 100, 2, RenderUtils.runeCircleColors[0], RenderUtils.runeCircleColors[1]),
                     x, y, z,
                     0, 0, 0
@@ -48,10 +47,10 @@ public class S2CHandlers {
     }
 
     public static void respawnAnchorPacket(BlockPos blockPos, int charge, boolean isRun) {
-        World pLevel = MinecraftClient.getInstance().world;
-        PlayerEntity player = MinecraftClient.getInstance().player;
+        Level pLevel = Minecraft.getInstance().level;
+        Player player = Minecraft.getInstance().player;
         if (pLevel != null && player != null) {
-            pLevel.playSound(player, blockPos, SoundEvents.BLOCK_NOTE_BLOCK_BELL.value(), SoundCategory.BLOCKS, 1f, 0.75f);
+            pLevel.playSound(player, blockPos, SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.BLOCKS, 1f, 0.75f);
             if (!isRun) {
                 pLevel.addParticle(ParticleTypes.FLASH, blockPos.getX() + 0.5, blockPos.getY(), blockPos.getZ() + 0.5, 0, 0, 0);
                 for (int i = -5; i <= 5; i++) {
@@ -67,19 +66,19 @@ public class S2CHandlers {
     }
 
     public static void playParticleAnimation(String method, int playerId, BlockPos pos) {
-        ClientWorld level = MinecraftClient.getInstance().world;
+        ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
         switch (method) {
             case "curse", "curseAnimation" -> {
-                level.playSound(
+                level.playLocalSound(
                         pos.getX(), pos.getY(), pos.getZ(),
-                        Registries.SOUND_EVENT.getOrEmpty(new Identifier(RespawnObelisksConfig.INSTANCE.immortalityCurse.curseSound)).orElse(SoundEvents.UI_BUTTON_CLICK.value()), SoundCategory.BLOCKS,
+                        BuiltInRegistries.SOUND_EVENT.getOptional(new ResourceLocation(RespawnObelisksConfig.INSTANCE.immortalityCurse.curseSound)).orElse(SoundEvents.UI_BUTTON_CLICK.value()), SoundSource.BLOCKS,
                         1, 1, false
                 );
                 for (int i = 0; i < 360; i+=3) {
                     double radians = i * Math.PI / 180;
                     level.addParticle(
-                            new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.NETHER_WART_BLOCK.getDefaultState()),
+                            new BlockParticleOption(ParticleTypes.BLOCK, Blocks.NETHER_WART_BLOCK.defaultBlockState()),
                             pos.getX()+0.5,
                             pos.getY()+0.65,
                             pos.getZ()+0.5,
@@ -90,9 +89,9 @@ public class S2CHandlers {
                 }
             }
             case "totem", "respawn" -> {
-                level.playSound(
+                level.playLocalSound(
                         pos.getX(), pos.getY(), pos.getZ(),
-                        SoundEvents.ITEM_TOTEM_USE, SoundCategory.BLOCKS,
+                        SoundEvents.TOTEM_USE, SoundSource.BLOCKS,
                         1, 1, false
                 );
                 for (int i = 0; i < 900; i += 5) {
@@ -104,30 +103,30 @@ public class S2CHandlers {
     }
 
     public static void playClientSound(SoundEvent event, float pitch, float volume) {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
             player.playSound(event, pitch, volume);
         }
     }
 
     public static void playLocalClientSound(SoundEvent event, float pitch, float volume, double x, double y, double z) {
-        ClientWorld level = MinecraftClient.getInstance().world;
+        ClientLevel level = Minecraft.getInstance().level;
         if (level != null) {
-            level.playSound(x, y, z, event, SoundCategory.MASTER, pitch, volume, false);
+            level.playLocalSound(x, y, z, event, SoundSource.MASTER, pitch, volume, false);
         }
     }
 
     public static void playerTotemAnimation(Item item) {
-        GameRenderer gameRenderer = MinecraftClient.getInstance().gameRenderer;
+        GameRenderer gameRenderer = Minecraft.getInstance().gameRenderer;
         if (gameRenderer != null) {
-            gameRenderer.showFloatingItem(new ItemStack(item.arch$holder()));
+            gameRenderer.displayItemActivation(new ItemStack(item.arch$holder()));
         }
     }
 
     public static void syncEffectsPacket(int amplifier, int duration) {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
         if (player != null) {
-            player.addStatusEffect(new StatusEffectInstance(ModRegistries.immortalityCurse.get(), duration, amplifier));
+            player.addEffect(new MobEffectInstance(ModRegistries.immortalityCurse.get(), duration, amplifier));
         }
     }
 }

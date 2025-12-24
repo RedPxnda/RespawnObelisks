@@ -6,18 +6,18 @@ import com.redpxnda.respawnobelisks.registry.particle.RuneCircleParticle;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.minecraft.client.item.CompassAnglePredicateProvider;
-import net.minecraft.client.item.ModelPredicateProviderRegistry;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.item.CompassItemPropertyFunction;
+import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.resources.ResourceLocation;
 
 import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
 
 public class RespawnObelisksClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        ModelPredicateProviderRegistry.register(ModRegistries.boundCompass.get(), new Identifier("angle"), new CompassAnglePredicateProvider((level, stack, player) -> BoundCompassItem.hasLodestone(stack) ? BoundCompassItem.createLodestonePos(stack.getOrCreateNbt()) : null));
-        ModelPredicateProviderRegistry.register(ModRegistries.dormantObelisk.get(), new Identifier(MOD_ID, "dimension"), (stack, level, player, i) -> !stack.hasNbt() || !stack.getNbt().contains("Dimension") ? 0f : stack.getNbt().getFloat("Dimension"));
-        ModelPredicateProviderRegistry.register(ModRegistries.radiantLantern.get(), new Identifier(MOD_ID, "uncharged"), (stack, level, player, i) -> CoreUtils.getCharge(stack.getOrCreateNbt()) == 0 ? 1 : 0);
+        ItemProperties.register(ModRegistries.boundCompass.get(), new ResourceLocation("angle"), new CompassItemPropertyFunction((level, stack, player) -> BoundCompassItem.isLodestoneCompass(stack) ? BoundCompassItem.getLodestonePosition(stack.getOrCreateTag()) : null));
+        ItemProperties.register(ModRegistries.dormantObelisk.get(), new ResourceLocation(MOD_ID, "dimension"), (stack, level, player, i) -> !stack.hasTag() || !stack.getTag().contains("Dimension") ? 0f : stack.getTag().getFloat("Dimension"));
+        ItemProperties.register(ModRegistries.radiantLantern.get(), new ResourceLocation(MOD_ID, "uncharged"), (stack, level, player, i) -> CoreUtils.getCharge(stack.getOrCreateTag()) == 0 ? 1 : 0);
         ParticleFactoryRegistry.getInstance().register(ModRegistries.runeCircleParticle.get(), RuneCircleParticle.Provider::new);
     }
 }

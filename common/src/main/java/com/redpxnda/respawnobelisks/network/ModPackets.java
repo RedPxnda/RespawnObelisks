@@ -1,12 +1,12 @@
 package com.redpxnda.respawnobelisks.network;
 
 import dev.architectury.networking.NetworkChannel;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
 
 public class ModPackets {
-    public static final NetworkChannel CHANNEL = NetworkChannel.create(new Identifier(MOD_ID, "main"));
+    public static final NetworkChannel CHANNEL = NetworkChannel.create(new ResourceLocation(MOD_ID, "main"));
 
     public static void init() {
         CHANNEL.register(SyncEffectsPacket.class, SyncEffectsPacket::toBytes, SyncEffectsPacket::new, SyncEffectsPacket::handle);

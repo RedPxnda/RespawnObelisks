@@ -24,43 +24,43 @@ import com.redpxnda.respawnobelisks.util.SpawnPoint;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.common.*;
 import dev.architectury.utils.value.IntValue;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.Style;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 public class CommonEvents {
-    public static EventResult onBlockInteract(PlayerEntity player, Hand hand, BlockPos pos, Direction face) {
-        if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.allowPriorityShifting && player instanceof ServerPlayerEntity sp && player.isSneaking() && player.getMainHandStack().isEmpty() && RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) {
+    public static EventResult onBlockInteract(Player player, InteractionHand hand, BlockPos pos, Direction face) {
+        if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.allowPriorityShifting && player instanceof ServerPlayer sp && player.isShiftKeyDown() && player.getMainHandItem().isEmpty() && RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) {
             SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(player);
             if (facet != null) {
-                SpawnPoint point = new SpawnPoint(player.getWorld().getRegistryKey(), pos, 0, false);
+                SpawnPoint point = new SpawnPoint(player.level().dimension(), pos, 0, false);
                 if (facet.points.contains(point)) {
                     if (facet.reorderingTarget == null) {
                         facet.reorderingTarget = point;
@@ -74,27 +74,27 @@ public class CommonEvents {
             }
         }
 
-        if (!hand.equals(Hand.MAIN_HAND) || !player.getMainHandStack().isOf(Items.RECOVERY_COMPASS) || RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(player.getWorld(), pos) == null) return EventResult.pass();
+        if (!hand.equals(InteractionHand.MAIN_HAND) || !player.getMainHandItem().is(Items.RECOVERY_COMPASS) || RespawnObelisksConfig.INSTANCE.teleportation.getBlockBindPosition(player.level(), pos) == null) return EventResult.pass();
         if (RespawnObelisksConfig.INSTANCE.teleportation.enableTeleportation) {
-            ItemStack stack = player.getStackInHand(hand);
-            player.setStackInHand(hand, new ItemStack(ModRegistries.boundCompass.get()));
-            if (!player.getAbilities().creativeMode) stack.decrement(1);
-            player.getInventory().offerOrDrop(stack);
+            ItemStack stack = player.getItemInHand(hand);
+            player.setItemInHand(hand, new ItemStack(ModRegistries.boundCompass.get()));
+            if (!player.getAbilities().instabuild) stack.shrink(1);
+            player.getInventory().placeItemBackInInventory(stack);
         }
-        BlockHitResult hitResult = new BlockHitResult(new Vec3d(pos.getX(), pos.getY(), pos.getZ()), face, pos, false);
-        if (player.getStackInHand(hand).getItem() instanceof BoundCompassItem item) item.useOnBlock(new ItemUsageContext(player, hand, hitResult));
+        BlockHitResult hitResult = new BlockHitResult(new Vec3(pos.getX(), pos.getY(), pos.getZ()), face, pos, false);
+        if (player.getItemInHand(hand).getItem() instanceof BoundCompassItem item) item.useOn(new UseOnContext(player, hand, hitResult));
         return EventResult.pass();
     }
 
-    public static EventResult onBreakBlock(World level, BlockPos pos, BlockState state, ServerPlayerEntity player, @Nullable IntValue xp) {
-        if (player.getAbilities().creativeMode) return EventResult.pass(); // if creative, skip
+    public static EventResult onBreakBlock(Level level, BlockPos pos, BlockState state, ServerPlayer player, @Nullable IntValue xp) {
+        if (player.getAbilities().instabuild) return EventResult.pass(); // if creative, skip
         if (state.getBlock() instanceof RespawnObeliskBlock) {
-            if (state.get(RespawnObeliskBlock.HALF).equals(DoubleBlockHalf.UPPER))
-                pos = pos.down();
+            if (state.getValue(RespawnObeliskBlock.HALF).equals(DoubleBlockHalf.UPPER))
+                pos = pos.below();
             if (
                     level.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity blockEntity && ( // making sure the block is a respawn obelisk block (entity)
-                            (!RespawnObelisksConfig.INSTANCE.playerTrusting.allowObeliskBreaking && !blockEntity.isPlayerTrusted(player.getEntityName())) || // if untrusted
-                            (!blockEntity.getItemStack().isEmpty() && !player.isSneaking()) || // if has core inside
+                            (!RespawnObelisksConfig.INSTANCE.playerTrusting.allowObeliskBreaking && !blockEntity.isPlayerTrusted(player.getScoreboardName())) || // if untrusted
+                            (!blockEntity.getItemStack().isEmpty() && !player.isShiftKeyDown()) || // if has core inside
                             (blockEntity.hasTeleportingEntity) // if has teleporting entity
                     )
             )
@@ -103,84 +103,84 @@ public class CommonEvents {
         return EventResult.pass();
     }
 
-    public static EventResult onEntityInteract(PlayerEntity player, Entity entity, Hand hand) {
-        Identifier rl;
-        if (player.getWorld().isClient || !hand.equals(Hand.MAIN_HAND) || !ObeliskCore.CORES.containsKey(rl = Registries.ITEM.getId(player.getMainHandStack().getItem())) || player.getItemCooldownManager().isCoolingDown(player.getMainHandStack().getItem())) return EventResult.pass();
-        ObeliskCore.Instance core = new ObeliskCore.Instance(player.getMainHandStack(), ObeliskCore.CORES.get(rl));
+    public static EventResult onEntityInteract(Player player, Entity entity, InteractionHand hand) {
+        ResourceLocation rl;
+        if (player.level().isClientSide || !hand.equals(InteractionHand.MAIN_HAND) || !ObeliskCore.CORES.containsKey(rl = BuiltInRegistries.ITEM.getKey(player.getMainHandItem().getItem())) || player.getCooldowns().isOnCooldown(player.getMainHandItem().getItem())) return EventResult.pass();
+        ObeliskCore.Instance core = new ObeliskCore.Instance(player.getMainHandItem(), ObeliskCore.CORES.get(rl));
         ItemStack stack = core.stack();
-        if (!stack.getOrCreateNbt().contains("RespawnObeliskData"))
-            stack.getNbt().put("RespawnObeliskData", new NbtCompound());
+        if (!stack.getOrCreateTag().contains("RespawnObeliskData"))
+            stack.getTag().put("RespawnObeliskData", new CompoundTag());
 
         if (RespawnObelisksConfig.INSTANCE.revival.enableRevival && CoreUtils.hasInteraction(core, ObeliskInteraction.REVIVE)) {
-            if (!(entity instanceof PlayerEntity) && entity instanceof LivingEntity && RespawnObelisksConfig.INSTANCE.revival.isEntityListed(entity)) {
-                if (!stack.getNbt().getCompound("RespawnObeliskData").contains("SavedEntities"))
-                    stack.getNbt().getCompound("RespawnObeliskData").put("SavedEntities", new NbtList());
-                NbtList listTag = stack.getNbt().getCompound("RespawnObeliskData").getList("SavedEntities", 10);
+            if (!(entity instanceof Player) && entity instanceof LivingEntity && RespawnObelisksConfig.INSTANCE.revival.isEntityListed(entity)) {
+                if (!stack.getTag().getCompound("RespawnObeliskData").contains("SavedEntities"))
+                    stack.getTag().getCompound("RespawnObeliskData").put("SavedEntities", new ListTag());
+                ListTag listTag = stack.getTag().getCompound("RespawnObeliskData").getList("SavedEntities", 10);
                 if (listTag.size() >= RespawnObelisksConfig.INSTANCE.cores.maxStoredEntities) return EventResult.pass();
                 LimboReviveTracker tracker = LimboReviveTracker.KEY.get(entity);
                 if (tracker != null) {
-                    if (!containsUUID(listTag, entity.getUuid())) {
+                    if (!containsUUID(listTag, entity.getUUID())) {
                         tracker.trackers++;
-                        NbtCompound entityTag = new NbtCompound();
+                        CompoundTag entityTag = new CompoundTag();
 
-                        entityTag.putUuid("uuid", entity.getUuid());
-                        entityTag.putString("type", Registries.ENTITY_TYPE.getId(entity.getType()).toString());
-                        NbtCompound dataTag = new NbtCompound();
-                        entity.writeNbt(dataTag); // filling data info
+                        entityTag.putUUID("uuid", entity.getUUID());
+                        entityTag.putString("type", BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString());
+                        CompoundTag dataTag = new CompoundTag();
+                        entity.saveWithoutId(dataTag); // filling data info
                         RevivedNbtEditing.modify(dataTag, entity);
                         entityTag.put("data", dataTag);
 
                         if (!listTag.contains(entityTag)) {
                             listTag.add(entityTag); // add entity to item nbt
-                            player.getItemCooldownManager().set(stack.getItem(), 50); // add item cooldown
-                            player.sendMessage(
-                                    Text.translatable("text.respawnobelisks.revive_mob_warning")
+                            player.getCooldowns().addCooldown(stack.getItem(), 50); // add item cooldown
+                            player.sendSystemMessage(
+                                    Component.translatable("text.respawnobelisks.revive_mob_warning")
                                             .setStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                                    Text.translatable("text.respawnobelisks.revive_mob_warning.hover")))));
+                                                    Component.translatable("text.respawnobelisks.revive_mob_warning.hover")))));
                             return EventResult.interruptFalse();
                         }
                     } else {
                         tracker.trackers--;
-                        removeUUID(listTag, entity.getUuid());
-                        player.getItemCooldownManager().set(stack.getItem(), 50);
+                        removeUUID(listTag, entity.getUUID());
+                        player.getCooldowns().addCooldown(stack.getItem(), 50);
                     }
                 }
             }
         }
-        if (RespawnObelisksConfig.INSTANCE.playerTrusting.enablePlayerTrust && entity instanceof PlayerEntity interacted && CoreUtils.hasInteraction(core, ObeliskInteraction.PROTECT)) {
-            if (!stack.getNbt().getCompound("RespawnObeliskData").contains("TrustedPlayers"))
-                stack.getNbt().getCompound("RespawnObeliskData").put("TrustedPlayers", new NbtList());
-            NbtList listTag = stack.getNbt().getCompound("RespawnObeliskData").getList("TrustedPlayers", 8);
+        if (RespawnObelisksConfig.INSTANCE.playerTrusting.enablePlayerTrust && entity instanceof Player interacted && CoreUtils.hasInteraction(core, ObeliskInteraction.PROTECT)) {
+            if (!stack.getTag().getCompound("RespawnObeliskData").contains("TrustedPlayers"))
+                stack.getTag().getCompound("RespawnObeliskData").put("TrustedPlayers", new ListTag());
+            ListTag listTag = stack.getTag().getCompound("RespawnObeliskData").getList("TrustedPlayers", 8);
 
-            if (!listTag.contains(NbtString.of(interacted.getEntityName()))) {
-                listTag.add(NbtString.of(interacted.getEntityName())); // add entity to item nbt
-                if (!listTag.contains(NbtString.of(player.getEntityName()))) listTag.add(NbtString.of(player.getEntityName()));
-                player.getItemCooldownManager().set(stack.getItem(), 100); // add item cooldown
+            if (!listTag.contains(StringTag.valueOf(interacted.getScoreboardName()))) {
+                listTag.add(StringTag.valueOf(interacted.getScoreboardName())); // add entity to item nbt
+                if (!listTag.contains(StringTag.valueOf(player.getScoreboardName()))) listTag.add(StringTag.valueOf(player.getScoreboardName()));
+                player.getCooldowns().addCooldown(stack.getItem(), 100); // add item cooldown
                 return EventResult.interruptFalse();
             } else {
-                listTag.remove(NbtString.of(interacted.getEntityName()));
-                if (!listTag.contains(NbtString.of(player.getEntityName()))) listTag.add(NbtString.of(player.getEntityName()));
-                player.getItemCooldownManager().set(stack.getItem(), 100);
+                listTag.remove(StringTag.valueOf(interacted.getScoreboardName()));
+                if (!listTag.contains(StringTag.valueOf(player.getScoreboardName()))) listTag.add(StringTag.valueOf(player.getScoreboardName()));
+                player.getCooldowns().addCooldown(stack.getItem(), 100);
                 return EventResult.interruptFalse();
             }
         }
         return EventResult.pass();
     }
 
-    private static boolean containsUUID(NbtList tag, UUID uuid) {
-        for (NbtElement value : tag)
-            if (value instanceof NbtCompound compound) {
-                if (compound.getUuid("uuid").equals(uuid))
+    private static boolean containsUUID(ListTag tag, UUID uuid) {
+        for (Tag value : tag)
+            if (value instanceof CompoundTag compound) {
+                if (compound.getUUID("uuid").equals(uuid))
                     return true;
             }
         return false;
     }
 
-    private static void removeUUID(NbtList tag, UUID uuid) {
-        tag.removeIf(t -> t instanceof NbtCompound compound && compound.getUuid("uuid").equals(uuid));
+    private static void removeUUID(ListTag tag, UUID uuid) {
+        tag.removeIf(t -> t instanceof CompoundTag compound && compound.getUUID("uuid").equals(uuid));
     }
 
-    public static void onPlayerClone(ServerPlayerEntity oldPlayer, ServerPlayerEntity newPlayer, boolean wonGame) {
+    public static void onPlayerClone(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean wonGame) {
         if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) {
             SecondarySpawnPoints oldFacet = SecondarySpawnPoints.KEY.get(oldPlayer);
             SecondarySpawnPoints newFacet = SecondarySpawnPoints.KEY.get(newPlayer);
@@ -202,33 +202,33 @@ public class CommonEvents {
         if (oldFacet != null && newFacet != null) newFacet.modules.putAll(oldFacet.modules);
 
         if (wonGame) return;
-        if (oldPlayer.hasStatusEffect(ModRegistries.immortalityCurse.get())) cloneAddCurse(newPlayer, oldPlayer);
+        if (oldPlayer.hasEffect(ModRegistries.immortalityCurse.get())) cloneAddCurse(newPlayer, oldPlayer);
         if (
-            oldPlayer.getSpawnPointPosition() != null &&
-            oldPlayer.getWorld().getBlockEntity(oldPlayer.getSpawnPointPosition()) instanceof RespawnObeliskBlockEntity
+            oldPlayer.getRespawnPosition() != null &&
+            oldPlayer.level().getBlockEntity(oldPlayer.getRespawnPosition()) instanceof RespawnObeliskBlockEntity
         ) {
             ObeliskUtils.restoreSavedItems(oldPlayer, newPlayer);
         }// else ObeliskUtils.scatterSavedItems(oldPlayer);
     }
 
-    private static void cloneAddCurse(ServerPlayerEntity newPlayer, ServerPlayerEntity oldPlayer) {
-        StatusEffectInstance MEI = oldPlayer.getStatusEffect(ModRegistries.immortalityCurse.get());
+    private static void cloneAddCurse(ServerPlayer newPlayer, ServerPlayer oldPlayer) {
+        MobEffectInstance MEI = oldPlayer.getEffect(ModRegistries.immortalityCurse.get());
         if (MEI == null) return;
         int amplifier = MEI.getAmplifier();
         if (amplifier == RespawnObelisksConfig.INSTANCE.immortalityCurse.curseMaxLevel+1) amplifier = -1;
         amplifier = Math.min(amplifier+RespawnObelisksConfig.INSTANCE.immortalityCurse.curseLevelIncrement, RespawnObelisksConfig.INSTANCE.immortalityCurse.curseMaxLevel-1);
-        newPlayer.addStatusEffect(new StatusEffectInstance(MEI.getEffectType(), RespawnObelisksConfig.INSTANCE.immortalityCurse.curseDuration, amplifier));
+        newPlayer.addEffect(new MobEffectInstance(MEI.getEffect(), RespawnObelisksConfig.INSTANCE.immortalityCurse.curseDuration, amplifier));
     }
 
-    public static void onPlayerRespawn(ServerPlayerEntity player, boolean conqueredEnd) {
-        if (player.hasStatusEffect(ModRegistries.immortalityCurse.get())) {
-            StatusEffectInstance MEI = player.getStatusEffect(ModRegistries.immortalityCurse.get());
+    public static void onPlayerRespawn(ServerPlayer player, boolean conqueredEnd) {
+        if (player.hasEffect(ModRegistries.immortalityCurse.get())) {
+            MobEffectInstance MEI = player.getEffect(ModRegistries.immortalityCurse.get());
             if (MEI == null) return;
             ModPackets.CHANNEL.sendToPlayer(player, new SyncEffectsPacket(MEI.getAmplifier(), MEI.getDuration()));
         }
     }
 
-    public static void onServerTick(ServerWorld level) {
+    public static void onServerTick(ServerLevel level) {
         RuneCircles.getCache(level).tick();
         AnchorExplosions.getCache(level).tick();
     }
@@ -238,9 +238,9 @@ public class CommonEvents {
         if (tracker != null) {
             int trackers = tracker.trackers;
             if (trackers > 0 && entity.getServer() != null) {
-                ServerWorld overworld = entity.getServer().getOverworld();
+                ServerLevel overworld = entity.getServer().overworld();
                 if (overworld != null) {
-                    LimboEntities.getCache(overworld).limboEntities.put(entity.getUuid(), entity.writeNbt(new NbtCompound()));
+                    LimboEntities.getCache(overworld).limboEntities.put(entity.getUUID(), entity.saveWithoutId(new CompoundTag()));
                 }
             }
         }

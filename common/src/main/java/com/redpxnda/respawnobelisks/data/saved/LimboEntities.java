@@ -1,37 +1,36 @@
 package com.redpxnda.respawnobelisks.data.saved;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.PersistentState;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
 
-public class LimboEntities extends PersistentState {
-    public final Map<UUID, NbtCompound> limboEntities = new HashMap<>();
+public class LimboEntities extends SavedData {
+    public final Map<UUID, CompoundTag> limboEntities = new HashMap<>();
 
-    public static LimboEntities getCache(ServerWorld level) {
-        return level.getPersistentStateManager().getOrCreate(LimboEntities::load, LimboEntities::new, "limbo_entities");
+    public static LimboEntities getCache(ServerLevel level) {
+        return level.getDataStorage().computeIfAbsent(LimboEntities::load, LimboEntities::new, "limbo_entities");
     }
 
-    public static LimboEntities load(NbtCompound tag) {
+    public static LimboEntities load(CompoundTag tag) {
         LimboEntities entities = new LimboEntities();
-        NbtCompound compound = tag.getCompound("LimboEntities");
-        compound.getKeys().forEach(k -> {
-            NbtElement element = tag.get(k);
-            if (element instanceof NbtCompound compoundTag)
+        CompoundTag compound = tag.getCompound("LimboEntities");
+        compound.getAllKeys().forEach(k -> {
+            Tag element = tag.get(k);
+            if (element instanceof CompoundTag compoundTag)
                 entities.limboEntities.put(UUID.fromString(k), compoundTag);
         });
 
-        entities.markDirty();
+        entities.setDirty();
         return entities;
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
-        NbtCompound compound = new NbtCompound();
+    public CompoundTag save(CompoundTag nbt) {
+        CompoundTag compound = new CompoundTag();
         limboEntities.forEach((k, v) -> compound.put(k.toString(), v));
         nbt.put("LimboEntities", compound);
 

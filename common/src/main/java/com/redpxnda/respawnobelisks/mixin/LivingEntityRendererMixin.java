@@ -3,24 +3,24 @@ package com.redpxnda.respawnobelisks.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.entity.LivingEntityRenderer;
-import net.minecraft.client.render.entity.model.EntityModel;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class LivingEntityRendererMixin {
     @WrapOperation(
-            method = "render(Lnet/minecraft/entity/LivingEntity;FFLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/entity/model/EntityModel;render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;IIFFFF)V")
+            method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V")
     )
     private void RESPAWNOBELISKS_translucentRender(EntityModel<LivingEntity> instance,
-                                   MatrixStack poseStack,
+                                   PoseStack poseStack,
                                    VertexConsumer vertexConsumer,
                                    int pPackedLight,
                                    int pPackedOverlay,
@@ -31,7 +31,7 @@ public abstract class LivingEntityRendererMixin {
                                    Operation<Void> original,
                                    LivingEntity pEntity
     ) {
-        if (pEntity instanceof PlayerEntity player && player.hasStatusEffect(ModRegistries.immortalityCurse.get())) {
+        if (pEntity instanceof Player player && player.hasEffect(ModRegistries.immortalityCurse.get())) {
             pAlpha *= 0.65f;
             pRed *= 0.75f;
             pGreen *= 0.75f;

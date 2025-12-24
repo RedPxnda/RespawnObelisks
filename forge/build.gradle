@@ -53,6 +53,9 @@ dependencies {
     modApi(include("com.redpxnda.nucleus:nucleus-config-forge:${rootProject.minecraft_version}+${rootProject.nucleus_config_version}"))
     modApi(include("com.redpxnda.nucleus:nucleus-facet-forge:${rootProject.minecraft_version}+${rootProject.nucleus_facet_version}"))
 
+    modImplementation("curse.maven:sophisticated-backpacks-422301:7316707")
+    modImplementation("curse.maven:sophisticated-core-618298:7320222")
+
     if ("${rootProject.use_curios}" == "true") {
         modRuntimeOnly("top.theillusivec4.curios:curios-forge:${rootProject.curios_version}+${rootProject.minecraft_version}")
         modRuntimeOnly("curse.maven:copper-amulets-831384:5700368")

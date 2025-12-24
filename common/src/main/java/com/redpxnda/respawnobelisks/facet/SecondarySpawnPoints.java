@@ -8,19 +8,19 @@ import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.network.SetPriorityChangerPacket;
 import com.redpxnda.respawnobelisks.util.RespawnAvailability;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
-import net.minecraft.block.Block;
-import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
+public class SecondarySpawnPoints implements EntityFacet<CompoundTag> {
     public static FacetKey<SecondarySpawnPoints> KEY;
 
     public final List<SpawnPoint> points = new ArrayList<>();
@@ -37,9 +37,9 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
     public boolean canChooseWorldSpawn = false;
     public boolean willRespawnAtWorldSpawn = false;
 
-    public static NbtCompound serializeSpawnPoint(SpawnPoint point) {
-        NbtCompound compound = new NbtCompound();
-        compound.putString("Dimension", point.dimension().getValue().toString());
+    public static CompoundTag serializeSpawnPoint(SpawnPoint point) {
+        CompoundTag compound = new CompoundTag();
+        compound.putString("Dimension", point.dimension().location().toString());
         compound.putInt("x", point.pos().getX());
         compound.putInt("y", point.pos().getY());
         compound.putInt("z", point.pos().getZ());
@@ -48,9 +48,9 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
         return compound;
     }
 
-    public static SpawnPoint deserializeSpawnPoint(NbtCompound compound) {
+    public static SpawnPoint deserializeSpawnPoint(CompoundTag compound) {
         return new SpawnPoint(
-                RegistryKey.of(RegistryKeys.WORLD, new Identifier(compound.getString("Dimension"))),
+                ResourceKey.create(Registries.DIMENSION, new ResourceLocation(compound.getString("Dimension"))),
                 new BlockPos(
                         compound.getInt("x"),
                         compound.getInt("y"),
@@ -61,10 +61,10 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
     }
 
     @Override
-    public NbtCompound toNbt() {
-        NbtCompound root = new NbtCompound();
+    public CompoundTag toNbt() {
+        CompoundTag root = new CompoundTag();
 
-        NbtList list = new NbtList();
+        ListTag list = new ListTag();
         for (SpawnPoint point : points) {
             list.add(serializeSpawnPoint(point));
         }
@@ -81,13 +81,13 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
     }
 
     @Override
-    public void loadNbt(NbtCompound nbt) {
+    public void loadNbt(CompoundTag nbt) {
         points.clear();
         reorderingTarget = null;
-        NbtList list = nbt.getList("Points", NbtElement.COMPOUND_TYPE);
+        ListTag list = nbt.getList("Points", Tag.TAG_COMPOUND);
 
-        for (NbtElement element : list) {
-            if (element instanceof NbtCompound compound) {
+        for (Tag element : list) {
+            if (element instanceof CompoundTag compound) {
                 points.add(deserializeSpawnPoint(compound));
             }
         }
@@ -105,10 +105,10 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
     }
 
     public void sortByPrio(MinecraftServer server) {
-        points.sort(Comparator.comparingDouble(p -> getBlockPriority(server.getWorld(p.dimension()).getBlockState(p.pos()).getBlock())));
+        points.sort(Comparator.comparingDouble(p -> getBlockPriority(server.getLevel(p.dimension()).getBlockState(p.pos()).getBlock())));
     }
 
-    public SpawnPoint getValidSpawnPoint(ServerPlayerEntity player) {
+    public SpawnPoint getValidSpawnPoint(ServerPlayer player) {
         SpawnPoint point = getLatestPoint();
         if (point == null) return null;
         else {
@@ -136,7 +136,7 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
         return 0;
     }
 
-    public boolean blockAdditionAllowed(ServerPlayerEntity player, Block block, MinecraftServer server) {
+    public boolean blockAdditionAllowed(ServerPlayer player, Block block, MinecraftServer server) {
         int overallTotal = RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.overallMaxPoints;
         boolean force = RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.forceSpawnSetting;
         boolean surpassesOverall = overallTotal != -1 && points.size() >= overallTotal;
@@ -161,7 +161,7 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
         SpawnPoint firstMatch = null;
         int collectedAmount = 0;
         for (SpawnPoint point : points) {
-            World world = server.getWorld(point.dimension());
+            Level world = server.getLevel(point.dimension());
             if (world != null && targetType.matches(world.getBlockState(point.pos()).getBlock())) {
                 collectedAmount++;
                 if (firstMatch == null) firstMatch = point;
@@ -171,7 +171,7 @@ public class SecondarySpawnPoints implements EntityFacet<NbtCompound> {
         boolean result = collectedAmount < targetAmount;
         if (force && !result && firstMatch != null) {
             points.remove(firstMatch);
-            player.sendMessage(Text.translatable("block.respawnobelisks.override_spawn"));
+            player.sendSystemMessage(Component.translatable("block.respawnobelisks.override_spawn"));
             collectedAmount--;
         }
         return collectedAmount < targetAmount;

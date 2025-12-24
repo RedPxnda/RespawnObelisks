@@ -2,37 +2,36 @@ package com.redpxnda.respawnobelisks.facet;
 
 import com.redpxnda.nucleus.facet.FacetKey;
 import com.redpxnda.nucleus.facet.entity.EntityFacet;
-import net.minecraft.block.Block;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-
 import java.util.HashSet;
 import java.util.Set;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 
-public class FailedSpawnBlocks implements EntityFacet<NbtList> {
+public class FailedSpawnBlocks implements EntityFacet<ListTag> {
     public static FacetKey<FailedSpawnBlocks> KEY;
 
     public final Set<Block> blocks = new HashSet<>();
 
     @Override
-    public NbtList toNbt() {
-        NbtList list = new NbtList();
+    public ListTag toNbt() {
+        ListTag list = new ListTag();
         for (Block block : blocks)
-            list.add(NbtString.of(Registries.BLOCK.getId(block).toString()));
+            list.add(StringTag.valueOf(BuiltInRegistries.BLOCK.getKey(block).toString()));
         return list;
     }
 
     @Override
-    public void loadNbt(NbtList nbt) {
-        for (NbtElement element : nbt) {
-            if (element instanceof NbtString nbtStr) {
-                String strId = nbtStr.asString();
-                Identifier id = Identifier.tryParse(strId);
+    public void loadNbt(ListTag nbt) {
+        for (Tag element : nbt) {
+            if (element instanceof StringTag nbtStr) {
+                String strId = nbtStr.getAsString();
+                ResourceLocation id = ResourceLocation.tryParse(strId);
                 if (id != null) {
-                    Block block = Registries.BLOCK.get(id);
+                    Block block = BuiltInRegistries.BLOCK.get(id);
                     blocks.add(block);
                 }
             }

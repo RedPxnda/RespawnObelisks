@@ -1,19 +1,18 @@
 package com.redpxnda.respawnobelisks.util;
 
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.world.World;
-
 import java.util.Objects;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 public final class SpawnPoint {
-    private final RegistryKey<World> dimension;
+    private final ResourceKey<Level> dimension;
     private final BlockPos pos;
     private final float angle;
     private final boolean forced;
 
-    public SpawnPoint(RegistryKey<World> dimension, BlockPos pos, float angle, boolean forced) {
+    public SpawnPoint(ResourceKey<Level> dimension, BlockPos pos, float angle, boolean forced) {
         this.dimension = dimension;
         this.pos = pos;
         this.angle = angle;
@@ -21,10 +20,10 @@ public final class SpawnPoint {
     }
 
     public GlobalPos asGlobalPos() {
-        return GlobalPos.create(dimension, pos);
+        return GlobalPos.of(dimension, pos);
     }
 
-    public RegistryKey<World> dimension() {
+    public ResourceKey<Level> dimension() {
         return dimension;
     }
 

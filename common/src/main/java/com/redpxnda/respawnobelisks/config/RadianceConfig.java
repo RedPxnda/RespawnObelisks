@@ -5,13 +5,13 @@ import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
 import com.redpxnda.nucleus.codec.tag.BlockList;
 import com.redpxnda.nucleus.util.Comment;
 import com.redpxnda.respawnobelisks.mixin.BeaconBlockEntityAccessor;
-import net.minecraft.block.BeaconBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BeaconBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,8 +41,8 @@ public class RadianceConfig {
     
     @Comment("A list of blocks that can be used to provide an obelisk with infinite radiance.")
     public BlockList infiniteRadianceBlocks = BlockList.of(Blocks.BEACON);
-    public boolean obeliskGetsInfiniteRadiance(World world, BlockPos pos) {
-        pos = pos.down();
+    public boolean obeliskGetsInfiniteRadiance(Level world, BlockPos pos) {
+        pos = pos.below();
         BlockState block = world.getBlockState(pos);
         boolean result = infiniteRadianceBlocks.contains(block);
         if (requiredBeaconLevel <= 0 || !result || !(block.getBlock() instanceof BeaconBlock)) return result;

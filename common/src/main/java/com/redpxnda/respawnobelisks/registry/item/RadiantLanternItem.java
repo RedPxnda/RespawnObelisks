@@ -2,64 +2,64 @@ package com.redpxnda.respawnobelisks.registry.item;
 
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.util.CoreUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.item.TooltipContext;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class RadiantLanternItem extends BlockItem {
-    public RadiantLanternItem(Block block, Settings settings) {
+    public RadiantLanternItem(Block block, Properties settings) {
         super(block, settings);
     }
 
     @Override
-    public void appendTooltip(ItemStack stack, @Nullable World level, List<Text> lines, TooltipContext tooltipFlag) {
-        double charge = CoreUtils.getCharge(stack.getOrCreateNbt());
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> lines, TooltipFlag tooltipFlag) {
+        double charge = CoreUtils.getCharge(stack.getOrCreateTag());
         lines.add(1,
-                Text.translatable("text.respawnobelisks.tooltip.charge").formatted(Formatting.GRAY)
-                        .append(Text.literal(" " + charge).formatted(Formatting.WHITE))
+                Component.translatable("text.respawnobelisks.tooltip.charge").withStyle(ChatFormatting.GRAY)
+                        .append(Component.literal(" " + charge).withStyle(ChatFormatting.WHITE))
         );
-        lines.add(1, Text.translatable("text.respawnobelisks.tooltip.radiant_lantern." + (charge > 0 ? "full" : "empty")).formatted(Formatting.GRAY));
+        lines.add(1, Component.translatable("text.respawnobelisks.tooltip.radiant_lantern." + (charge > 0 ? "full" : "empty")).withStyle(ChatFormatting.GRAY));
     }
 
     @Override
-    protected boolean canPlace(ItemPlacementContext context, BlockState state) {
-        return CoreUtils.getCharge(context.getStack().getOrCreateNbt()) > 0 && super.canPlace(context, state);
+    protected boolean canPlace(BlockPlaceContext context, BlockState state) {
+        return CoreUtils.getCharge(context.getItemInHand().getOrCreateTag()) > 0 && super.canPlace(context, state);
     }
 
     @Override
-    public ActionResult place(ItemPlacementContext context) {
-        ItemStack stack = context.getStack();
+    public InteractionResult place(BlockPlaceContext context) {
+        ItemStack stack = context.getItemInHand();
         int prevCount = stack.getCount();
 
-        ActionResult result = super.place(context);
+        InteractionResult result = super.place(context);
         int postCount = stack.getCount();
 
         if (context.getPlayer() != null && RespawnObelisksConfig.INSTANCE.radiantFlame.allowMultipleUses && prevCount > postCount) {
             stack.setCount(1);
             ItemStack newStack = stack.copy(); // prevent item from being lost
             stack.setCount(postCount);
-            CoreUtils.setCharge(newStack.getOrCreateNbt(), 0);
-            context.getPlayer().getInventory().offerOrDrop(newStack);
+            CoreUtils.setCharge(newStack.getOrCreateTag(), 0);
+            context.getPlayer().getInventory().placeItemBackInInventory(newStack);
         }
 
         return result;
     }
 
     @Override
-    protected boolean postPlacement(BlockPos pos, World world, @Nullable PlayerEntity player, ItemStack stack, BlockState state) {
-        if (player != null) player.getItemCooldownManager().set(stack.getItem(), RespawnObelisksConfig.INSTANCE.radiantFlame.placementCooldown);
-        return super.postPlacement(pos, world, player, stack, state);
+    protected boolean updateCustomBlockEntityTag(BlockPos pos, Level world, @Nullable Player player, ItemStack stack, BlockState state) {
+        if (player != null) player.getCooldowns().addCooldown(stack.getItem(), RespawnObelisksConfig.INSTANCE.radiantFlame.placementCooldown);
+        return super.updateCustomBlockEntityTag(pos, world, player, stack, state);
     }
 }

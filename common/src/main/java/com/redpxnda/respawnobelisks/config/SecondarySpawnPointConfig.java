@@ -7,9 +7,8 @@ import com.redpxnda.nucleus.util.Comment;
 import com.redpxnda.respawnobelisks.registry.block.entity.RadiantFlameBlockEntity;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
-import net.minecraft.server.network.ServerPlayerEntity;
-
 import java.util.LinkedHashMap;
+import net.minecraft.server.level.ServerPlayer;
 
 @ConfigAutoCodec.ConfigClassMarker
 public class SecondarySpawnPointConfig {
@@ -77,15 +76,15 @@ public class SecondarySpawnPointConfig {
         IF_FLAME,
         UNLESS_FLAME;
 
-        public boolean evaluate(SpawnPoint point, ServerPlayerEntity player) {
+        public boolean evaluate(SpawnPoint point, ServerPlayer player) {
             return switch (this) {
-                case IF_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) >= 0;
-                case UNLESS_CHARGED_OBELISK -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
-                case UNLESS_CHARGED -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) < 0;
-                case IF_OBELISK -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity;
-                case UNLESS_OBELISK -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity);
-                case IF_FLAME -> point != null && player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RadiantFlameBlockEntity;
-                case UNLESS_FLAME -> point == null || !(player.getServer().getWorld(point.dimension()).getBlockEntity(point.pos()) instanceof RadiantFlameBlockEntity);
+                case IF_CHARGED -> point != null && player.getServer().getLevel(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) >= 0;
+                case UNLESS_CHARGED_OBELISK -> point == null || !(player.getServer().getLevel(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe) || robe.getCharge(player)-robe.getCost(player) < 0;
+                case UNLESS_CHARGED -> point != null && player.getServer().getLevel(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity robe && robe.getCharge(player)-robe.getCost(player) < 0;
+                case IF_OBELISK -> point != null && player.getServer().getLevel(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity;
+                case UNLESS_OBELISK -> point == null || !(player.getServer().getLevel(point.dimension()).getBlockEntity(point.pos()) instanceof RespawnObeliskBlockEntity);
+                case IF_FLAME -> point != null && player.getServer().getLevel(point.dimension()).getBlockEntity(point.pos()) instanceof RadiantFlameBlockEntity;
+                case UNLESS_FLAME -> point == null || !(player.getServer().getLevel(point.dimension()).getBlockEntity(point.pos()) instanceof RadiantFlameBlockEntity);
                 case NEVER -> false;
                 case ALWAYS -> true;
             };

@@ -1,6 +1,4 @@
-# 2.6-d
-- updated Nucleus Facet to fix forge loading error
-- fixed obelisks breaking bedrock when exploded
-- fixed player receiving Lost and Found advancement without keeping an item
-- reworked obelisk entity revival system to fix cross-dimensional issues
-- fixed recovery compass not correctly binding to respawn obelisk
+# 2.6-e
+- fixed having extra saved respawn items dropping at world spawn
+- the priority changer for secondary respawn points now shows core names
+- added config options to adjust rune rendering position

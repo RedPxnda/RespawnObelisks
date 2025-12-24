@@ -11,17 +11,17 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 import static com.redpxnda.respawnobelisks.RespawnObelisks.MOD_ID;
 
 public class ObeliskInteractionCategory implements IRecipeCategory<ObeliskInteractionCategory.InteractionRecipe> {
-    public static final Identifier JEI_BACKGROUND = new Identifier(MOD_ID, "textures/gui/jei_category.png");
+    public static final ResourceLocation JEI_BACKGROUND = new ResourceLocation(MOD_ID, "textures/gui/jei_category.png");
 
     private final IDrawable background;
     private final IDrawable icon;
@@ -31,7 +31,7 @@ public class ObeliskInteractionCategory implements IRecipeCategory<ObeliskIntera
                 .drawableBuilder(JEI_BACKGROUND, 0, 0, 116, 32)
                 .setTextureSize(128, 128)
                 .build();
-        this.icon = helper.createDrawableItemStack(ModRegistries.respawnObeliskItem.get().getDefaultStack());
+        this.icon = helper.createDrawableItemStack(ModRegistries.respawnObeliskItem.get().getDefaultInstance());
 //        this.slotBackground = helper
 //                .drawableBuilder(new ResourceLocation("jei", "textures/gui/slot.png"), 0, 0, 18, 18)
 //                .setTextureSize(18, 18)
@@ -44,8 +44,8 @@ public class ObeliskInteractionCategory implements IRecipeCategory<ObeliskIntera
     }
 
     @Override
-    public Text getTitle() {
-        return Text.translatable("text.respawnobelisks.jei.interaction_title");
+    public Component getTitle() {
+        return Component.translatable("text.respawnobelisks.jei.interaction_title");
     }
 
     @Override
@@ -69,7 +69,7 @@ public class ObeliskInteractionCategory implements IRecipeCategory<ObeliskIntera
 
     //todo jei stuff with the core new system
     @Override
-    public void draw(InteractionRecipe recipe, IRecipeSlotsView slotsView, DrawContext graphics, double mouseX, double mouseY) {
+    public void draw(InteractionRecipe recipe, IRecipeSlotsView slotsView, GuiGraphics graphics, double mouseX, double mouseY) {
         /*double charge = Mth.clamp(recipe.charge, 0, 100)/100f;
 
         RenderSystem.setShaderTexture(0, JEI_BACKGROUND);
@@ -78,11 +78,11 @@ public class ObeliskInteractionCategory implements IRecipeCategory<ObeliskIntera
     }
 
     @Override
-    public List<Text> getTooltipStrings(InteractionRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
+    public List<Component> getTooltipStrings(InteractionRecipe recipe, IRecipeSlotsView recipeSlotsView, double mouseX, double mouseY) {
         if (mouseX >= 98 && mouseX <= 113 && mouseY >= 4 && mouseY <= 25)
             return List.of(
-                    Text.literal(recipe.charge + " ").formatted(Formatting.GOLD)
-                    .append(Text.translatable("text.respawnobelisks.jei.charge_text").formatted(Formatting.DARK_GRAY))
+                    Component.literal(recipe.charge + " ").withStyle(ChatFormatting.GOLD)
+                    .append(Component.translatable("text.respawnobelisks.jei.charge_text").withStyle(ChatFormatting.DARK_GRAY))
             );
 
         return IRecipeCategory.super.getTooltipStrings(recipe, recipeSlotsView, mouseX, mouseY);

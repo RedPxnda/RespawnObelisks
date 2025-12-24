@@ -1,81 +1,81 @@
 package com.redpxnda.respawnobelisks.registry.particle;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.redpxnda.nucleus.client.Rendering;
 import com.redpxnda.nucleus.math.MathUtil;
+import net.minecraft.client.Camera;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.DefaultParticleType;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DepleteRingParticle extends SpriteBillboardParticle {
-    private static final MatrixStack poseStack = ChargeIndicatorParticle.poseStack;
+public class DepleteRingParticle extends TextureSheetParticle {
+    private static final PoseStack poseStack = ChargeIndicatorParticle.poseStack;
     protected float oQuadSize;
 
-    protected DepleteRingParticle(SpriteProvider sprites, ClientWorld clientLevel, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+    protected DepleteRingParticle(SpriteSet sprites, ClientLevel clientLevel, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
         super(clientLevel, x, y, z);
-        setSprite(sprites);
-        maxAge = 50;
+        pickSprite(sprites);
+        lifetime = 50;
     }
 
     @Override
     public void tick() {
         super.tick();
-        oQuadSize = scale;
-        scale+=0.25/(age/4f + 1);
+        oQuadSize = quadSize;
+        quadSize+=0.25/(age/4f + 1);
         if (age > 38)
             alpha-=0.05;
     }
 
     @Override
-    public void buildGeometry(VertexConsumer vertexConsumer, Camera camera, float f) {
-        Vec3d vec3 = camera.getPos();
-        float aX = (float)(MathHelper.lerp(f, this.prevPosX, this.x) - vec3.getX());
-        float aY = (float)(MathHelper.lerp(f, this.prevPosY, this.y) - vec3.getY());
-        float aZ = (float)(MathHelper.lerp(f, this.prevPosZ, this.z) - vec3.getZ());
+    public void render(VertexConsumer vertexConsumer, Camera camera, float f) {
+        Vec3 vec3 = camera.getPosition();
+        float aX = (float)(Mth.lerp(f, this.xo, this.x) - vec3.x());
+        float aY = (float)(Mth.lerp(f, this.yo, this.y) - vec3.y());
+        float aZ = (float)(Mth.lerp(f, this.zo, this.z) - vec3.z());
 
-        poseStack.push();
+        poseStack.pushPose();
         poseStack.translate(aX, aY, aZ);
-        poseStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(90));
+        poseStack.mulPose(Axis.XP.rotationDegrees(90));
 
-        float scale = getSize(f);
-        int light = this.getBrightness(f);
+        float scale = getQuadSize(f);
+        int light = this.getLightColor(f);
         Rendering.addDoubleParticleQuad(
                 Rendering.QUAD, poseStack, vertexConsumer,
-                red, green, blue, alpha,
+                rCol, gCol, bCol, alpha,
                 scale, scale, scale,
-                getMinU(), getMaxU(), getMinV(), getMaxV(),
+                getU0(), getU1(), getV0(), getV1(),
                 light);
 
-        poseStack.pop();
+        poseStack.popPose();
     }
 
     @Override
-    public @NotNull ParticleTextureSheet getType() {
-        return ParticleTextureSheet.PARTICLE_SHEET_TRANSLUCENT;
+    public @NotNull ParticleRenderType getRenderType() {
+        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
     }
 
     @Override
-    public float getSize(float f) {
-        return MathUtil.lerp(f, oQuadSize, scale);
+    public float getQuadSize(float f) {
+        return MathUtil.lerp(f, oQuadSize, quadSize);
     }
 
-    public static class Provider implements ParticleFactory<DefaultParticleType> {
-        private final SpriteProvider sprites;
+    public static class Provider implements ParticleProvider<SimpleParticleType> {
+        private final SpriteSet sprites;
 
-        public Provider(SpriteProvider sprites) {
+        public Provider(SpriteSet sprites) {
             this.sprites = sprites;
         }
 
         @Nullable
         @Override
-        public Particle createParticle(DefaultParticleType particleOptions, ClientWorld clientLevel, double d, double e, double f, double g, double h, double i) {
+        public Particle createParticle(SimpleParticleType particleOptions, ClientLevel clientLevel, double d, double e, double f, double g, double h, double i) {
             return new DepleteRingParticle(sprites, clientLevel, d, e, f, g, h, i);
         }
     }

@@ -4,7 +4,7 @@ import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import com.redpxnda.respawnobelisks.registry.ModRegistries;
 import dev.architectury.networking.NetworkManager;
 import java.util.function.Supplier;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 
 public class SyncEffectsPacket {
     private final int amplifier;
@@ -15,12 +15,12 @@ public class SyncEffectsPacket {
         this.duration = duration;
     }
 
-    public SyncEffectsPacket(PacketByteBuf buffer) {
+    public SyncEffectsPacket(FriendlyByteBuf buffer) {
         amplifier = buffer.readInt();
         duration = buffer.readInt();
     }
 
-    public void toBytes(PacketByteBuf buffer) {
+    public void toBytes(FriendlyByteBuf buffer) {
         buffer.writeInt(amplifier);
         buffer.writeInt(duration);
     }

@@ -3,8 +3,8 @@ package com.redpxnda.respawnobelisks.network;
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import dev.architectury.networking.NetworkManager;
 import java.util.function.Supplier;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 
 public class RespawnAnchorInteractionPacket {
     private final BlockPos blockPos;
@@ -17,13 +17,13 @@ public class RespawnAnchorInteractionPacket {
         this.charge = charge;
     }
 
-    public RespawnAnchorInteractionPacket(PacketByteBuf buffer) {
+    public RespawnAnchorInteractionPacket(FriendlyByteBuf buffer) {
         blockPos = buffer.readBlockPos();
         isRun = buffer.readBoolean();
         charge = buffer.readInt();
     }
 
-    public void toBytes(PacketByteBuf buffer) {
+    public void toBytes(FriendlyByteBuf buffer) {
         buffer.writeBlockPos(blockPos);
         buffer.writeBoolean(isRun);
         buffer.writeInt(charge);

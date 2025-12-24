@@ -6,10 +6,9 @@ import com.redpxnda.nucleus.config.preset.ConfigProvider;
 import com.redpxnda.nucleus.util.Comment;
 import com.redpxnda.nucleus.util.MiscUtil;
 import com.redpxnda.respawnobelisks.registry.ModTags;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.tag.BlockTags;
-
 import java.util.function.Supplier;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
 
 public enum ConfigPresets implements ConfigProvider<RespawnObelisksConfig> {
     @Comment("A more forgiving preset with less expense and less difficulty.")

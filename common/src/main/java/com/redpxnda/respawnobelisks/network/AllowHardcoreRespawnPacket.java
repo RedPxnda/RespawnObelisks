@@ -2,9 +2,8 @@ package com.redpxnda.respawnobelisks.network;
 
 import com.redpxnda.respawnobelisks.util.ClientUtils;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.network.PacketByteBuf;
-
 import java.util.function.Supplier;
+import net.minecraft.network.FriendlyByteBuf;
 
 public class AllowHardcoreRespawnPacket {
     private final boolean canRespawn;
@@ -13,11 +12,11 @@ public class AllowHardcoreRespawnPacket {
         this.canRespawn = canRespawn;
     }
 
-    public AllowHardcoreRespawnPacket(PacketByteBuf buffer) {
+    public AllowHardcoreRespawnPacket(FriendlyByteBuf buffer) {
         this.canRespawn = buffer.readBoolean();
     }
 
-    public void toBytes(PacketByteBuf buffer) {
+    public void toBytes(FriendlyByteBuf buffer) {
         buffer.writeBoolean(canRespawn);
     }
 

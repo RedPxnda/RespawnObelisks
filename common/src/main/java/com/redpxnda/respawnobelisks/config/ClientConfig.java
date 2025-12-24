@@ -16,4 +16,7 @@ public class ClientConfig {
 
     @Comment("Maximum texture y value for obelisk rune rendering.")
     public int maxTextureY = 14;
+
+    @Comment("How far inwards/outwards the runes are from the obelisk(in pixels).")
+    public float zPos = 5.505f;
 }

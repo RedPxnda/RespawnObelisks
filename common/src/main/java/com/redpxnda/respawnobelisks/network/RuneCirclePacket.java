@@ -3,7 +3,7 @@ package com.redpxnda.respawnobelisks.network;
 import com.redpxnda.respawnobelisks.network.handler.S2CHandlers;
 import dev.architectury.networking.NetworkManager;
 import java.util.function.Supplier;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 
 public class RuneCirclePacket {
     private final boolean kill;
@@ -20,7 +20,7 @@ public class RuneCirclePacket {
         this.z = z;
     }
 
-    public RuneCirclePacket(PacketByteBuf buffer) {
+    public RuneCirclePacket(FriendlyByteBuf buffer) {
         this.kill = buffer.readBoolean();
         this.age = buffer.readInt();
         this.x = buffer.readDouble();
@@ -28,7 +28,7 @@ public class RuneCirclePacket {
         this.z = buffer.readDouble();
     }
 
-    public void toBytes(PacketByteBuf buffer) {
+    public void toBytes(FriendlyByteBuf buffer) {
         buffer.writeBoolean(kill);
         buffer.writeInt(age);
         buffer.writeDouble(x);

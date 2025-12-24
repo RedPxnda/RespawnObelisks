@@ -10,13 +10,13 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.inventory.RecipeInputInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.ShapelessRecipe;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapelessRecipe;
 
 public class CoreMergeRecipe extends ShapelessRecipe {
     private static final Logger LOGGER = RespawnObelisks.getLogger("Core Merging Recipe");
@@ -25,7 +25,7 @@ public class CoreMergeRecipe extends ShapelessRecipe {
     private final double multiplier;
 
     public CoreMergeRecipe(ShapelessRecipe compose, double multiplier) {
-        super(compose.getId(), compose.getGroup(), compose.getCategory(), compose.getOutput(null), compose.getIngredients());
+        super(compose.getId(), compose.getGroup(), compose.category(), compose.getResultItem(null), compose.getIngredients());
         this.compose = compose;
         this.multiplier = multiplier;
     }
@@ -39,29 +39,29 @@ public class CoreMergeRecipe extends ShapelessRecipe {
     }
 
     @Override
-    public boolean isIgnoredInRecipeBook() {
+    public boolean isSpecial() {
         return true;
     }
 
     @Override
-    public ItemStack craft(RecipeInputInventory inv, DynamicRegistryManager access) {
+    public ItemStack assemble(CraftingContainer inv, RegistryAccess access) {
         List<ItemStack> stacks = getCores(inv);
-        if (stacks.isEmpty()) return super.craft(inv, access);
+        if (stacks.isEmpty()) return super.assemble(inv, access);
 
-        double totalCharge = CoreUtils.getMaxCharge(stacks.get(0).getOrCreateNbt());
+        double totalCharge = CoreUtils.getMaxCharge(stacks.get(0).getOrCreateTag());
         for (ItemStack stack : stacks.subList(1, stacks.size()))
-            totalCharge += CoreUtils.getMaxCharge(stack.getOrCreateNbt())*multiplier;
+            totalCharge += CoreUtils.getMaxCharge(stack.getOrCreateTag())*multiplier;
 
         ItemStack result = stacks.get(0).copy();
         result.setCount(1);
-        CoreUtils.setMaxCharge(result.getOrCreateNbt(), totalCharge);
+        CoreUtils.setMaxCharge(result.getOrCreateTag(), totalCharge);
         return result;
     }
 
-    private static List<ItemStack> getCores(RecipeInputInventory inv) {
+    private static List<ItemStack> getCores(CraftingContainer inv) {
         List<ItemStack> stacks = new ArrayList<>();
-        for (int i = 0; i < inv.size(); i++) {
-            ItemStack stack = inv.getStack(i);
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack stack = inv.getItem(i);
             if (stack.getItem() instanceof CoreItem)
                 stacks.add(stack);
         }
@@ -76,23 +76,23 @@ public class CoreMergeRecipe extends ShapelessRecipe {
 
     public static class Serializer extends ShapelessRecipe.Serializer {
         @Override
-        public CoreMergeRecipe read(Identifier resourceLocation, JsonObject jsonObject) {
+        public CoreMergeRecipe fromJson(ResourceLocation resourceLocation, JsonObject jsonObject) {
             double multiplier = 1;
             if (jsonObject.has("multiplier"))
                 if (jsonObject.get("multiplier") instanceof JsonPrimitive prim && prim.isNumber())
                     multiplier = prim.getAsDouble();
                 else LOGGER.warn("Recipe Json at '" + resourceLocation + "' has invalid 'multiplier' section.");
-            return new CoreMergeRecipe(super.read(resourceLocation, jsonObject), multiplier);
+            return new CoreMergeRecipe(super.fromJson(resourceLocation, jsonObject), multiplier);
         }
 
         @Override
-        public CoreMergeRecipe read(Identifier resourceLocation, PacketByteBuf buf) {
-            return new CoreMergeRecipe(super.read(resourceLocation, buf), buf.readDouble());
+        public CoreMergeRecipe fromNetwork(ResourceLocation resourceLocation, FriendlyByteBuf buf) {
+            return new CoreMergeRecipe(super.fromNetwork(resourceLocation, buf), buf.readDouble());
         }
 
         @Override
-        public void write(PacketByteBuf buf, ShapelessRecipe shapelessRecipe) {
-            super.write(buf, shapelessRecipe);
+        public void toNetwork(FriendlyByteBuf buf, ShapelessRecipe shapelessRecipe) {
+            super.toNetwork(buf, shapelessRecipe);
             if (shapelessRecipe instanceof CoreMergeRecipe recipe)
                 buf.writeDouble(recipe.multiplier);
             else buf.writeDouble(1);

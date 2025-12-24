@@ -11,15 +11,15 @@ import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.facet.SecondarySpawnPoints;
 import com.redpxnda.respawnobelisks.registry.block.RespawnObeliskBlock;
 import com.redpxnda.respawnobelisks.util.SpawnPoint;
-import net.minecraft.block.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,42 +27,42 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Optional;
 
-@Mixin(PlayerManager.class)
+@Mixin(PlayerList.class)
 public abstract class PlayerListMixin {
     @Shadow @Final private MinecraftServer server;
 
     @WrapOperation(
-            method = "respawnPlayer",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;refreshPositionAndAngles(DDDFF)V")
+            method = "respawn",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;moveTo(DDDFF)V")
     )
-    private void RESPAWNOBELISKS_moveToMixin(ServerPlayerEntity instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original, ServerPlayerEntity pPlayer) {
-        BlockPos blockpos = pPlayer.getSpawnPointPosition();
+    private void RESPAWNOBELISKS_moveToMixin(ServerPlayer instance, double x, double y, double z, float yRot, float xRot, Operation<Void> original, ServerPlayer pPlayer) {
+        BlockPos blockpos = pPlayer.getRespawnPosition();
         if (blockpos != null) {
-            BlockState blockstate = pPlayer.getWorld().getBlockState(blockpos);
+            BlockState blockstate = pPlayer.level().getBlockState(blockpos);
             if (blockstate.getBlock() instanceof RespawnObeliskBlock) {
-                if (blockstate.get(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.NORTH) yRot = 180;
-                else if (blockstate.get(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.EAST) yRot = -90;
-                else if (blockstate.get(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.SOUTH) yRot = 0;
-                else if (blockstate.get(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.WEST) yRot = 90;
+                if (blockstate.getValue(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.NORTH) yRot = 180;
+                else if (blockstate.getValue(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.EAST) yRot = -90;
+                else if (blockstate.getValue(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.SOUTH) yRot = 0;
+                else if (blockstate.getValue(RespawnObeliskBlock.RESPAWN_SIDE) == Direction.WEST) yRot = 90;
             }
         }
         original.call(instance, x, y, z, yRot, xRot);
     }
 
     @WrapOperation(
-            method = "respawnPlayer",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;findRespawnPosition(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;FZZ)Ljava/util/Optional;")
+            method = "respawn",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Player;findRespawnPositionAndUseSpawnBlock(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;FZZ)Ljava/util/Optional;")
     )
-    private Optional<Vec3d> RESPAWNOBELISKS_findRespawnPositionAndUseSpawnBlock(
-            ServerWorld world, BlockPos bp, float orientation, boolean forced, boolean endPortalScreen, Operation<Optional<Vec3d>> original,
-            ServerPlayerEntity player, @Local(ordinal = 0) LocalRef<ServerWorld> targetWorld, @Local(ordinal = 0) LocalRef<BlockPos> targetPos,
+    private Optional<Vec3> RESPAWNOBELISKS_findRespawnPositionAndUseSpawnBlock(
+            ServerLevel world, BlockPos bp, float orientation, boolean forced, boolean endPortalScreen, Operation<Optional<Vec3>> original,
+            ServerPlayer player, @Local(ordinal = 0) LocalRef<ServerLevel> targetWorld, @Local(ordinal = 0) LocalRef<BlockPos> targetPos,
             @Local(ordinal = 0) LocalFloatRef targetAngle, @Local(ordinal = 0) LocalBooleanRef targetForced) {
         if (endPortalScreen) {
             if (RespawnObelisksConfig.INSTANCE.dimensions.endSpawnMode == DimensionsConfig.EndSpawnMode.WORLD_SPAWN) return Optional.empty();
 
             if (
                     RespawnObelisksConfig.INSTANCE.dimensions.endSpawnMode == DimensionsConfig.EndSpawnMode.WORLD_SPAWN_IF_IN_END &&
-                    player.getSpawnPointDimension().equals(World.END)
+                    player.getRespawnDimension().equals(Level.END)
             ) return Optional.empty();
 
             if (RespawnObelisksConfig.INSTANCE.dimensions.endSpawnMode == DimensionsConfig.EndSpawnMode.NON_END_SECONDARY && RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints) {
@@ -72,8 +72,8 @@ public abstract class PlayerListMixin {
                     if (point == null) return Optional.empty();
                     else {
                         for (SpawnPoint p : facet.points) {
-                            if (!p.dimension().equals(World.END)) {
-                                ServerWorld newWorld = server.getWorld(p.dimension());
+                            if (!p.dimension().equals(Level.END)) {
+                                ServerLevel newWorld = server.getLevel(p.dimension());
                                 targetWorld.set(newWorld);
                                 targetPos.set(p.pos());
                                 targetAngle.set(p.angle());

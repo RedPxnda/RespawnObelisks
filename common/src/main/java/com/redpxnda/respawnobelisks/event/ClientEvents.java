@@ -23,31 +23,32 @@ import dev.architectury.event.events.client.ClientLifecycleEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.registry.client.particle.ParticleProviderRegistry;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.enums.DoubleBlockHalf;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.Util;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.phys.BlockHitResult;
 
 public class ClientEvents {
-    protected static void onHudRender(DrawContext graphics, float tickDelta) {
+    protected static void onHudRender(GuiGraphics graphics, float tickDelta) {
         if (!RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints || !RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.allowPriorityShifting) return;
         float alpha = -1;
-        SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(MinecraftClient.getInstance().player);
+        SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(Minecraft.getInstance().player);
         if (facet == null || facet.reorderingTarget == null) return;
-        if (!ClientUtils.hasLookedAwayFromPriorityChanger && MinecraftClient.getInstance().crosshairTarget instanceof BlockHitResult blockHitResult && blockHitResult.getBlockPos().equals(facet.reorderingTarget.pos())) {
+        if (!ClientUtils.hasLookedAwayFromPriorityChanger && Minecraft.getInstance().hitResult instanceof BlockHitResult blockHitResult && blockHitResult.getBlockPos().equals(facet.reorderingTarget.pos())) {
             alpha = 1;
-            ClientUtils.priorityChangerLookAwayTime = Util.getMeasuringTimeMs();
+            ClientUtils.priorityChangerLookAwayTime = Util.getMillis();
         } else if (ClientUtils.priorityChangerLookAwayTime >= 0) {
-            float delta = 1 - MathHelper.clamp((Util.getMeasuringTimeMs()-ClientUtils.priorityChangerLookAwayTime)/1000f, 0, 1);
+            float delta = 1 - Mth.clamp((Util.getMillis()-ClientUtils.priorityChangerLookAwayTime)/1000f, 0, 1);
             delta = MathUtil.flip(MathUtil.pow(MathUtil.flip(delta), 3));
             if (delta == 0) {
                 ClientUtils.priorityChangerLookAwayTime = -100;
@@ -74,21 +75,21 @@ public class ClientEvents {
                 minIndex = Math.max(0, maxIndex-5);
             }
 
-            int x = graphics.getScaledWindowWidth()/2 + 20;
-            int y = graphics.getScaledWindowHeight()/2 - Math.min(maxIndex, 5)*12;
+            int x = graphics.guiWidth()/2 + 20;
+            int y = graphics.guiHeight()/2 - Math.min(maxIndex, 5)*12;
             float invAlpha = 1-alpha;
-            graphics.enableScissor(x-9, (int) (y - 2 + invAlpha*maxIndex*12), graphics.getScaledWindowWidth(), (int) (y + 2 + maxIndex*24 - invAlpha*maxIndex*12));
+            graphics.enableScissor(x-9, (int) (y - 2 + invAlpha*maxIndex*12), graphics.guiWidth(), (int) (y + 2 + maxIndex*24 - invAlpha*maxIndex*12));
             y+=4;
             RenderSystem.enableBlend();
             for (int i = minIndex; i < maxIndex; i++) {
                 SpawnPoint point = facet.points.get(i);
-                Item item = ClientUtils.cachedSpawnPointItems.getOrDefault(point, Items.AIR);
+                ItemStack item = ClientUtils.cachedSpawnPointItems.getOrDefault(point, ItemStack.EMPTY);
 
-                graphics.drawItem(item.getDefaultStack(), x, y);
-                Text text = Text.translatable(item.getTranslationKey()).append(Text.literal(" @(" + point.pos().getX() + ", " + point.pos().getY() + ", " + point.pos().getZ() + ")"));
-                Text dimensionText = Text.literal(point.dimension().getValue().toString());
-                graphics.drawText(MinecraftClient.getInstance().textRenderer, text, x+20, y-1, Color.WHITE.argb(), true);
-                graphics.drawText(MinecraftClient.getInstance().textRenderer, dimensionText, x+20, y+9, Color.TEXT_GRAY.argb(), true);
+                graphics.renderItem(item, x, y);
+                Component text = item.getHoverName();
+                Component positionText = Component.literal(point.dimension().location() + " @(" + point.pos().getX() + ", " + point.pos().getY() + ", " + point.pos().getZ() + ")").setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY));
+                graphics.drawString(Minecraft.getInstance().font, text, x+20, y-1, Color.WHITE.argb(), true);
+                graphics.drawString(Minecraft.getInstance().font, positionText, x+20, y+9, Color.TEXT_GRAY.argb(), true);
                 if (point.equals(facet.reorderingTarget)) {
                     graphics.fill(x-2, y-2, x+18, y-1, Color.WHITE.argb());
                     graphics.fill(x+17, y-2, x+18, y+18, Color.WHITE.argb());
@@ -97,9 +98,9 @@ public class ClientEvents {
                 }
 
                 if (i == minIndex)
-                    graphics.drawText(MinecraftClient.getInstance().textRenderer, "-", x-8, y+4, Color.WHITE.argb(), false);
+                    graphics.drawString(Minecraft.getInstance().font, "-", x-8, y+4, Color.WHITE.argb(), false);
                 else if (i == maxIndex-1)
-                    graphics.drawText(MinecraftClient.getInstance().textRenderer, "+", x-8, y+4, Color.WHITE.argb(), false);
+                    graphics.drawString(Minecraft.getInstance().font, "+", x-8, y+4, Color.WHITE.argb(), false);
 
                 y+=24;
             }
@@ -108,21 +109,21 @@ public class ClientEvents {
         }
     }
 
-    protected static EventResult onClientScroll(MinecraftClient mc, double amount) {
-        ClientPlayerEntity player = mc.player;
-        if (player == null || !player.isSneaking()) return EventResult.pass();
-        if (mc.crosshairTarget instanceof BlockHitResult blockResult && mc.world != null) {
-            SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(MinecraftClient.getInstance().player);
+    protected static EventResult onClientScroll(Minecraft mc, double amount) {
+        LocalPlayer player = mc.player;
+        if (player == null || !player.isShiftKeyDown()) return EventResult.pass();
+        if (mc.hitResult instanceof BlockHitResult blockResult && mc.level != null) {
+            SecondarySpawnPoints facet = SecondarySpawnPoints.KEY.get(Minecraft.getInstance().player);
             if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.allowPriorityShifting && !ClientUtils.hasLookedAwayFromPriorityChanger && facet != null && facet.reorderingTarget != null) {
                 if (amount > 0) MiscUtil.moveListElementUp(facet.points, facet.reorderingTarget);
                 else MiscUtil.moveListElementDown(facet.points, facet.reorderingTarget);
                 ModPackets.CHANNEL.sendToServer(new FinishPriorityChangePacket(facet.points));
                 return EventResult.interruptFalse();
             }
-            BlockState blockState = mc.world.getBlockState(blockResult.getBlockPos());
+            BlockState blockState = mc.level.getBlockState(blockResult.getBlockPos());
             if (!(blockState.getBlock() instanceof RespawnObeliskBlock)) return EventResult.pass();
-            boolean isUpper = !(blockState.get(RespawnObeliskBlock.HALF) == DoubleBlockHalf.LOWER);
-            mc.world.playSound(player, blockResult.getBlockPos(), SoundEvents.UI_BUTTON_CLICK.value(), SoundCategory.MASTER, 1, 1);
+            boolean isUpper = !(blockState.getValue(RespawnObeliskBlock.HALF) == DoubleBlockHalf.LOWER);
+            mc.level.playSound(player, blockResult.getBlockPos(), SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.MASTER, 1, 1);
             ModPackets.CHANNEL.sendToServer(new ScrollWheelPacket(amount, blockResult, isUpper));
             return EventResult.interruptFalse();
         }
@@ -130,7 +131,7 @@ public class ClientEvents {
         return EventResult.pass();
     }
 
-    public static void onClientSetup(MinecraftClient mc) {
+    public static void onClientSetup(Minecraft mc) {
         BlockEntityRendererRegistry.register(ModRegistries.ROBE.get(), RespawnObeliskBER::new);
         BlockEntityRendererRegistry.register(ModRegistries.radiantFlameBlockEntity.get(), RadiantFlameBER::new);
 //        if (Platform.isFabric()) // idk this is super goofy: libraries say the `register` method is public, I even AW'd it, but still I get errors :P

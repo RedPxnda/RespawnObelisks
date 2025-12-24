@@ -4,9 +4,9 @@ import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
 import com.redpxnda.nucleus.codec.tag.BlockList;
 import com.redpxnda.nucleus.util.Comment;
 import com.redpxnda.respawnobelisks.registry.block.entity.RespawnObeliskBlockEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.Nullable;
 
 @ConfigAutoCodec.ConfigClassMarker
@@ -21,8 +21,8 @@ public class TeleportConfig {
     public boolean bindToObelisk = false;
 
     @Nullable
-    public BlockPos getBlockBindPosition(World world, BlockPos pos) {
-        return (bindToObelisk && world.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity) ? pos : RespawnObelisksConfig.INSTANCE.teleportation.allowedBindingBlocks.contains(world.getBlockState(pos)) ? pos.up() : null;
+    public BlockPos getBlockBindPosition(Level world, BlockPos pos) {
+        return (bindToObelisk && world.getBlockEntity(pos) instanceof RespawnObeliskBlockEntity) ? pos : RespawnObelisksConfig.INSTANCE.teleportation.allowedBindingBlocks.contains(world.getBlockState(pos)) ? pos.above() : null;
     }
 
     @Comment("The delay before being able to teleport again. (In ticks)\nKeep this above 100, otherwise issues will arise.\nDefault value: 3 minutes/3600 ticks")

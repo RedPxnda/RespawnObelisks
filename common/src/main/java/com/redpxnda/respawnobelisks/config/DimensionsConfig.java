@@ -2,22 +2,21 @@ package com.redpxnda.respawnobelisks.config;
 
 import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
 import com.redpxnda.nucleus.util.Comment;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 @ConfigAutoCodec.ConfigClassMarker
 public class DimensionsConfig {
     @Comment("A whitelist of dimensions (by id) overworld respawn obelisks can be used in.")
-    public List<Identifier> overworldObeliskDimensions = new ArrayList<>(List.of(new Identifier("minecraft:overworld")));
+    public List<ResourceLocation> overworldObeliskDimensions = new ArrayList<>(List.of(new ResourceLocation("minecraft:overworld")));
 
     @Comment("A whitelist of dimensions (by id) nether respawn obelisks can be used in.")
-    public List<Identifier> netherObeliskDimensions = new ArrayList<>(List.of(new Identifier("minecraft:the_nether")));
+    public List<ResourceLocation> netherObeliskDimensions = new ArrayList<>(List.of(new ResourceLocation("minecraft:the_nether")));
 
     @Comment("A whitelist of dimensions (by id) end respawn obelisks can be used in.")
-    public List<Identifier> endObeliskDimensions = new ArrayList<>(List.of(new Identifier("minecraft:the_end")));
+    public List<ResourceLocation> endObeliskDimensions = new ArrayList<>(List.of(new ResourceLocation("minecraft:the_end")));
 
     @Comment("Whether the '...ObeliskDimensions' fields should act as blacklists instead of whitelists.")
     public boolean dimensionsAsBlacklist = false;
@@ -41,13 +40,13 @@ public class DimensionsConfig {
         WORLD_SPAWN_IF_IN_END
     }
 
-    public boolean isValidOverworld(World level) {
-        return dimensionsAsBlacklist != overworldObeliskDimensions.contains(level.getRegistryKey().getValue());
+    public boolean isValidOverworld(Level level) {
+        return dimensionsAsBlacklist != overworldObeliskDimensions.contains(level.dimension().location());
     }
-    public boolean isValidNether(World level) {
-        return dimensionsAsBlacklist != netherObeliskDimensions.contains(level.getRegistryKey().getValue());
+    public boolean isValidNether(Level level) {
+        return dimensionsAsBlacklist != netherObeliskDimensions.contains(level.dimension().location());
     }
-    public boolean isValidEnd(World level) {
-        return dimensionsAsBlacklist != endObeliskDimensions.contains(level.getRegistryKey().getValue());
+    public boolean isValidEnd(Level level) {
+        return dimensionsAsBlacklist != endObeliskDimensions.contains(level.dimension().location());
     }
 }

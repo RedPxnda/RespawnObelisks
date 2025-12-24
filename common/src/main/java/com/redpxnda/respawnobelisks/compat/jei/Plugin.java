@@ -12,10 +12,10 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +26,8 @@ public class Plugin implements IModPlugin {
     protected static RecipeType<InteractionRecipe> INTERACTION_RECIPE_TYPE = RecipeType.create(MOD_ID, "obelisk_interaction", InteractionRecipe.class);
 
     @Override
-    public Identifier getPluginUid() {
-        return new Identifier(MOD_ID, "jei_plugin");
+    public ResourceLocation getPluginUid() {
+        return new ResourceLocation(MOD_ID, "jei_plugin");
     }
 
     @Override
@@ -56,26 +56,26 @@ public class Plugin implements IModPlugin {
 
         registration.addRecipes(INTERACTION_RECIPE_TYPE, recipes);
 
-        for (ItemStack stack : Ingredient.fromTag(ModTags.Items.OBELISK_CORES).getMatchingStacks()) {
+        for (ItemStack stack : Ingredient.of(ModTags.Items.OBELISK_CORES).getItems()) {
             registration.addIngredientInfo(
                     stack,
                     VanillaTypes.ITEM_STACK,
-                    Text.translatable("text.respawnobelisks.jei.core_info")
+                    Component.translatable("text.respawnobelisks.jei.core_info")
             );
         }
 
-        for (ItemStack stack : Ingredient.fromTag(ModTags.Items.RESPAWN_OBELISKS).getMatchingStacks()) {
+        for (ItemStack stack : Ingredient.of(ModTags.Items.RESPAWN_OBELISKS).getItems()) {
             registration.addIngredientInfo(
                     stack,
                     VanillaTypes.ITEM_STACK,
-                    Text.translatable("text.respawnobelisks.jei.obelisk_info")
+                    Component.translatable("text.respawnobelisks.jei.obelisk_info")
             );
         }
 
         registration.addIngredientInfo(
-                ModRegistries.dormantObelisk.get().getDefaultStack(),
+                ModRegistries.dormantObelisk.get().getDefaultInstance(),
                 VanillaTypes.ITEM_STACK,
-                Text.translatable("text.respawnobelisks.jei.dormant_obelisk_info")
+                Component.translatable("text.respawnobelisks.jei.dormant_obelisk_info")
         );
     }
 }

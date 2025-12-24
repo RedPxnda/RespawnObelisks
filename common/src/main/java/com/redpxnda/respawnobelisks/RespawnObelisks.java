@@ -27,16 +27,16 @@ import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.registry.ReloadListenerRegistry;
 import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
-import net.minecraft.block.BedBlock;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.RespawnAnchorBlock;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RespawnAnchorBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,25 +62,25 @@ public class RespawnObelisks {
 
         KeptItemsModule.init();
 
-        LimboReviveTracker.KEY = FacetRegistry.register(new Identifier(MOD_ID, "limbo_trackers"), LimboReviveTracker.class);
-        SecondarySpawnPoints.KEY = FacetRegistry.register(new Identifier(MOD_ID, "spawn_points"), SecondarySpawnPoints.class);
-        HardcoreRespawningTracker.KEY = FacetRegistry.register(new Identifier(MOD_ID, "hardcore_respawning"), HardcoreRespawningTracker.class);
-        KeptRespawnItems.KEY = FacetRegistry.register(new Identifier(MOD_ID, "kept_items"), KeptRespawnItems.class);
-        FailedSpawnBlocks.KEY = FacetRegistry.register(new Identifier(MOD_ID, "failed_spawn_blocks"), FailedSpawnBlocks.class);
+        LimboReviveTracker.KEY = FacetRegistry.register(new ResourceLocation(MOD_ID, "limbo_trackers"), LimboReviveTracker.class);
+        SecondarySpawnPoints.KEY = FacetRegistry.register(new ResourceLocation(MOD_ID, "spawn_points"), SecondarySpawnPoints.class);
+        HardcoreRespawningTracker.KEY = FacetRegistry.register(new ResourceLocation(MOD_ID, "hardcore_respawning"), HardcoreRespawningTracker.class);
+        KeptRespawnItems.KEY = FacetRegistry.register(new ResourceLocation(MOD_ID, "kept_items"), KeptRespawnItems.class);
+        FailedSpawnBlocks.KEY = FacetRegistry.register(new ResourceLocation(MOD_ID, "failed_spawn_blocks"), FailedSpawnBlocks.class);
         FacetRegistry.ENTITY_FACET_ATTACHMENT.register((entity, attacher) -> {
-            if (entity instanceof ServerPlayerEntity sp) {
+            if (entity instanceof ServerPlayer sp) {
                 attacher.add(FailedSpawnBlocks.KEY, new FailedSpawnBlocks());
                 if (RespawnObelisksConfig.INSTANCE.allowHardcoreRespawning)
                     attacher.add(HardcoreRespawningTracker.KEY, new HardcoreRespawningTracker());
                 attacher.add(KeptRespawnItems.KEY, new KeptRespawnItems(sp));
             }
 
-            if (entity instanceof PlayerEntity) {
+            if (entity instanceof Player) {
                 if (RespawnObelisksConfig.INSTANCE.secondarySpawnPoints.enableSecondarySpawnPoints)
                     attacher.add(SecondarySpawnPoints.KEY, new SecondarySpawnPoints());
             }
 
-            if (entity instanceof LivingEntity && !entity.getWorld().isClient) {
+            if (entity instanceof LivingEntity && !entity.level().isClientSide) {
                 attacher.add(LimboReviveTracker.KEY, new LimboReviveTracker());
             }
         });
@@ -107,14 +107,14 @@ public class RespawnObelisks {
                 return state.getBlock() instanceof RadiantFlameBlock rob && rob.getRespawnLocation(false, state, pos, world, player).isPresent();
             });
             RespawnAvailability.availabilityProviders.put(new TaggableBlock(BlockTags.BEDS), (point, pos, state, world, player) -> {
-                return state.getBlock() instanceof BedBlock && BedBlock.findWakeUpPosition(EntityType.PLAYER, world, pos, state.get(BedBlock.FACING), point.angle()).isPresent();
+                return state.getBlock() instanceof BedBlock && BedBlock.findStandUpPosition(EntityType.PLAYER, world, pos, state.getValue(BedBlock.FACING), point.angle()).isPresent();
             });
             RespawnAvailability.availabilityProviders.put(new TaggableBlock(Blocks.RESPAWN_ANCHOR), (point, pos, state, world, player) -> {
-                return RespawnAnchorBlock.findRespawnPosition(EntityType.PLAYER, world, pos).isPresent();
+                return RespawnAnchorBlock.findStandUpPosition(EntityType.PLAYER, world, pos).isPresent();
             });
         });
 
-        ReloadListenerRegistry.register(ResourceType.SERVER_DATA, new RevivedNbtEditing());
+        ReloadListenerRegistry.register(PackType.SERVER_DATA, new RevivedNbtEditing());
     }
 
     public static Logger getLogger() {

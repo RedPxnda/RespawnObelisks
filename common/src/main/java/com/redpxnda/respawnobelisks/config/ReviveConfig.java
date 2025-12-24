@@ -3,11 +3,10 @@ package com.redpxnda.respawnobelisks.config;
 import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
 import com.redpxnda.nucleus.codec.tag.EntityTypeList;
 import com.redpxnda.nucleus.util.Comment;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-
 import java.util.List;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 @ConfigAutoCodec.ConfigClassMarker
 public class ReviveConfig {

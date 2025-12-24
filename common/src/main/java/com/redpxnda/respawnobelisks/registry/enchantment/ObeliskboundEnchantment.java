@@ -1,19 +1,19 @@
 package com.redpxnda.respawnobelisks.registry.enchantment;
 
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.EnchantmentTarget;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentCategory;
 
 public class ObeliskboundEnchantment extends Enchantment {
     public ObeliskboundEnchantment() {
-        super(Rarity.RARE, EnchantmentTarget.BREAKABLE, EquipmentSlot.values());
+        super(Rarity.RARE, EnchantmentCategory.BREAKABLE, EquipmentSlot.values());
     }
 
     @Override
-    public boolean isAcceptableItem(ItemStack itemStack) {
-        return itemStack.getItem().getMaxCount() <= 1 || super.isAcceptableItem(itemStack);
+    public boolean canEnchant(ItemStack itemStack) {
+        return itemStack.getItem().getMaxStackSize() <= 1 || super.canEnchant(itemStack);
     }
 
     @Override
@@ -21,15 +21,15 @@ public class ObeliskboundEnchantment extends Enchantment {
         return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantment.maxLevel;
     }
     @Override
-    public boolean isTreasure() {
+    public boolean isTreasureOnly() {
         return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantment.treasureOnly;
     }
     @Override
-    public boolean isAvailableForEnchantedBookOffer() {
+    public boolean isTradeable() {
         return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantment.tradeable;
     }
     @Override
-    public boolean isAvailableForRandomSelection() {
+    public boolean isDiscoverable() {
         return RespawnObelisksConfig.INSTANCE.respawnPerks.enchantment.discoverable;
     }
 }

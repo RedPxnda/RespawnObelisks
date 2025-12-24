@@ -2,48 +2,48 @@ package com.redpxnda.respawnobelisks.facet.kept;
 
 import com.redpxnda.nucleus.util.PlayerUtil;
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtInt;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.ExperienceOrb;
 
 public class KeptXpModule implements KeptItemsModule {
     public int xp = 0;
 
     @Override
-    public NbtElement toNbt() {
-        return NbtInt.of(xp);
+    public Tag toNbt() {
+        return IntTag.valueOf(xp);
     }
 
     @Override
-    public void fromNbt(NbtElement element) {
-        if (!(element instanceof NbtInt nbtInt)) return;
-        xp = nbtInt.intValue();
+    public void fromNbt(Tag element) {
+        if (!(element instanceof IntTag nbtInt)) return;
+        xp = nbtInt.getAsInt();
     }
 
     @Override
-    public void restore(ServerPlayerEntity oldPlayer, ServerPlayerEntity player) {
+    public void restore(ServerPlayer oldPlayer, ServerPlayer player) {
         if (xp == 0) return;
-        player.addExperience(xp);
+        player.giveExperiencePoints(xp);
         xp = 0;
     }
 
     @Override
-    public void gather(ServerPlayerEntity player) {
-        if (xp <= 0 && !player.isExperienceDroppingDisabled() && RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperience) {
+    public void gather(ServerPlayer player) {
+        if (xp <= 0 && !player.wasExperienceConsumed() && RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperience) {
             int rawXp = PlayerUtil.getTotalXp(player);
-            xp = MathHelper.floor(rawXp*(RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperiencePercent/100f));
-            if (RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperiencePercent >= 100) player.disableExperienceDropping();
-            else player.addExperience(-xp);
+            xp = Mth.floor(rawXp*(RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperiencePercent/100f));
+            if (RespawnObelisksConfig.INSTANCE.respawnPerks.experience.keepExperiencePercent >= 100) player.skipDropExperience();
+            else player.giveExperiencePoints(-xp);
         }
     }
 
     @Override
-    public void scatter(double x, double y, double z, ServerPlayerEntity player) {
+    public void scatter(double x, double y, double z, ServerPlayer player) {
         if (xp <= 0) return;
-        ExperienceOrbEntity orb = new ExperienceOrbEntity(player.getWorld(), x, y, z, xp);
-        player.getWorld().spawnEntity(orb);
+        ExperienceOrb orb = new ExperienceOrb(player.level(), x, y, z, xp);
+        player.level().addFreshEntity(orb);
         xp = 0;
     }
 

@@ -3,11 +3,10 @@ package com.redpxnda.respawnobelisks.config;
 import com.redpxnda.nucleus.codec.auto.ConfigAutoCodec;
 import com.redpxnda.nucleus.codec.tag.BlockList;
 import com.redpxnda.nucleus.util.Comment;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.registry.tag.BlockTags;
-
 import java.util.List;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 
 @ConfigAutoCodec.ConfigClassMarker
 public class BehaviorOverridesConfig {

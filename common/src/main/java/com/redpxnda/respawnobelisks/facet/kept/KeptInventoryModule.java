@@ -2,12 +2,12 @@ package com.redpxnda.respawnobelisks.facet.kept;
 
 import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.util.ObeliskUtils;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ItemScatterer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,35 +16,35 @@ public class KeptInventoryModule implements KeptItemsModule {
     public List<ItemStack> items = new ArrayList<>();
 
     @Override
-    public NbtElement toNbt() {
-        NbtList tag = new NbtList();
-        items.forEach(stack -> tag.add(stack.writeNbt(new NbtCompound())));
+    public Tag toNbt() {
+        ListTag tag = new ListTag();
+        items.forEach(stack -> tag.add(stack.save(new CompoundTag())));
         return tag;
     }
 
     @Override
-    public void fromNbt(NbtElement element) {
-        if (!(element instanceof NbtList list)) return;
+    public void fromNbt(Tag element) {
+        if (!(element instanceof ListTag list)) return;
         items.clear();
-        for (NbtElement itemTag : list) {
-            if (itemTag instanceof NbtCompound compound)
-                items.add(ItemStack.fromNbt(compound));
+        for (Tag itemTag : list) {
+            if (itemTag instanceof CompoundTag compound)
+                items.add(ItemStack.of(compound));
         }
     }
 
     @Override
-    public void restore(ServerPlayerEntity oldPlayer, ServerPlayerEntity player) {
+    public void restore(ServerPlayer oldPlayer, ServerPlayer player) {
         items.forEach(i -> {
-            if (!i.isEmpty()) player.getInventory().offerOrDrop(i);
+            if (!i.isEmpty()) ObeliskUtils.givePlayerSavedItem(player, i, oldPlayer.getRespawnPosition());
         });
         items.clear();
     }
 
     @Override
-    public void gather(ServerPlayerEntity player) {
+    public void gather(ServerPlayer player) {
         if (!items.isEmpty()) return;
         int index = 0;
-        for (ItemStack stack : player.getInventory().main) {
+        for (ItemStack stack : player.getInventory().items) {
             boolean isHotbar = index < 9;
 
             boolean keep = isHotbar ? RespawnObelisksConfig.INSTANCE.respawnPerks.hotbar.keepHotbar : RespawnObelisksConfig.INSTANCE.respawnPerks.inventory.keepInventory;
@@ -52,7 +52,7 @@ public class KeptInventoryModule implements KeptItemsModule {
 
             if (ObeliskUtils.shouldSaveItem(keep, chance, stack)) {
                 items.add(stack);
-                player.getInventory().main.set(index, ItemStack.EMPTY);
+                player.getInventory().items.set(index, ItemStack.EMPTY);
             }
 
             index++;
@@ -60,8 +60,8 @@ public class KeptInventoryModule implements KeptItemsModule {
     }
 
     @Override
-    public void scatter(double x, double y, double z, ServerPlayerEntity player) {
-        items.forEach(item -> ItemScatterer.spawn(player.getWorld(), x, y, z, item));
+    public void scatter(double x, double y, double z, ServerPlayer player) {
+        items.forEach(item -> Containers.dropItemStack(player.level(), x, y, z, item));
         items.clear();
     }
 
