@@ -1,4 +1,2 @@
-# 2.6-e
-- fixed having extra saved respawn items dropping at world spawn
-- the priority changer for secondary respawn points now shows core names
-- added config options to adjust rune rendering position
+# 2.6-f
+- (Epsilon) added config option to change village obelisk spawn weight 
