@@ -1,6 +1,7 @@
 package com.redpxnda.respawnobelisks.registry.structure;
 
 import com.mojang.datafixers.util.Pair;
+import com.redpxnda.respawnobelisks.config.RespawnObelisksConfig;
 import com.redpxnda.respawnobelisks.mixin.StructurePoolAccessor;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -25,6 +26,8 @@ public class VillageAddition {
                                           String nbtPieceRL,
                                           int weight) {
 
+        if (weight <= 0) return;
+
         Holder<StructureProcessorList> emptyProcessorList = processorListRegistry.getHolderOrThrow(EMPTY_PROCESSOR_LIST_KEY);
 
         StructureTemplatePool pool = templatePoolRegistry.get(poolRL);
@@ -45,22 +48,23 @@ public class VillageAddition {
     public static void addNewVillageBuilding(MinecraftServer instance) {
         Registry<StructureTemplatePool> templatePoolRegistry = instance.registryAccess().registry(Registries.TEMPLATE_POOL).orElseThrow();
         Registry<StructureProcessorList> processorListRegistry = instance.registryAccess().registry(Registries.PROCESSOR_LIST).orElseThrow();
+        int weight = RespawnObelisksConfig.INSTANCE.villageObeliskWeight;
         //Village additions
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/plains/town_centers"),
-                "respawnobelisks:village/plains_obelisk_01", 400);
+                "respawnobelisks:village/plains_obelisk_01", weight);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/taiga/town_centers"),
-                "respawnobelisks:village/taiga_obelisk_01", 400);
+                "respawnobelisks:village/taiga_obelisk_01", weight);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/desert/town_centers"),
-                "respawnobelisks:village/desert_obelisk_01", 400);
+                "respawnobelisks:village/desert_obelisk_01", weight);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/savanna/town_centers"),
-                "respawnobelisks:village/savanna_obelisk_01", 400);
+                "respawnobelisks:village/savanna_obelisk_01", weight);
     }
 
 }

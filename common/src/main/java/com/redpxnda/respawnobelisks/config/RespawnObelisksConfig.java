@@ -20,6 +20,9 @@ public class RespawnObelisksConfig {
     @Comment("Whether players are allowed to respawn at an obelisk in hardcore mode.")
     public boolean allowHardcoreRespawning = true;
 
+    @Comment("Weight of respawn obelisks when generating village town centers. Set to 0 to disable village obelisk generation.")
+    public int villageObeliskWeight = 400;
+
     public ClientConfig clientOptions = new ClientConfig();
 
     public BehaviorOverridesConfig behaviorOverrides = new BehaviorOverridesConfig();
